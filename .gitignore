@@ -1,0 +1,10 @@
+Builds/
+Assets/Photon/
+Assets/TextMesh Pro
+Library/
+Logs/
+**/*.csproj
+**/*.meta
+obj/
+Temp/
+UserSettings/
