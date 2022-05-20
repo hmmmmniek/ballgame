@@ -94,9 +94,9 @@ GameObject:
   - component: {fileID: 8219771924214255935}
   - component: {fileID: 5959385959141064519}
   - component: {fileID: 5153849576254331844}
-  - component: {fileID: 8034103017051693839}
   - component: {fileID: 5910183219284176940}
   - component: {fileID: 1728854556392403748}
+  - component: {fileID: 3582619615417690722}
   m_Layer: 0
   m_Name: BallPF
   m_TagString: Untagged
@@ -148,7 +148,7 @@ MonoBehaviour:
   m_Script: {fileID: 1710889294, guid: e725a070cec140c4caffb81624c8c787, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 2
+  _interpolationDataSource: 1
   InterpolationSpace: 0
   InterpolationTarget: {fileID: 8526808137596034991}
   InterpolateErrorCorrection: 1
@@ -162,7 +162,33 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
---- !u!114 &8034103017051693839
+--- !u!135 &5910183219284176940
+SphereCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8650540393363483255}
+  m_Material: {fileID: 13400000, guid: d4d8cd6e7a1a417079d32d8a2d668685, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 1
+  serializedVersion: 2
+  m_Radius: 0.3
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!114 &1728854556392403748
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8650540393363483255}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 70729d76f076f5c439bcfbae0a08ecc5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  _interpolationDataSource: 1
+--- !u!114 &3582619615417690722
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -187,29 +213,3 @@ MonoBehaviour:
   - {fileID: 5153849576254331844}
   - {fileID: 1728854556392403748}
   SimulationBehaviours: []
---- !u!135 &5910183219284176940
-SphereCollider:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8650540393363483255}
-  m_Material: {fileID: 0}
-  m_IsTrigger: 0
-  m_Enabled: 1
-  serializedVersion: 2
-  m_Radius: 0.3
-  m_Center: {x: 0, y: 0, z: 0}
---- !u!114 &1728854556392403748
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 8650540393363483255}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 70729d76f076f5c439bcfbae0a08ecc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  _interpolationDataSource: 2

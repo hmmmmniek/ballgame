@@ -13,7 +13,7 @@ public class CharacterMovementController : NetworkTransform {
     public float acceleration = 10.0f;
     public float braking = 10.0f;
     public float maxSpeed = 2.0f;
-    public float lookHorizontalSpeed = 15.0f;
+    public CharacterCameraController cameraController;
 
     [Networked]
     [HideInInspector]
@@ -23,9 +23,6 @@ public class CharacterMovementController : NetworkTransform {
     [HideInInspector]
     public Vector3 Velocity { get; set; }
 
-    [Networked]
-    [HideInInspector]
-    float cameraRotationX {get; set;}
 
 
     /// <summary>
@@ -38,7 +35,7 @@ public class CharacterMovementController : NetworkTransform {
     /// Sets the default teleport interpolation angular velocity to be the CC's rotation speed on the Z axis.
     /// For more details on how this field is used, see <see cref="NetworkTransform.TeleportToRotation"/>.
     /// </summary>
-    protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, lookHorizontalSpeed);
+    protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, InputHandler.instance.lookHorizontalSpeed);
 
     public CharacterController Controller { get; private set; }
 
@@ -74,11 +71,16 @@ public class CharacterMovementController : NetworkTransform {
         Controller.enabled = true;
     }
 
-    /// <summary>
-    /// Basic implementation of a jump impulse (immediately integrates a vertical component to Velocity).
-    /// <param name="ignoreGrounded">Jump even if not in a grounded state.</param>
-    /// <param name="overrideImpulse">Optional field to override the jump impulse. If null, <see cref="jumpImpulse"/> is used.</param>
-    /// </summary>
+    public override void FixedUpdateNetwork() {
+        if (GetInput(out NetworkInputData networkInputData)) {
+            Move(networkInputData.movementInput);
+            if (networkInputData.isJumpPressed) {
+                Jump();
+            }
+        }
+        Rotate();
+    }
+
     public virtual void Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
         if (IsGrounded || ignoreGrounded) {
             var newVel = Velocity;
@@ -87,10 +89,6 @@ public class CharacterMovementController : NetworkTransform {
         }
     }
 
-    /// <summary>
-    /// Basic implementation of a character controller's movement function based on an intended direction.
-    /// <param name="direction">Intended movement direction, subject to movement query, acceleration and max speed values.</param>
-    /// </summary>
     public virtual void Move(Vector2 movementInput) {
 
         var deltaTime = Runner.DeltaTime;
@@ -124,7 +122,8 @@ public class CharacterMovementController : NetworkTransform {
         IsGrounded = Controller.isGrounded;
     }
 
-    public void Rotate(Vector2 rotationInput) {
-        transform.Rotate(0, rotationInput.x * Runner.DeltaTime * lookHorizontalSpeed, 0);
+    public void Rotate() {
+        transform.localRotation = Quaternion.Euler(0, cameraController.transform.localEulerAngles.y, 0f);
+
     }
 }

@@ -8,9 +8,6 @@ using System;
 public class Spawner : MonoBehaviour, INetworkRunnerCallbacks {
     public PlayerController playerPrefab;
 
-    //Other compoents
-    InputHandler inputHandler;
-
     // Start is called before the first frame update
     void Start() {
 
@@ -26,12 +23,8 @@ public class Spawner : MonoBehaviour, INetworkRunnerCallbacks {
     }
 
     public void OnInput(NetworkRunner runner, NetworkInput input) {
-        if (inputHandler == null && PlayerController.Local != null) {
-            inputHandler = PlayerController.Local.GetComponent<InputHandler>();
-        }
-        if (inputHandler != null) {
-            input.Set(inputHandler.networkInputDataCache);
-        }
+        input.Set(InputHandler.instance.networkInputDataCache);
+        InputHandler.instance.ResetNetworkState();
     }
 
     public void OnConnectedToServer(NetworkRunner runner) { Debug.Log("OnConnectedToServer"); }
