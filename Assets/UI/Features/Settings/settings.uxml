@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/Settings/settings.uss" />
+
+    <engine:Template src="project://database/Assets/UI/Widgets/BackToMain/backToMain.uxml" name="BackToMainTemplate"/>
+
+    <engine:VisualElement class="main">
+        <engine:Instance template="BackToMainTemplate"/>
+
+        <engine:VisualElement class="wrapper">
+            <engine:VisualElement class="left" />
+            <engine:VisualElement class="right">
+                    <engine:Label name="TextLabel" text="Label" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

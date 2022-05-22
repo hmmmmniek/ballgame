@@ -23,8 +23,6 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
             Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("LocalPlayerModel"));
             Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("LocalPlayerModel"));
 
-            Camera.main.enabled = false;
-
             Debug.Log("Spawned local player");
         } else {
             Camera localCamera = GetComponentInChildren<Camera>();

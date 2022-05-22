@@ -12,6 +12,7 @@ public class CharacterCameraController : NetworkTransform {
     void Start() {
         transform.parent = null;
         isLocal = PlayerController.Local == playerController;
+        
     }
 
     public override void FixedUpdateNetwork() {
@@ -21,6 +22,10 @@ public class CharacterCameraController : NetworkTransform {
     }
 
     void Update() {
+        if(cameraAnchorPoint == null) {
+            Destroy(gameObject);
+            return;
+        }
         transform.position = cameraAnchorPoint.position;
         if(isLocal) {
             Rotate(InputHandler.instance.networkInputDataCache.rotationInput);

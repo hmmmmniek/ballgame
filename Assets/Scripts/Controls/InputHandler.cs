@@ -7,7 +7,7 @@ using System;
 
 public class InputHandler : MonoBehaviour {
     public static InputHandler instance = null;
-
+    public UIManager uiManager;
     public float lookHorizontalSpeed = 15.0f;
     public float lookVerticalSpeed = 15.0f;
 
@@ -19,13 +19,18 @@ public class InputHandler : MonoBehaviour {
     private void Awake() {
         InputHandler.instance = this;
         playerInput = GetComponent<PlayerInput>();
-
     }
 
-    void Start() {
+    public void StartGameInput() {
         Cursor.lockState = CursorLockMode.Locked;
         Cursor.visible = false;
         playerInput.onActionTriggered += HandleAction;
+    }
+
+    public void StopGameInput() {
+        Cursor.lockState = CursorLockMode.None;
+        Cursor.visible = true;
+        playerInput.onActionTriggered -= HandleAction;
     }
 
     private void HandleAction(InputAction.CallbackContext context) {
@@ -43,8 +48,8 @@ public class InputHandler : MonoBehaviour {
             networkInputDataCache.isFirePressed = networkInputDataCache.isFirePressed || context.ReadValueAsButton();
         }
         if (context.action.name == "Escape") {
-            Cursor.lockState = Cursor.lockState == CursorLockMode.None ? CursorLockMode.Locked : CursorLockMode.None;
-            Cursor.visible = Cursor.lockState == CursorLockMode.None;
+            StopGameInput();
+            uiManager.ShowMenu();
         }
     }
     public void ResetNetworkState() {

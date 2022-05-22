@@ -26,7 +26,7 @@ public class BallGunController : NetworkBehaviour {
             delay = TickTimer.CreateFromSeconds(Runner, 0.5f);
 
             Vector3 direction = transform.forward.normalized;
-            Runner.Spawn(ballPrefab, transform.position + (direction), Quaternion.LookRotation(direction), Object.InputAuthority, (runner, o) => {
+            Runner.Spawn(ballPrefab, transform.position + (direction), Quaternion.LookRotation(direction), null, (runner, o) => {
                 o.GetComponent<BallController>().Init(direction * speed);
             });
         }
