@@ -7,11 +7,9 @@ public class MainMenuController : Module {
     public new readonly static IEnumerable<string> WIDGET_ELEMENT_NAMES = new string[] {
         ""
     };
-    private PlayerSessionManager sessionManager;
     
-    public MainMenuController(VisualElement element, ControllerDependencies dependencies) {
+    public MainMenuController(VisualElement element) {
 
-        sessionManager = dependencies.sessionManager;
         
         Button settingsButton = element.Q<Button>("SettingsButton");
         settingsButton.clicked += GoToSettings;
@@ -25,13 +23,18 @@ public class MainMenuController : Module {
         Button returnToMatchButton = element.Q<Button>("ReturnToMatchButton");
         returnToMatchButton.clicked += ReturnToMatch;
 
-        if(sessionManager.joined) {
-            lobbyButton.AddToClassList("hidden");
-        } else {
-            leaveMatchButton.AddToClassList("hidden");
-            returnToMatchButton.AddToClassList("hidden");
-        }
-
+        StateManager.instance.networkState.E_GetJoined((joined => {
+            Debug.Log(joined);
+            if(joined) {
+                leaveMatchButton.RemoveFromClassList("hidden");
+                returnToMatchButton.RemoveFromClassList("hidden");
+                lobbyButton.AddToClassList("hidden");
+            } else {
+                leaveMatchButton.AddToClassList("hidden");
+                returnToMatchButton.AddToClassList("hidden");
+                lobbyButton.RemoveFromClassList("hidden");
+            }
+        }));
 
     }
 
@@ -45,6 +48,6 @@ public class MainMenuController : Module {
         ViewManager.instance.Open<GameController>();
     }
     private async void LeaveMatch() {
-        await sessionManager.Leave();
+        await StateManager.instance.networkState.Leave();
     }
 }

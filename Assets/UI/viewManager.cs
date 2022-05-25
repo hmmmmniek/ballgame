@@ -11,17 +11,17 @@ public class ViewManager {
             return _instance;
         }
     }
-    public static void Init(VisualElement root, ControllerDependencies dependencies) {
-        _instance = new ViewManager(root, dependencies);
+    public static void Init(VisualElement root, FeatureTemplates templates) {
+        _instance = new ViewManager(root, templates);
     }
 
     private VisualElement root;
     private VisualElement currentModule;
-    private ControllerDependencies dependencies;
+    private FeatureTemplates templates;
 
-    private ViewManager(VisualElement root, ControllerDependencies dependencies) {
+    private ViewManager(VisualElement root, FeatureTemplates templates) {
         this.root = root;
-        this.dependencies = dependencies;
+        this.templates = templates;
     }
 
     public T Open<T>() where T: Module {
@@ -29,9 +29,9 @@ public class ViewManager {
             root.Remove(currentModule);
         }
         var templateSelector = typeof(T).GetField("TEMPLATE_SELECTOR").GetValue(null) as string;
-        var template = dependencies.GetType().GetField(templateSelector).GetValue(dependencies) as VisualTreeAsset;
+        var template = templates.GetType().GetField(templateSelector).GetValue(templates) as VisualTreeAsset;
         var element = template.Instantiate();
-        var controller = Activator.CreateInstance(typeof(T), new object[] { element, dependencies }) as T;
+        var controller = Activator.CreateInstance(typeof(T), new object[] { element }) as T;
         element.userData = controller;
         root.Add(element);
         currentModule = element;
@@ -60,7 +60,7 @@ public class ViewManager {
         
         var controllers = new List<T>();
         foreach (var widgetElement in widgetElements) {
-            var controller = Activator.CreateInstance(typeof(T), new object[] { widgetElement, dependencies }) as T;
+            var controller = Activator.CreateInstance(typeof(T), new object[] { widgetElement }) as T;
             widgetElement.userData = controller;
             controllers.Add(controller);
         }

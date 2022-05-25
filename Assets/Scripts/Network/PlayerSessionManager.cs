@@ -10,8 +10,6 @@ using System.Linq;
 
 public class PlayerSessionManager : MonoBehaviour, INetworkRunnerCallbacks {
     public PlayerController playerPrefab;
-    [HideInInspector]
-    public bool joined;
     private Camera mainCamera;
 
     public void Start() {
@@ -47,29 +45,28 @@ public class PlayerSessionManager : MonoBehaviour, INetworkRunnerCallbacks {
         InputHandler.instance.ResetNetworkState();
     }
 
-    public async Task Join() {
-        await InitializeNetworkRunner(GameMode.AutoHostOrClient);
-        joined = true;
+    public async Task<bool> Join() {
+        var result = await InitializeNetworkRunner(GameMode.AutoHostOrClient);
+        if(result.Ok) {
+            return true;
+        } else {
+            Debug.Log("Error while joining!");
+            return false;
+        }
     }
 
-    public async Task Leave() {
+    public async Task<bool> Leave() {
         var networkRunner = GetComponent<NetworkRunner>();
         if(networkRunner.IsServer) {
             await networkRunner.Shutdown(false, ShutdownReason.Ok);
         } else {
             await networkRunner.Shutdown(false, ShutdownReason.Ok);
         }
-        joined = false;
+        return true;
     }
 
-    [Rpc(sources: RpcSources.InputAuthority, targets: RpcTargets.StateAuthority, InvokeLocal = false, HostMode = RpcHostMode.SourceIsHostPlayer)]
-    public void DisconnectClient(RpcInfo info = default){
-        Debug.Log("asdfasdf");
-        var networkRunner = GetComponent<NetworkRunner>();
-        networkRunner.Disconnect(info.Source);
-    }
 
-    private async Task InitializeNetworkRunner(GameMode gameMode) {
+    private async Task<StartGameResult> InitializeNetworkRunner(GameMode gameMode) {
         var networkRunner = gameObject.AddComponent<NetworkRunner>();
         var sceneObjectProvider = gameObject.AddComponent<NetworkSceneManagerDefault>();
 
@@ -79,7 +76,7 @@ public class PlayerSessionManager : MonoBehaviour, INetworkRunnerCallbacks {
             SessionName = "TestRoom",
             SceneObjectProvider = sceneObjectProvider
         };
-        await networkRunner.StartGame(startGameArgs);
+        return await networkRunner.StartGame(startGameArgs);
 
     }
 }

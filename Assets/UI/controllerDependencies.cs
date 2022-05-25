@@ -1,24 +1,21 @@
 using Fusion;
 using UnityEngine.UIElements;
 
-public class ControllerDependencies {
+public class FeatureTemplates {
     public VisualTreeAsset mainMenuTemplate;
     public VisualTreeAsset lobbyTemplate;
     public VisualTreeAsset settingsTemplate;
     public VisualTreeAsset gameTemplate;
 
-    public PlayerSessionManager sessionManager;
-    public ControllerDependencies(
+    public FeatureTemplates(
         VisualTreeAsset mainMenuTemplate,
         VisualTreeAsset lobbyTemplate,
         VisualTreeAsset settingsTemplate,
-        VisualTreeAsset gameTemplate,
-        PlayerSessionManager sessionManager
+        VisualTreeAsset gameTemplate
     ) {
         this.mainMenuTemplate = mainMenuTemplate;
         this.lobbyTemplate = lobbyTemplate;
         this.settingsTemplate = settingsTemplate;
         this.gameTemplate = gameTemplate;
-        this.sessionManager = sessionManager;
     }
 }

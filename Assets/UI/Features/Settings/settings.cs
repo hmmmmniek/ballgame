@@ -8,7 +8,7 @@ public class SettingsController : Module {
         BackToMainController.ELEMENT_NAME
     };
 
-    public SettingsController(VisualElement element, ControllerDependencies dependencies) {
+    public SettingsController(VisualElement element) {
 
         Label textLabel = element.Q<Label>("TextLabel");
         textLabel.text = "test!!!!";

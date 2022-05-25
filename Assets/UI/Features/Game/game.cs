@@ -9,7 +9,7 @@ public class GameController: Module {
     };
 
 
-    public GameController(VisualElement element, ControllerDependencies dependencies) {
+    public GameController(VisualElement element) {
         InputHandler.instance.StartGameInput();
     }
 

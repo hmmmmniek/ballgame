@@ -7,10 +7,8 @@ public class LobbyController: Module {
     public new readonly static IEnumerable<string> WIDGET_ELEMENT_NAMES = new string[] {
         BackToMainController.ELEMENT_NAME
     };
-    private PlayerSessionManager sessionManager;
 
-    public LobbyController(VisualElement element, ControllerDependencies dependencies) {
-        sessionManager = dependencies.sessionManager;
+    public LobbyController(VisualElement element) {
 
         Label textLabel = element.Q<Label>("TextLabel");
         textLabel.text = "test!!!!";
@@ -19,7 +17,7 @@ public class LobbyController: Module {
         startButton.clicked += JoinMatch;
     }
     private async void JoinMatch() {
-        await sessionManager.Join();
+        await StateManager.instance.networkState.Join();
         ViewManager.instance.Open<GameController>();
     }
 }

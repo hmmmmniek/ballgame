@@ -12,22 +12,23 @@ public class UIManager : MonoBehaviour
 
     public PlayerSessionManager sessionManager;
 
-    private UIDocument uiDocument;
-
     private void OnEnable() {
-        uiDocument = GetComponent<UIDocument>();
+        var stateDependencies = new StateDependencies(
+            sessionManager
+        );
+        StateManager.Init(stateDependencies);
+
+        var uiDocument = GetComponent<UIDocument>();
         var root = uiDocument.rootVisualElement;
-        
-        ViewManager.Init(root.Q<VisualElement>("Root"), new ControllerDependencies(
+        var featureTemplates = new FeatureTemplates(
             mainMenuTemplate,
             lobbyTemplate,
             settingsTemplate,
-            gameTemplate,
-            sessionManager
-        ));
+            gameTemplate
+        );
+        ViewManager.Init(root.Q<VisualElement>("Root"), featureTemplates);
 
         ShowMenu();
-
     }
 
     public void ShowMenu() {
