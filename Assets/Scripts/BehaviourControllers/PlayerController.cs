@@ -10,7 +10,7 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public Transform playerModel;
     public Transform glassesModel;
-
+    
     // Start is called before the first frame update
     void Start() {
 
@@ -22,6 +22,9 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
             Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("LocalPlayerModel"));
             Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("LocalPlayerModel"));
+
+            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
+
 
             Debug.Log("Spawned local player");
         } else {

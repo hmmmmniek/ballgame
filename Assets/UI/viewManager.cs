@@ -42,6 +42,14 @@ public class ViewManager {
         return controller;
     }
 
+    public VisualTreeAsset GetWidgetTemplate<T>() where T: Widget {
+        var templateSelector = typeof(T).GetField("TEMPLATE_SELECTOR").GetValue(null) as string;
+        var template = templates.GetType().GetField(templateSelector).GetValue(templates) as VisualTreeAsset;
+    
+        return template;
+    }
+
+
     private void InitializeWidgets(IEnumerable<string> elementNames) {
         foreach (var elementName in elementNames) {
             switch (elementName){

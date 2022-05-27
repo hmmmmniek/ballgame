@@ -1,0 +1,20 @@
+:root {
+    flex-direction: row;
+    align-items: center;
+}
+.sessionListItem {
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+.session_players {
+    flex-direction: row;
+    align-items: center;
+}
+
+Label {
+    margin: 0px;
+    padding: 0px;
+}

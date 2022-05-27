@@ -15,8 +15,8 @@
         <engine:VisualElement class="wrapper">
             <engine:VisualElement class="left" />
             <engine:VisualElement class="right">
-                    <engine:Label name="TextLabel" text="Label" />
-                    <engine:Button name="StartButton" text="Join match" />
+                    <engine:ListView class="the-uxml-listview" />
+                    <engine:Button name="JoinButton" class="hidden" text="Join selected session" />
 
             </engine:VisualElement>
         </engine:VisualElement>

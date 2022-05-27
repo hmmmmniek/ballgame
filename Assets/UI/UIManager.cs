@@ -9,12 +9,13 @@ public class UIManager : MonoBehaviour
     public VisualTreeAsset lobbyTemplate;
     public VisualTreeAsset settingsTemplate;
     public VisualTreeAsset gameTemplate;
+    public VisualTreeAsset sessionListItem;
 
-    public PlayerSessionManager sessionManager;
+    public NetworkManager networkManager;
 
     private void OnEnable() {
         var stateDependencies = new StateDependencies(
-            sessionManager
+            networkManager
         );
         StateManager.Init(stateDependencies);
 
@@ -24,7 +25,8 @@ public class UIManager : MonoBehaviour
             mainMenuTemplate,
             lobbyTemplate,
             settingsTemplate,
-            gameTemplate
+            gameTemplate,
+            sessionListItem
         );
         ViewManager.Init(root.Q<VisualElement>("Root"), featureTemplates);
 

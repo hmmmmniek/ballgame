@@ -2,11 +2,11 @@ using Fusion;
 using UnityEngine.UIElements;
 
 public class StateDependencies {
-    public PlayerSessionManager sessionManager;
+    public NetworkManager networkManager;
 
     public StateDependencies(
-        PlayerSessionManager sessionManager
+        NetworkManager networkManager
     ) {
-        this.sessionManager = sessionManager;
+        this.networkManager = networkManager;
     }
 }

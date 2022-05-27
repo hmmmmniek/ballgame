@@ -7,26 +7,14 @@ using UnityEditor;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 
-public class ServerDisconnected : MonoBehaviour, INetworkRunnerCallbacks {
-    private Camera mainCamera;
+public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
 
-    public void Start() {
-        mainCamera = Camera.main;
-    }
     public async void OnDisconnectedFromServer(NetworkRunner runner) {
-        await GetComponent<NetworkRunner>().Shutdown(false);
-
-        Debug.Log("onDisconnect");
-        mainCamera.enabled = true;
+        await runner.Shutdown(true);
     }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) {
-        if(shutdownReason != ShutdownReason.HostMigration) {
-            Debug.Log("onShutdown");
-            Destroy(GetComponent<NetworkRunner>());
-            Destroy(GetComponent<NetworkSceneManagerDefault>());
-            Destroy(GetComponent<NetworkPhysicsSimulation3D>());
-            Destroy(GetComponent<HitboxManager>());
-            mainCamera.enabled = true;
+        if(shutdownReason != ShutdownReason.HostMigration) {         
+            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
         }
     }
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
@@ -45,3 +33,4 @@ public class ServerDisconnected : MonoBehaviour, INetworkRunnerCallbacks {
     public void OnSceneLoadStart(NetworkRunner runner) { }
 }
 
+//You're doing such a good job!! You are a badass dude. <3 ur girlfriend (sam)

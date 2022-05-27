@@ -8,7 +8,8 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 
-public class HostMigration : MonoBehaviour, INetworkRunnerCallbacks {
+public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
+
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
@@ -28,29 +29,8 @@ public class HostMigration : MonoBehaviour, INetworkRunnerCallbacks {
 
 
     public async void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) {
-        Debug.Log("onHostMigration");
-        await runner.Shutdown(false, ShutdownReason.HostMigration);
-        DestroyImmediate(GetComponent<NetworkRunner>());
-        Destroy(GetComponent<NetworkSceneManagerDefault>());
-        Destroy(GetComponent<NetworkPhysicsSimulation3D>());
-        Destroy(GetComponent<HitboxManager>());
-
-        var networkRunner = gameObject.AddComponent<NetworkRunner>();
-        var sceneObjectProvider = gameObject.AddComponent<NetworkSceneManagerDefault>();
-
-        networkRunner.ProvideInput = true;
-
-        StartGameResult result = await networkRunner.StartGame(new StartGameArgs() {
-            HostMigrationToken = hostMigrationToken,
-            HostMigrationResume = HostMigrationResume,
-            SceneObjectProvider = sceneObjectProvider
-        });
-
-        if (result.Ok == false) {
-            Debug.LogWarning(result.ShutdownReason);
-        } else {
-            Debug.Log("Done");
-        }
+        var networkManager = GetComponent<NetworkManager>();
+        await networkManager.JoinHostMigration(hostMigrationToken, HostMigrationResume);
     }
     void HostMigrationResume(NetworkRunner runner) {
 
