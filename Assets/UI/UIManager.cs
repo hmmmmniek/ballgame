@@ -5,11 +5,7 @@ using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
 {
-    public VisualTreeAsset mainMenuTemplate;
-    public VisualTreeAsset lobbyTemplate;
-    public VisualTreeAsset settingsTemplate;
-    public VisualTreeAsset gameTemplate;
-    public VisualTreeAsset sessionListItem;
+
 
     public NetworkManager networkManager;
 
@@ -21,14 +17,8 @@ public class UIManager : MonoBehaviour
 
         var uiDocument = GetComponent<UIDocument>();
         var root = uiDocument.rootVisualElement;
-        var featureTemplates = new FeatureTemplates(
-            mainMenuTemplate,
-            lobbyTemplate,
-            settingsTemplate,
-            gameTemplate,
-            sessionListItem
-        );
-        ViewManager.Init(root.Q<VisualElement>("Root"), featureTemplates);
+
+        ViewManager.Init(root.Q<VisualElement>("Root"));
 
         ShowMenu();
     }

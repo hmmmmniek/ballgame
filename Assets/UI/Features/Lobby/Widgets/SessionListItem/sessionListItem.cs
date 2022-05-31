@@ -5,7 +5,7 @@ using UnityEngine.UIElements;
 
 public class SessionListItemController : Widget {
     public new const string ELEMENT_NAME = "SessionListItem";
-    public new const string TEMPLATE_SELECTOR = "sessionListItem";
+    public new const string TEMPLATE_SELECTOR = "sessionListItem.uxml";
     private VisualElement element;
 
     public SessionListItemController(VisualElement element) {

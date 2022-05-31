@@ -5,10 +5,6 @@
     xmlns:editor="UnityEditor.UIElements"
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
-    <Style src="project://database/Assets/UI/Widgets/BackToMain/backToMain.uss" />
+    <Style src="project://database/Assets/UI/Features/Game/game.uss" />
 
-    <engine:VisualElement class="backToMain" name="BackToMain">
-        <engine:Button class="backToMain__button" name="BackButton" text="Back to main menu" />
-    </engine:VisualElement>
 </engine:UXML>
-

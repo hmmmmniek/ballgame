@@ -10,7 +10,6 @@ using System.Linq;
 
 public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
 
-
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnInput(NetworkRunner runner, NetworkInput input) { }
     public void OnConnectedToServer(NetworkRunner runner) { }
@@ -29,7 +28,7 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
 
 
     public async void OnHostMigration(NetworkRunner runner, HostMigrationToken hostMigrationToken) {
-        var networkManager = GetComponent<NetworkManager>();
+        NetworkManager networkManager = FindObjectOfType<NetworkManager>();
         await networkManager.JoinHostMigration(hostMigrationToken, HostMigrationResume);
     }
     void HostMigrationResume(NetworkRunner runner) {

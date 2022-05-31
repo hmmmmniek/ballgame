@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/Lobby/Widgets/SessionListItem/sessionListItem.uss" />
+
+    <engine:VisualElement class="sessionListItem" name="SessionListItem">
+        <engine:Label name="session-name__label" text="" />
+        <engine:Label name="session-location__label" text="" />
+        <engine:VisualElement class="session_players">
+            <engine:Label name="session-players__connected-label" text="" />
+            <engine:Label text="/" />
+            <engine:Label name="session-players__max-label" text="" />
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
+

@@ -29,6 +29,7 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) {
         Debug.Log("OnSessionListUpdated " + sessionList.Count);
         StateManager.instance.networkState.SetSessionList(sessionList);
+        
     }
 
 

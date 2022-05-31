@@ -9,6 +9,7 @@ public class NetworkStateData {
     public bool joined;
     public List<SessionInfo> sessionList;
     public SessionInfo currentSession;
+    public string region = Fusion.Photon.Realtime.PhotonAppSettings.Instance.AppSettings.FixedRegion;
 }
 
 public class NetworkState: BaseState<NetworkStateData> {
@@ -32,11 +33,38 @@ public class NetworkState: BaseState<NetworkStateData> {
         }, callback);
     }
 
+    public void E_GetRegion(Action<string> callback) {
+        StateSelect<string>((NetworkStateData state) => {
+            return state.region;
+        }, callback);
+    }
 
     public void SetSessionList(List<SessionInfo> sessionList) {
         StateChange((NetworkStateData state) => {
             state.sessionList = sessionList;
         });
+    }
+
+    public async void SetRegion(string region) {
+        Fusion.Photon.Realtime.PhotonAppSettings.Instance.AppSettings.FixedRegion = region;
+        StateChange((NetworkStateData state) => {
+            state.region = region;
+        });
+        await dependencies.networkManager.ResetRunner();
+
+    }
+
+    public async Task Create(string name, int size) {
+        if(state.joined == false) {
+            var result = await dependencies.networkManager.StartSession(name, size);
+            if (result) {
+                StateChange((NetworkStateData state) => {
+                    state.joined = true;
+                    state.currentSession = result;
+                });
+                ViewManager.instance.Open<GameController>();
+            }
+        }
     }
 
     public async Task Join(SessionInfo session) {

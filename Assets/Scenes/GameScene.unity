@@ -184,11 +184,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4d9648709e63609d19c6e1cc0a1e8464, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  mainMenuTemplate: {fileID: 9197481963319205126, guid: f9451ed48f56ba10e8a3f52fac9276e5, type: 3}
-  lobbyTemplate: {fileID: 9197481963319205126, guid: 0785a1050ce94e0b7973745fd3ce9afe, type: 3}
-  settingsTemplate: {fileID: 9197481963319205126, guid: d69d6213457135b9ca66c2c0184ae675, type: 3}
-  gameTemplate: {fileID: 9197481963319205126, guid: af7498bf230a346bb900768e012b52bf, type: 3}
-  sessionListItem: {fileID: 9197481963319205126, guid: 3ab33617e469ac098b3a8edaf64a6ab3, type: 3}
   networkManager: {fileID: 8982680463597388385}
 --- !u!1 &85591296
 GameObject:

@@ -6,9 +6,9 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public class LobbyController : Module {
-    public new readonly static string TEMPLATE_SELECTOR = "lobbyTemplate";
+    public new const string TEMPLATE_SELECTOR = "lobby.uxml";
     public new readonly static IEnumerable<string> WIDGET_ELEMENT_NAMES = new string[] {
-        BackToMainController.ELEMENT_NAME,
+        BackButtonController.ELEMENT_NAME,
         SessionListItemController.ELEMENT_NAME
     };
 
@@ -17,17 +17,56 @@ public class LobbyController : Module {
     private List<SessionInfo> sessions;
     private SessionInfo selectedSession;
     private Button joinButton;
+    private VisualElement element;
+
     public LobbyController(VisualElement element) {
+        this.element = element;
+
+        Button regionButton_asia = element.Q<Button>("session-region-selector__asia");
+        Button regionButton_jp = element.Q<Button>("session-region-selector__jp");
+        Button regionButton_eu = element.Q<Button>("session-region-selector__eu");
+        Button regionButton_sa = element.Q<Button>("session-region-selector__sa");
+        Button regionButton_us = element.Q<Button>("session-region-selector__us");
+        regionButton_asia.clicked += () => { StateManager.instance.networkState.SetRegion("asia"); };
+        regionButton_jp.clicked += () => { StateManager.instance.networkState.SetRegion("jp"); };
+        regionButton_eu.clicked += () => { StateManager.instance.networkState.SetRegion("eu"); };
+        regionButton_sa.clicked += () => { StateManager.instance.networkState.SetRegion("sa"); };
+        regionButton_us.clicked += () => { StateManager.instance.networkState.SetRegion("us"); };
+
+        StateManager.instance.networkState.E_GetRegion((region => {
+            Button unselectedButton = element.Q<VisualElement>(null, "session-region-selector").Q<Button>(null, "selected");
+            if(unselectedButton != null) {
+                unselectedButton.RemoveFromClassList("selected");
+            }
+            
+            Button selectedButton = element.Q<Button>($"session-region-selector__{region}");
+            if(selectedButton != null) {
+                selectedButton.AddToClassList("selected");
+            }
+        }));
 
         joinButton = element.Q<Button>("JoinButton");
         joinButton.clicked += JoinMatch;
+
+        Button backButton = element.Q<Button>("BackButton");
+        backButton.clicked += GoToMainMenu;
+
+        Button createSessionButton = element.Q<Button>("CreateSessionButton");
+        createSessionButton.clicked += GoToSessionCreation;
 
         var listView = element.Q<ListView>();
 
         SetupSessionList(listView);
         FixListViewScrollingBug(listView);
 
+    }
 
+    private void GoToMainMenu() {
+        ViewManager.instance.Open<MainMenuController>();
+    }
+
+    private void GoToSessionCreation() {
+        ViewManager.instance.Open<CreateSessionController>();
     }
 
     private void SetupSessionList(ListView listView) {
@@ -103,3 +142,11 @@ public class LobbyController : Module {
         }
     }
 }
+
+
+
+
+
+
+
+

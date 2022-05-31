@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/CreateSession/createSession.uss" />
+
+    <engine:Template src="project://database/Assets/UI/Widgets/BackButton/backButton.uxml" name="BackButtonTemplate"/>
+
+    <engine:VisualElement class="main">
+        <engine:Instance template="BackButtonTemplate">
+            <engine:AttributeOverrides element-name="BackButton" text="Back to lobby" />
+        </engine:Instance>
+        <engine:VisualElement class="wrapper">
+            <engine:VisualElement class="session-size-selector">
+            
+                <engine:Button name="session-size-selector__1v1" text="1v1" />
+                <engine:Button name="session-size-selector__3v3" text="3v3" />
+                <engine:Button name="session-size-selector__5v5" text="5v5" />
+            </engine:VisualElement>
+
+            <engine:VisualElement class="session-name-input">
+                <engine:TextField name="session-name-input__textfield" max-length="100" />
+                <engine:Button name="session-name-input__clear" text="Clear" />
+
+            </engine:VisualElement>
+            <engine:VisualElement class="session-create">
+                <engine:Button name="session-create__button" text="Start new session"/>
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

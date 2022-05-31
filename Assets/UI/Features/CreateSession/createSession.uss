@@ -15,19 +15,16 @@
     width: 350px;
 }
 
-.unity-list-view__empty-label {
-    display: none;
-}
 
 .hidden {
     display: none;
 }
-.session-region-selector {
+.wrapper .session-size-selector, .wrapper .session-name-input {
     flex-direction: row;
     height: 50px;
 }
 
-Button.selected {
+.wrapper Button.selected {
     background-color: #83B76A;
     border-width: 5px;
 }

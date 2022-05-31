@@ -1,7 +1,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.IO;
+using UnityEditor;
 using UnityEngine;
+using UnityEngine.Networking;
 using UnityEngine.UIElements;
 
 public class ViewManager {
@@ -11,50 +14,50 @@ public class ViewManager {
             return _instance;
         }
     }
-    public static void Init(VisualElement root, FeatureTemplates templates) {
-        _instance = new ViewManager(root, templates);
+    public static void Init(VisualElement root) {
+        _instance = new ViewManager(root);
     }
 
     private VisualElement root;
     private VisualElement currentModule;
-    private FeatureTemplates templates;
 
-    private ViewManager(VisualElement root, FeatureTemplates templates) {
+    private ViewManager(VisualElement root) {
         this.root = root;
-        this.templates = templates;
     }
 
     public T Open<T>() where T: Module {
         if(currentModule != null) {
             root.Remove(currentModule);
         }
-        var templateSelector = typeof(T).GetField("TEMPLATE_SELECTOR").GetValue(null) as string;
-        var template = templates.GetType().GetField(templateSelector).GetValue(templates) as VisualTreeAsset;
+        var template = GetTemplate<T>();
         var element = template.Instantiate();
+
         var controller = Activator.CreateInstance(typeof(T), new object[] { element }) as T;
         element.userData = controller;
         root.Add(element);
         currentModule = element;
 
-        var widgetElementNames = typeof(T).GetField("WIDGET_ELEMENT_NAMES").GetValue(null) as IEnumerable<string>;
-        InitializeWidgets(widgetElementNames);
+        InitializeWidgetsOfModule<T>();
 
         return controller;
     }
 
     public VisualTreeAsset GetWidgetTemplate<T>() where T: Widget {
+        return GetTemplate<T>();
+    }
+
+    private VisualTreeAsset GetTemplate<T>() where T: Template {
         var templateSelector = typeof(T).GetField("TEMPLATE_SELECTOR").GetValue(null) as string;
-        var template = templates.GetType().GetField(templateSelector).GetValue(templates) as VisualTreeAsset;
-    
+        VisualTreeAsset template = Resources.Load<VisualTreeAsset>(Path.GetFileNameWithoutExtension(templateSelector));
         return template;
     }
 
-
-    private void InitializeWidgets(IEnumerable<string> elementNames) {
+    private void InitializeWidgetsOfModule<T>() where T: Module {
+        var elementNames = typeof(T).GetField("WIDGET_ELEMENT_NAMES").GetValue(null) as IEnumerable<string>;
         foreach (var elementName in elementNames) {
             switch (elementName){
-                case BackToMainController.ELEMENT_NAME: {
-                    InitializeWidgetsOfType<BackToMainController>();
+                case BackButtonController.ELEMENT_NAME: {
+                    InitializeWidgetsOfType<BackButtonController>();
                     break;
                 }
             }

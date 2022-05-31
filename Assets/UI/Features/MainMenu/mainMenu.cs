@@ -3,14 +3,14 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public class MainMenuController : Module {
-    public new readonly static string TEMPLATE_SELECTOR = "mainMenuTemplate";
+    public new const string TEMPLATE_SELECTOR = "mainMenu.uxml";
     public new readonly static IEnumerable<string> WIDGET_ELEMENT_NAMES = new string[] {
         ""
     };
     
     public MainMenuController(VisualElement element) {
 
-        
+
         Button settingsButton = element.Q<Button>("SettingsButton");
         settingsButton.clicked += GoToSettings;
 
@@ -24,7 +24,6 @@ public class MainMenuController : Module {
         returnToMatchButton.clicked += ReturnToMatch;
 
         StateManager.instance.networkState.E_GetJoined((joined => {
-            Debug.Log(joined);
             if(joined) {
                 leaveMatchButton.RemoveFromClassList("hidden");
                 returnToMatchButton.RemoveFromClassList("hidden");
