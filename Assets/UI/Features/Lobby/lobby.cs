@@ -27,13 +27,13 @@ public class LobbyController : Module {
         Button regionButton_eu = element.Q<Button>("session-region-selector__eu");
         Button regionButton_sa = element.Q<Button>("session-region-selector__sa");
         Button regionButton_us = element.Q<Button>("session-region-selector__us");
-        regionButton_asia.clicked += () => { StateManager.instance.networkState.SetRegion("asia"); };
-        regionButton_jp.clicked += () => { StateManager.instance.networkState.SetRegion("jp"); };
-        regionButton_eu.clicked += () => { StateManager.instance.networkState.SetRegion("eu"); };
-        regionButton_sa.clicked += () => { StateManager.instance.networkState.SetRegion("sa"); };
-        regionButton_us.clicked += () => { StateManager.instance.networkState.SetRegion("us"); };
+        regionButton_asia.clicked += () => { NetworkState.Dispatch(NetworkState.SetRegion, "asia", () => {}); };
+        regionButton_jp.clicked += () => { NetworkState.Dispatch(NetworkState.SetRegion, "jp", () => {}); };
+        regionButton_eu.clicked += () => { NetworkState.Dispatch(NetworkState.SetRegion, "eu", () => {}); };
+        regionButton_sa.clicked += () => { NetworkState.Dispatch(NetworkState.SetRegion, "sa", () => {}); };
+        regionButton_us.clicked += () => { NetworkState.Dispatch(NetworkState.SetRegion, "us", () => {}); };
 
-        StateManager.instance.networkState.E_GetRegion((region => {
+        Watch(NetworkState.Select<string>(NetworkState.GetRegion, (region) => {
             Button unselectedButton = element.Q<VisualElement>(null, "session-region-selector").Q<Button>(null, "selected");
             if(unselectedButton != null) {
                 unselectedButton.RemoveFromClassList("selected");
@@ -91,7 +91,7 @@ public class LobbyController : Module {
             }
         };
 
-        StateManager.instance.networkState.E_GetSessionList((sessions => {
+        Watch(NetworkState.Select<List<SessionInfo>>(NetworkState.GetSessionList, (sessions) => {
             if (sessions != null) {
                 listView.itemsSource = sessions;
                 this.sessions = sessions;
@@ -109,11 +109,12 @@ public class LobbyController : Module {
                 }
             }
         }));
+        
     }
 
-    private async void JoinMatch() {
+    private void JoinMatch() {
         if (selectedSession != null) {
-            await StateManager.instance.networkState.Join(selectedSession);
+            NetworkState.Dispatch(NetworkState.Join, selectedSession, () => {});
         }
     }
 

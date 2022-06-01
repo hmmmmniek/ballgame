@@ -185,6 +185,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   networkManager: {fileID: 8982680463597388385}
+  playerInput: {fileID: 85591302}
 --- !u!1 &85591296
 GameObject:
   m_ObjectHideFlags: 0

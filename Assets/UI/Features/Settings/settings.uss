@@ -10,17 +10,10 @@
 }
 
 .wrapper {
-    flex-direction: row;
-    height: 350px;
+    flex-direction: column;
+    width: 350px;
 }
 
-.left, .right {
-    width: 200px;
-    height: 100%;
-}
-.left {
-    background-color: #ff0000;
-}
-.right {
-    background-color: #00ff00;
+.hidden {
+    display: none;
 }

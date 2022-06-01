@@ -1,17 +1,19 @@
 using System;
 using Fusion;
 using UnityEngine;
+using UnityEngine.InputSystem;
 using UnityEngine.UIElements;
 
 public class UIManager : MonoBehaviour
 {
 
-
     public NetworkManager networkManager;
+    public PlayerInput playerInput;
 
     private void OnEnable() {
         var stateDependencies = new StateDependencies(
-            networkManager
+            networkManager,
+            playerInput
         );
         StateManager.Init(stateDependencies);
 

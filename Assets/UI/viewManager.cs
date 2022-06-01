@@ -23,6 +23,7 @@ public class ViewManager {
 
     private ViewManager(VisualElement root) {
         this.root = root;
+
     }
 
     public T Open<T>() where T: Module {
@@ -35,6 +36,9 @@ public class ViewManager {
         var controller = Activator.CreateInstance(typeof(T), new object[] { element }) as T;
         element.userData = controller;
         root.Add(element);
+        element.RegisterCallback<DetachFromPanelEvent>((e) => {
+            (currentModule.userData as Module).OnDestroy();
+        });
         currentModule = element;
 
         InitializeWidgetsOfModule<T>();

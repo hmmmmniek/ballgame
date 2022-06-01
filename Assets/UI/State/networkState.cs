@@ -5,14 +5,16 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.UIElements;
 
-public class NetworkStateData {
+public class NetworkStateData: StateData {
     public bool joined;
     public List<SessionInfo> sessionList;
     public SessionInfo currentSession;
     public string region = Fusion.Photon.Realtime.PhotonAppSettings.Instance.AppSettings.FixedRegion;
 }
 
-public class NetworkState: BaseState<NetworkStateData> {
+public class NetworkState: BaseState<NetworkStateData, NetworkState> {
+    public const string SELECTOR = "Network";
+
     private StateDependencies dependencies;
 
     public NetworkState(StateDependencies dependencies): base() {
@@ -21,42 +23,40 @@ public class NetworkState: BaseState<NetworkStateData> {
         state.joined = false;
     }
     
-    public void E_GetJoined(Action<bool> callback) {
-        StateSelect<bool>((NetworkStateData state) => {
-            return state.joined;
-        }, callback);
+    public static bool GetJoined(NetworkStateData state) {
+        return state.joined;
     }
 
-    public void E_GetSessionList(Action<List<SessionInfo>> callback) {
-        StateSelect<List<SessionInfo>>((NetworkStateData state) => {
-            return state.sessionList;
-        }, callback);
+    public static List<SessionInfo> GetSessionList(NetworkStateData state) {
+        return state.sessionList;
     }
 
-    public void E_GetRegion(Action<string> callback) {
-        StateSelect<string>((NetworkStateData state) => {
-            return state.region;
-        }, callback);
+    public static string GetRegion(NetworkStateData state) {
+        return state.region;
     }
 
-    public void SetSessionList(List<SessionInfo> sessionList) {
+
+    public static void SetSessionList(BaseState<NetworkStateData, NetworkState> s, List<SessionInfo> args, Action c) { (s as NetworkState).SSL(c, args); }
+    private void SSL(Action complete, List<SessionInfo> args) {
         StateChange((NetworkStateData state) => {
-            state.sessionList = sessionList;
+            state.sessionList = args;
         });
     }
 
-    public async void SetRegion(string region) {
-        Fusion.Photon.Realtime.PhotonAppSettings.Instance.AppSettings.FixedRegion = region;
+    public static void SetRegion(BaseState<NetworkStateData, NetworkState> s, string args, Action c) { (s as NetworkState).SR(c, args); }
+    private async void SR(Action complete, string args) {
+        Fusion.Photon.Realtime.PhotonAppSettings.Instance.AppSettings.FixedRegion = args;
         StateChange((NetworkStateData state) => {
-            state.region = region;
+            state.region = args;
         });
         await dependencies.networkManager.ResetRunner();
-
     }
 
-    public async Task Create(string name, int size) {
+
+    public static void Create(BaseState<NetworkStateData, NetworkState> s, (string, int) args, Action c) { (s as NetworkState).C(c, args); }
+    private async void C(Action complete, (string name, int size) args) {
         if(state.joined == false) {
-            var result = await dependencies.networkManager.StartSession(name, size);
+            var result = await dependencies.networkManager.StartSession(args.name, args.size);
             if (result) {
                 StateChange((NetworkStateData state) => {
                     state.joined = true;
@@ -67,20 +67,22 @@ public class NetworkState: BaseState<NetworkStateData> {
         }
     }
 
-    public async Task Join(SessionInfo session) {
+    public static void Join(BaseState<NetworkStateData, NetworkState> s, SessionInfo args, Action c) { (s as NetworkState).J(c, args); }
+    private async void J(Action complete, SessionInfo args) {
         if(state.joined == false) {
-            var result = await dependencies.networkManager.JoinSession(session);
+            var result = await dependencies.networkManager.JoinSession(args);
             if (result) {
                 StateChange((NetworkStateData state) => {
                     state.joined = true;
-                    state.currentSession = session;
+                    state.currentSession = args;
                 });
                 ViewManager.instance.Open<GameController>();
             }
         }
     }
 
-    public async Task Leave() {
+    public static void Leave(BaseState<NetworkStateData, NetworkState> s, object args, Action c) { (s as NetworkState).L(c); }
+    private async void L(Action complete) {
         if(state.joined == true) {
             var result = await dependencies.networkManager.Leave();
             if (result) {
@@ -91,4 +93,6 @@ public class NetworkState: BaseState<NetworkStateData> {
             }
         }
     }
+
+
 }

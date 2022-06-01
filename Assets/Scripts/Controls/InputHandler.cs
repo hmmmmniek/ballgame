@@ -19,6 +19,8 @@ public class InputHandler : MonoBehaviour {
     private void Awake() {
         InputHandler.instance = this;
         playerInput = GetComponent<PlayerInput>();
+
+
     }
 
     public void StartGameInput() {

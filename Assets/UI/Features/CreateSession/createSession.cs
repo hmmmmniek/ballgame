@@ -96,7 +96,7 @@ public class CreateSessionController : Module {
         ViewManager.instance.Open<LobbyController>();
     }
 
-    private async void StartSession() {
+    private void StartSession() {
         int sessionSize = 0;
         switch(selectedSessionSize) {
             case SessionSize._1v1: {
@@ -112,8 +112,7 @@ public class CreateSessionController : Module {
                 break;
             }
         }
-        await StateManager.instance.networkState.Create(sessionName, sessionSize);
-
+        NetworkState.Dispatch(NetworkState.Create, (name: sessionName, size: sessionSize), () => {});
     }
  
     private String getRandomSessionName() {
@@ -123,5 +122,4 @@ public class CreateSessionController : Module {
         randomString = randomString.Substring(0, 6);
         return $"Session-{randomString}";
     }
-
 }

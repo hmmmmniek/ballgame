@@ -23,7 +23,7 @@ public class MainMenuController : Module {
         Button returnToMatchButton = element.Q<Button>("ReturnToMatchButton");
         returnToMatchButton.clicked += ReturnToMatch;
 
-        StateManager.instance.networkState.E_GetJoined((joined => {
+        Watch(NetworkState.Select<bool>(NetworkState.GetJoined, (joined) => {
             if(joined) {
                 leaveMatchButton.RemoveFromClassList("hidden");
                 returnToMatchButton.RemoveFromClassList("hidden");
@@ -34,6 +34,7 @@ public class MainMenuController : Module {
                 lobbyButton.RemoveFromClassList("hidden");
             }
         }));
+        
 
     }
 
@@ -46,7 +47,8 @@ public class MainMenuController : Module {
     private void ReturnToMatch() {
         ViewManager.instance.Open<GameController>();
     }
-    private async void LeaveMatch() {
-        await StateManager.instance.networkState.Leave();
+    private void LeaveMatch() {
+        NetworkState.Dispatch<object>(NetworkState.Leave, null, () => {});
     }
+    
 }

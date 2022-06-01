@@ -10,15 +10,15 @@
     <engine:Template src="project://database/Assets/UI/Widgets/BackButton/backButton.uxml" name="BackButtonTemplate"/>
 
     <engine:VisualElement class="main">
-        <engine:Instance template="BackButtonTemplate"/>
         <engine:Instance template="BackButtonTemplate">
             <engine:AttributeOverrides element-name="BackButton" text="Back to main menu" />
         </engine:Instance>
-        <engine:VisualElement class="wrapper">
-            <engine:VisualElement class="left" />
-            <engine:VisualElement class="right">
-                    <engine:Label name="TextLabel" text="Label" />
-            </engine:VisualElement>
+        <engine:VisualElement class="input-rebinding">
+            <engine:Label text="Jump" />
+            <engine:Button name="input-rebinding_jump-button" text="Space" />
+            <engine:Label name="input-rebinding_jump-button-waiting-label" text="Waiting for input..." class="hidden" />
+            <engine:Button name="input-rebinding_jump-button-reset" text="Reset" />
+
         </engine:VisualElement>
     </engine:VisualElement>
 </engine:UXML>
