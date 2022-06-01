@@ -21,7 +21,7 @@ public class UIManager : MonoBehaviour
         var root = uiDocument.rootVisualElement;
 
         ViewManager.Init(root.Q<VisualElement>("Root"));
-
+       
         ShowMenu();
     }
 

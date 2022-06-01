@@ -23,7 +23,7 @@ public class ViewManager {
 
     private ViewManager(VisualElement root) {
         this.root = root;
-
+        InitializeWidgetsOfType<NotificationController>();
     }
 
     public T Open<T>() where T: Module {
@@ -72,7 +72,6 @@ public class ViewManager {
         var elementName = typeof(T).GetField("ELEMENT_NAME").GetValue(null) as string;
         var widgetElements = new List<VisualElement>();
         root.Query(elementName).Descendents<VisualElement>().Build().ToList(widgetElements);
-        
         var controllers = new List<T>();
         foreach (var widgetElement in widgetElements) {
             var controller = Activator.CreateInstance(typeof(T), new object[] { widgetElement }) as T;

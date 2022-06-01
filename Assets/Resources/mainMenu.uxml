@@ -7,6 +7,7 @@
 >
     <Style src="project://database/Assets/UI/Features/MainMenu/mainMenu.uss" />
 
+ 
     <engine:VisualElement class="main">
         <engine:Button name="LobbyButton" text="Lobby" />
         <engine:Button name="ReturnToMatchButton" text="Return to match" />

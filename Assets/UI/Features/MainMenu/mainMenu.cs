@@ -39,6 +39,8 @@ public class MainMenuController : Module {
     }
 
     private void GoToSettings() {
+        NotificationState.Dispatch(NotificationState.Notify, (NotificationUrgency.Info, "its working!"), () => { });
+
         ViewManager.instance.Open<SettingsController>();
     }
     private void GoToLobby() {

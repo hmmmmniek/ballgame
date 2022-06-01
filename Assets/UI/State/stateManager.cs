@@ -24,6 +24,8 @@ public class StateManager {
 
         states.Add(NetworkState.SELECTOR, new NetworkState(dependencies));
         states.Add(InputState.SELECTOR, new InputState(dependencies));
+        states.Add(NotificationState.SELECTOR, new NotificationState(dependencies));
+
     }
 
     public Action Select<StateType, ReturnType, StateDataType>(Func<StateDataType, ReturnType> action, Action<ReturnType> callback) where StateDataType: StateData, new() {

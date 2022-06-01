@@ -6,7 +6,11 @@
     xsi:noNamespaceSchemaLocation="../../UIElementsSchema/UIElements.xsd"
 >   
     <Style src="project://database/Assets/UI/index.uss" />
+
     <engine:VisualElement name="Root" class="index">
+        <engine:Template src="project://database/Assets/UI/Widgets/Notifications/notifications.uxml" name="NotificationsTemplate"/>
+        <engine:Instance template="NotificationsTemplate"></engine:Instance>
+
     </engine:VisualElement>
 
 
