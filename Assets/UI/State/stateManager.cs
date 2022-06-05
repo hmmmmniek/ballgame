@@ -22,18 +22,31 @@ public class StateManager {
     private StateManager(StateDependencies dependencies) {
         this.dependencies = dependencies;
 
-        states.Add(NetworkState.SELECTOR, new NetworkState(dependencies));
-        states.Add(InputState.SELECTOR, new InputState(dependencies));
-        states.Add(NotificationState.SELECTOR, new NotificationState(dependencies));
+        AddState<NetworkState>(dependencies);
+        AddState<InputState>(dependencies);
+        AddState<NotificationState>(dependencies);
+        AddState<GameState>(dependencies);
 
+    }
+
+    private void AddState<StateType>(StateDependencies dependencies) {
+        string key = typeof(StateType).GetField("SELECTOR").GetValue(null) as string;
+        object state = Activator.CreateInstance(typeof(StateType), new object[] { dependencies });
+        states.Add(key, state);
     }
 
     public Action Select<StateType, ReturnType, StateDataType>(Func<StateDataType, ReturnType> action, Action<ReturnType> callback) where StateDataType: StateData, new() {
         BaseState<StateDataType, StateType> state = GetState<StateType, StateDataType>();
-        callback(action(state.state));
+        ReturnType value = action(state.state);
+        callback(value);
+
         EventHandler<StateDataType> handler = (object sender, StateDataType state) => {
-            ReturnType result = action(state);
-            callback(result);
+            ReturnType newValue = action(state);
+
+            if(!((value == null && newValue == null) || value.Equals(newValue))) {
+                value = newValue;
+                callback(value);
+            }
         };
         state.stateChanged += handler;
         return () => {

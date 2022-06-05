@@ -16,6 +16,7 @@ public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
         if(shutdownReason != ShutdownReason.HostMigration) {         
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
         }
+        GameState.Dispatch<object>(GameState.ClearPlayers, null, () => {});
     }
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }

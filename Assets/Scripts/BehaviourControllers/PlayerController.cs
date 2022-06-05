@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using UnityEngine;
 using Fusion;
 using System;
+using System.Linq;
 
 [RequireComponent(typeof(CharacterMovementController))]
 public class PlayerController : NetworkBehaviour, IPlayerLeft {
@@ -10,13 +11,23 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public Transform playerModel;
     public Transform glassesModel;
-    
+    public BallGunController ballGunController;
+
+    [HideInInspector]
+    public BallController ball;
     // Start is called before the first frame update
     void Start() {
 
     }
 
     public override void Spawned() {
+        base.Spawned();
+
+        GameState.Dispatch(GameState.AddPlayer, (
+            ballGunController: ballGunController,
+            playerController: this
+        ), () => {});
+
         if (Object.HasInputAuthority) {
             Local = this;
 
@@ -26,7 +37,6 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
 
 
-            Debug.Log("Spawned local player");
         } else {
             Camera localCamera = GetComponentInChildren<Camera>();
             localCamera.enabled = false;
@@ -34,12 +44,19 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
             AudioListener audioListener = GetComponentInChildren<AudioListener>();
             audioListener.enabled = false;
 
-            Debug.Log("Spawned remote player");
         }
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState) {
+        GameState.Dispatch(GameState.RemovePlayer, (
+            ballGunController: GetComponentInChildren<BallGunController>(),
+            playerController: GetComponent<PlayerController>()
+        ), () => {});
     }
 
     public void PlayerLeft(PlayerRef player) {
         if (player == Object.InputAuthority) {
+
             Runner.Despawn(Object);
         }
 

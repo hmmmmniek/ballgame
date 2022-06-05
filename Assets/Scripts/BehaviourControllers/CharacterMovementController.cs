@@ -9,10 +9,15 @@ using UnityEngine;
 public class CharacterMovementController : NetworkTransform {
     [Header("Character movement Settings")]
     public float gravity = -20.0f;
-    public float jumpImpulse = 8.0f;
+    public float jumpImpulse = 5.0f;
+    public float boostImpulse = 25.0f;
     public float acceleration = 10.0f;
     public float braking = 10.0f;
-    public float maxSpeed = 2.0f;
+    public float maxGroundSpeed = 2.0f;
+    public float maxVerticalSpeed = 6f;
+    public float boostUsageSpeed = 40f;
+    public float boostRechargeSpeed = 15f;
+
     public CharacterCameraController cameraController;
 
     [Networked]
@@ -23,7 +28,8 @@ public class CharacterMovementController : NetworkTransform {
     [HideInInspector]
     public Vector3 Velocity { get; set; }
 
-
+    [Networked]
+    private float boostRemainingPercentage { get; set; }
 
     /// <summary>
     /// Sets the default teleport interpolation velocity to be the CC's current velocity.
@@ -39,6 +45,8 @@ public class CharacterMovementController : NetworkTransform {
 
     public CharacterController Controller { get; private set; }
 
+    private bool isLocalPlayer = false;
+
     protected override void Awake() {
         base.Awake();
         CacheController();
@@ -47,9 +55,13 @@ public class CharacterMovementController : NetworkTransform {
     public override void Spawned() {
         base.Spawned();
         CacheController();
-    
+        if (Object.HasInputAuthority) {
+            isLocalPlayer = true;
+        }
+
         // Caveat: this is needed to initialize the Controller's state and avoid unwanted spikes in its perceived velocity
         Controller.Move(transform.position);
+        boostRemainingPercentage = 100f;
     }
 
     private void CacheController() {
@@ -73,12 +85,26 @@ public class CharacterMovementController : NetworkTransform {
 
     public override void FixedUpdateNetwork() {
         if (GetInput(out NetworkInputData networkInputData)) {
-            Move(networkInputData.movementInput);
             if (networkInputData.isJumpPressed) {
                 Jump();
             }
+            Move(networkInputData.movementInput);
+
         }
+        RechargeBoost();
         Rotate();
+    }
+
+    private void RechargeBoost() {
+        if(IsGrounded && boostRemainingPercentage < 100) {
+            boostRemainingPercentage = boostRemainingPercentage + boostRechargeSpeed * Runner.DeltaTime;
+            if(boostRemainingPercentage > 100) {
+                boostRemainingPercentage = 100;
+            }
+            if(isLocalPlayer) {
+                GameState.Dispatch(GameState.SetRemainingBoostPercentage, boostRemainingPercentage, () => {});
+            }
+        }
     }
 
     public virtual void Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
@@ -86,7 +112,19 @@ public class CharacterMovementController : NetworkTransform {
             var newVel = Velocity;
             newVel.y += overrideImpulse ?? jumpImpulse;
             Velocity = newVel;
+        } else if(boostRemainingPercentage > 0) {
+            var newVel = Velocity;
+            newVel.y += boostImpulse * Runner.DeltaTime;
+            Velocity = newVel;
+            boostRemainingPercentage = boostRemainingPercentage - boostUsageSpeed * Runner.DeltaTime;
+            if(boostRemainingPercentage < 0) {
+                boostRemainingPercentage = 0;
+            }
+            if(isLocalPlayer) {
+                GameState.Dispatch(GameState.SetRemainingBoostPercentage, boostRemainingPercentage, () => {});
+            }
         }
+
     }
 
     public virtual void Move(Vector2 movementInput) {
@@ -111,11 +149,14 @@ public class CharacterMovementController : NetworkTransform {
         if (direction == default) {
             horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
         } else {
-            horizontalVel = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, maxSpeed);
+            horizontalVel = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, maxGroundSpeed);
         }
 
         moveVelocity.x = horizontalVel.x;
         moveVelocity.z = horizontalVel.z;
+        if(moveVelocity.y > maxVerticalSpeed) {
+            moveVelocity.y = maxVerticalSpeed;
+        }
         Controller.Move(moveVelocity * deltaTime);
 
         Velocity = (transform.position - previousPos) * Runner.Simulation.Config.TickRate;

@@ -6,5 +6,18 @@
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
     <Style src="project://database/Assets/UI/Features/Game/game.uss" />
+    <engine:VisualElement class="game" name="Game" >
+        <engine:VisualElement name="game__crosshair__container" class="game__crosshair__container empty" >
+            <engine:VisualElement name="game__crosshair__shadow" class="game__crosshair__shadow" ></engine:VisualElement>
+            <engine:VisualElement name="game__crosshair" class="game__crosshair" ></engine:VisualElement>
+            <engine:VisualElement name="game__crosshair__dot" class="game__crosshair__dot" ></engine:VisualElement>    
 
+        </engine:VisualElement>
+        <engine:VisualElement name="game__boost" class="game__boost" >
+            <engine:VisualElement name="game__boost__indicator" class="game__boost__indicator" ></engine:VisualElement>    
+        </engine:VisualElement>
+        <engine:VisualElement name="game__charge" class="game__charge" >
+            <engine:VisualElement name="game__charge__indicator" class="game__charge__indicator" ></engine:VisualElement>    
+        </engine:VisualElement>  
+    </engine:VisualElement>
 </engine:UXML>

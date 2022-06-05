@@ -87,7 +87,6 @@ public class NetworkManager : Fusion.Behaviour {
 
     public async Task ResetRunner() {
         if(runner != null) {
-            Debug.Log("Shutdown");
             await runner.Shutdown(true, ShutdownReason.Ok);
         }
         runner = Instantiate(GetComponent<NetworkManager>().runnerPrefab);

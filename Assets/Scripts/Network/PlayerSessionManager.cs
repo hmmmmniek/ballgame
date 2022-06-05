@@ -10,10 +10,10 @@ using System.Linq;
 
 public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public PlayerController playerPrefab;
+    public MatchController matchManagerPrefab;
+    private MatchController matchManager;
 
-
-    public void OnConnectedToServer(NetworkRunner runner) { }
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+    public void OnConnectedToServer(NetworkRunner runner) {}
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
     public void OnDisconnectedFromServer(NetworkRunner runner) { }
@@ -27,19 +27,22 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public void OnSceneLoadStart(NetworkRunner runner) { }
 
     public void OnSessionListUpdated(NetworkRunner runner, List<SessionInfo> sessionList) {
-        Debug.Log("OnSessionListUpdated " + sessionList.Count);
         NetworkState.Dispatch(NetworkState.SetSessionList, sessionList, () => {});
 
     }
 
 
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
+        if (runner.LocalPlayer == player && runner.IsServer) {
+            matchManager = runner.Spawn(matchManagerPrefab, new Vector3(0, 0, 0));
+        }
         if (runner.IsServer) {
             runner.Spawn(playerPrefab, Utils.GetRandomSpawnPoint(), Quaternion.identity, player);
         }
-        if (runner.LocalPlayer == player) {
-        }
     }
+
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+
 
     public void OnInput(NetworkRunner runner, NetworkInput input) {
         input.Set(InputHandler.instance.networkInputDataCache);
@@ -49,3 +52,4 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
 
 
 }
+

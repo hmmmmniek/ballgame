@@ -9,7 +9,8 @@ public class CharacterCameraController : NetworkTransform {
     private bool isLocal = false;
 
 
-    void Start() {
+    public override void Spawned() {    
+        base.Spawned();
         transform.parent = null;
         isLocal = PlayerController.Local == playerController;
         

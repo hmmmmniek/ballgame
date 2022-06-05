@@ -84,3 +84,4 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   playerPrefab: {fileID: 5165869480873457305, guid: f74cb01a22721263c935d6c8dd90f7ec, type: 3}
+  matchManagerPrefab: {fileID: 8968566800004892807, guid: 397345e23c1b0c2d3b9e79691b1648bf, type: 3}
