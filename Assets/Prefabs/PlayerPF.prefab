@@ -305,7 +305,7 @@ Camera:
   m_Depth: 0
   m_CullingMask:
     serializedVersion: 2
-    m_Bits: 55
+    m_Bits: 311
   m_RenderingPath: -1
   m_TargetTexture: {fileID: 0}
   m_TargetDisplay: 0
@@ -394,8 +394,14 @@ MonoBehaviour:
   maxShootingSpeed: 50
   chargeSpeed: 100
   dechargeSpeed: 400
+  suckDistance: 3
+  suckRadius: 2
+  suckTimeout: 0.5
+  kickDistance: 2
+  kickRadius: 2
   localBallCamera: {fileID: 5779502379193008127}
   ball: {fileID: 0}
+  isLocalPlayer: 0
 --- !u!1 &5457058146272909059
 GameObject:
   m_ObjectHideFlags: 0

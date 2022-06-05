@@ -17,7 +17,8 @@ public class InputHandler : MonoBehaviour {
     PlayerInput playerInput;
 
     private bool latestJumpValue;
-    private bool latestFireValue;
+    private bool latestPrimaryValue;
+    private bool latestSecondaryValue;
     private void Awake() {
         InputHandler.instance = this;
         playerInput = GetComponent<PlayerInput>();
@@ -49,9 +50,13 @@ public class InputHandler : MonoBehaviour {
             networkInputDataCache.rotationInput += context.ReadValue<Vector2>() * new Vector2(InputHandler.instance.lookHorizontalSpeed, -1 * InputHandler.instance.lookVerticalSpeed);
             networkInputDataCache.rotationInput = new Vector2(networkInputDataCache.rotationInput.x, Mathf.Clamp(networkInputDataCache.rotationInput.y, -90, 90));
         }
-        if (context.action.name == "Fire") {
-            networkInputDataCache.isFirePressed = networkInputDataCache.isFirePressed || context.ReadValueAsButton();
-            latestFireValue = context.ReadValueAsButton();
+        if (context.action.name == "Primary") {
+            networkInputDataCache.isPrimaryPressed = networkInputDataCache.isPrimaryPressed || context.ReadValueAsButton();
+            latestPrimaryValue = context.ReadValueAsButton();
+        }
+        if (context.action.name == "Secondary") {
+            networkInputDataCache.isSecondaryPressed = networkInputDataCache.isSecondaryPressed || context.ReadValueAsButton();
+            latestSecondaryValue = context.ReadValueAsButton();
         }
         if (context.action.name == "Escape") {
             StopGameInput();
@@ -60,7 +65,9 @@ public class InputHandler : MonoBehaviour {
     }
     public void ResetNetworkState() {
         networkInputDataCache.isJumpPressed = latestJumpValue;
-        networkInputDataCache.isFirePressed = latestFireValue;
+        networkInputDataCache.isPrimaryPressed = latestPrimaryValue;
+        networkInputDataCache.isSecondaryPressed = latestSecondaryValue;
+
     }
 }
 

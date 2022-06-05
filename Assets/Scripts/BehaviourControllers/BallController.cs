@@ -19,6 +19,7 @@ public class BallController : NetworkTransform {
 
     public override void Spawned() {
         base.Spawned();
+        attachedToPlayer = NOT_ATTACHED;
         unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
                 this.players = players;
@@ -39,8 +40,8 @@ public class BallController : NetworkTransform {
 
     public override void FixedUpdateNetwork() {
         base.FixedUpdateNetwork();
-        if(players != null) {
-            (BallGunController ballGunController, PlayerController playerController, float distance)? closest = null;
+        if(players != null && attachedToPlayer == NOT_ATTACHED) {
+            (BallGunController ballGunController, float distance)? closest = null;
             foreach (var player in players) {
                 
                 float distance = Vector3.Distance(transform.position, player.playerController.transform.position);
@@ -48,35 +49,36 @@ public class BallController : NetworkTransform {
                     temporarilyIgnorePlayer = NOT_ATTACHED;
                 }
                 if (closest == null || closest.Value.distance > distance) {
-                    closest = (ballGunController: player.ballGunController, playerController: player.playerController, distance: distance);
+                    closest = (ballGunController: player.ballGunController, distance: distance);
                 }
 
             }
             if(closest.Value.distance < pickupDistance) {
                 if(closest.Value.ballGunController.Id.Object.Raw != temporarilyIgnorePlayer) {
-                    AttachToPlayer((ballGunController: closest.Value.ballGunController, playerController: closest.Value.playerController));
+                    AttachToPlayer(closest.Value.ballGunController);
                 }
             }
         }
         if(attachedToPlayer == NOT_ATTACHED && transform.parent != null) {
             DetachFromPlayer();
         }
+
     }
 
-    private void AttachToPlayer((BallGunController ballGunController, PlayerController playerController) player) {
-
+    public void AttachToPlayer(BallGunController player) {
+        Debug.Log("attach");
         Rigidbody rigidBody = GetComponent<Rigidbody>();
         rigidBody.detectCollisions = false;
         rigidBody.useGravity = false;
         rigidBody.velocity = new Vector3();
         rigidBody.angularVelocity = new Vector3();
-        transform.parent = player.ballGunController.transform;
+        transform.parent = player.transform;
         transform.localPosition = new Vector3(0f, -0.3f, 0.45f);
-        attachedToPlayer = player.ballGunController.Id.Object.Raw;
+        attachedToPlayer = player.Id.Object.Raw;
 
-        if(PlayerController.Local == player.playerController) {
-            attachedToPlayerController = player.ballGunController;
-            player.ballGunController.ShowBall();
+        if(player.isLocalPlayer) {
+            attachedToPlayerController = player;
+            player.ShowBall();
             Utils.SetRenderLayerDeep(transform, LayerMask.NameToLayer("LocalPlayerModel"));
         }
     }
