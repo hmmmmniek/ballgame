@@ -201,9 +201,12 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
-  pickupDistance: 2
-  _attachedToPlayer: 0
-  _temporarilyIgnorePlayer: 0
+  pickupDistance: 1.5
+  maxSpeed: 80
+  ballModel: {fileID: 8526808137596034991}
+  _isAttached:
+    _value: 0
+  _anchor: {fileID: 0}
 --- !u!114 &3582619615417690722
 MonoBehaviour:
   m_ObjectHideFlags: 0

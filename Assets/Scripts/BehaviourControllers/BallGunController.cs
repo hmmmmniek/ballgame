@@ -6,30 +6,54 @@ using UnityEngine;
 public class BallGunController : NetworkBehaviour {
     [Header("Ball gun Settings")]
     public float maxShootingSpeed = 50;
+    public float passSpeed = 30;
     public float chargeSpeed = 100;
-    public float dechargeSpeed = 400;
-    public float suckDistance = 5;
-    public float suckRadius = 5;
+
+    public float suckDistance = 2;
+    public float suckRadius = 1.5f;
     public float suckTimeout = 0.5f;
-    public float kickDistance = 5;
-    public float kickRadius = 5;
+    public float suckOffset = 1.5f;
+
+    public float attractDistance = 1;
+    public float attractRadius = 2.5f;
+    public float attractWaitTime = 0.5f;
+    public float attractOffset = 2.5f;
+    public float attractStrength = 20f;
+
+    public float kickDistance = 1f;
+    public float kickRadius = 2.5f;
+    public float kickTimeout = 0.5f;
+    public float kickOffset = 2.5f;
+    public float kickBallDropSpeed = 4;
+    public float kickBallSpeed = 20;
+
     public Camera localBallCamera;
+    public PlayerController playerController;
+    public NetworkTransform ballAnchor;
+    public Transform ballModel;
 
     [HideInInspector]
     public BallController ball;
 
     
     [Networked] private TickTimer suckTimer { get; set; }
+    [Networked] private TickTimer attractTimer { get; set; }
+    [Networked] private TickTimer kickTimer { get; set; }
 
     [Networked] private float chargePercentage { get; set; }
+    [HideInInspector][Networked] public bool isCarrying { get; set; }
 
-    public bool isLocalPlayer = false;
-
-
+    [HideInInspector] public bool isLocalPlayer = false;
+    
+    
+    
+    private bool isSucking;
+    private bool isKicking;
 
     protected void Awake() {
     }
 
+ 
     public override void Spawned() {
         if (Object.HasInputAuthority) {
             isLocalPlayer = true;
@@ -37,9 +61,11 @@ public class BallGunController : NetworkBehaviour {
             localBallCamera.gameObject.SetActive(false);
         }
         chargePercentage = 0;
-        suckTimer = TickTimer.None;
+        suckTimer = TickTimer.CreateFromSeconds(Runner, 0);
+        kickTimer = TickTimer.CreateFromSeconds(Runner, 0);
 
     }
+    private float lastButtonChange;
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);
@@ -47,24 +73,70 @@ public class BallGunController : NetworkBehaviour {
 
     public override void FixedUpdateNetwork() {
         if (GetInput(out NetworkInputData networkInputData)) {
-            if (networkInputData.isPrimaryPressed) {
-                Charge();
+
+            
+            if (networkInputData.isPrimaryPressed) {   
+
+                if(isCarrying) {
+                    Charge();
+                }
+
+                if(!isCarrying && kickTimer.Expired(Runner)) {
+                    kickTimer = TickTimer.None;
+                    Kick();
+                    isKicking = true;
+                }
+
             } else {
-                if(chargePercentage > 0) {
+
+                if(isKicking) {
+                    kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
+                    isKicking = false;
+                }
+
+                if(isCarrying && chargePercentage > 0) {
+                    kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
                     Shoot();
                 }
-                Decharge();
             }
             if (networkInputData.isSecondaryPressed) {
-                if(IsCarryingBall()) {
-                    //Kick();
-                } else if(suckTimer.ExpiredOrNotRunning(Runner)) {
-                    Suck();
+
+                if(isCarrying && !isSucking) {
+                    suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
+                    Pass();
                 }
+
+                if(!isCarrying && suckTimer.Expired(Runner)) {
+                    suckTimer = TickTimer.None;
+                    attractTimer = TickTimer.CreateFromSeconds(Runner, attractWaitTime);
+                    Suck();
+                    isSucking = true;
+                }
+
+                if(!isCarrying && attractTimer.Expired(Runner)) {
+                    Attract();
+                }
+
+            } else {
+
+                if(isSucking) {
+                    suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
+                    attractTimer = TickTimer.None;
+                    isSucking = false;
+                }
+
             }
         }
-        if(IsCarryingBall() && ball.transform.parent == null) {
-            ball.AttachToPlayer(this);
+
+    }
+
+
+    public void Update() {
+        if(isCarrying && !ballModel.gameObject.activeSelf) {
+            LocalAttach();
+        }
+        if(!isCarrying && ballModel.gameObject.activeSelf){
+            LocalDetach();
         }
     }
 
@@ -83,10 +155,7 @@ public class BallGunController : NetworkBehaviour {
 
     public virtual void Decharge() {
         if(chargePercentage > 0) {
-            chargePercentage = chargePercentage - dechargeSpeed * Runner.DeltaTime;
-            if(chargePercentage < 0) {
-                chargePercentage = 0;
-            }
+            chargePercentage = 0;
             if(isLocalPlayer) {
                 GameState.Dispatch(GameState.SetChargePercentage, chargePercentage, () => {});
             }
@@ -94,37 +163,114 @@ public class BallGunController : NetworkBehaviour {
 
     }
     public void Shoot() {
-        if(IsCarryingBall()) {
-            Vector3 direction = transform.forward.normalized;
-            ball.Shoot(direction * maxShootingSpeed * (chargePercentage/100f));
+        if(isCarrying) {
+            Shoot(maxShootingSpeed * (chargePercentage/100f));
         }
     }
 
-    public void Suck() {
-        suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
-        if(ball != null && ball.attachedToPlayer == BallController.NOT_ATTACHED) {
-            RaycastHit[] hits = Physics.SphereCastAll(transform.position, suckRadius, transform.forward, suckDistance);
+    public void Pass() {
+        if(isCarrying) {
+            Shoot(passSpeed);
+        }
+    }
+
+    public void Attract() {
+        if(!ball.isAttached) {
+            RaycastHit[] hits = Physics.SphereCastAll(transform.position + transform.forward.normalized * attractOffset, attractRadius, transform.forward, attractDistance);
             foreach (var hit in hits) {
                 BallController b = hit.transform.GetComponent<BallController>();
                 if(b) {
-                    b.AttachToPlayer(this);
+                    Vector3 attraction = transform.forward * -1f * attractStrength * Runner.DeltaTime;
+                    b.ApplyForce(attraction);
                 }
             }
         }
     }
 
 
-    public void ShowBall() {
+    public void Suck() {
+        if(Object.HasStateAuthority) {
+            if(!ball.isAttached) {
+                RaycastHit[] hits = Physics.SphereCastAll(transform.position + transform.forward.normalized * suckOffset, suckRadius, transform.forward, suckDistance);
+                foreach (var hit in hits) {
+                    BallController b = hit.transform.GetComponent<BallController>();
+                    if(b) {
+                        isCarrying = true;
+                        b.Attach(ballAnchor);
+
+                        LocalAttach();
+                    }
+                }
+            }
+        }
+    }
+
+    public void Kick() {
+        RaycastHit[] hits = Physics.SphereCastAll(transform.position + transform.forward.normalized * kickOffset, kickRadius, transform.forward, kickDistance);
+        if(!ball.isAttached) {
+            foreach (var hit in hits) {
+                BallController b = hit.transform.GetComponent<BallController>();
+                if(b) {
+                    Shoot(kickBallSpeed);
+                }
+            }
+        } else {
+            foreach (var hit in hits) {
+                PlayerController player = hit.transform.GetComponent<PlayerController>();
+                if(player && player.ballGunController.isCarrying) {
+                    if(Object.HasStateAuthority) {
+                        player.ballGunController.isCarrying = false;
+                    }
+                    player.ballGunController.LocalDetach();
+                    
+                    Shoot(kickBallDropSpeed);
+                }
+            }
+        }
+
+    }
+
+    private void Shoot(float inputSpeed) {
+        if(Object.HasStateAuthority) {
+            isCarrying = false;
+        }
+
+        Vector3 forward =
+            (transform.forward.normalized * inputSpeed) +
+            (transform.forward.normalized * ball.GetComponent<Rigidbody>().velocity.magnitude) +
+            playerController.GetComponent<CharacterController>().velocity;
+        ball.Shoot(forward);
+        Decharge();
+    }
+
+
+    private void LocalAttach() {
+        ShowBallExternally();
+        if(isLocalPlayer) {
+            ShowBallLocally();
+        }
+    }
+
+    private void LocalDetach() {
+        HideBallExternally();
+        if(isLocalPlayer) {
+            HideBallLocally();
+        }
+    }
+
+    private void ShowBallLocally() {
         localBallCamera.enabled = true;
         GameState.Dispatch(GameState.SetCarryingBall, true, () => {});
     }
-    
-    public void HideBall() {
+    private void HideBallLocally() {
         localBallCamera.enabled = false;
         GameState.Dispatch(GameState.SetCarryingBall, false, () => {});
     }
-
-    public bool IsCarryingBall() {
-        return ball!= null && ball.attachedToPlayer == this.Id.Object.Raw;
+    private void ShowBallExternally() {
+        ballModel.gameObject.SetActive(true);
     }
+    private void HideBallExternally() {
+        ballModel.gameObject.SetActive(false);
+    }
+
 }

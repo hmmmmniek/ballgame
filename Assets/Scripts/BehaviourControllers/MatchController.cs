@@ -11,7 +11,7 @@ public class MatchController : NetworkBehaviour {
     }
     public override void Spawned() {
         base.Spawned();
-        Runner.Spawn(ballPrefab, new Vector3(0, 4, 0), Quaternion.LookRotation(new Vector3(0, 0, 0)));
+        BallController ball = Runner.Spawn(ballPrefab, new Vector3(0, 4, 0), Quaternion.LookRotation(new Vector3(0, 0, 0)));
 
 
 

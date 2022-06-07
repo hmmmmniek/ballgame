@@ -11,7 +11,11 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public Transform playerModel;
     public Transform glassesModel;
+    public Transform ballModel;
+
     public BallGunController ballGunController;
+
+    [Networked] public NetworkBool temporarilyIgnored {get; set;}
 
     [HideInInspector]
     public BallController ball;
@@ -22,7 +26,7 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public override void Spawned() {
         base.Spawned();
-
+        temporarilyIgnored = true;
         GameState.Dispatch(GameState.AddPlayer, (
             ballGunController: ballGunController,
             playerController: this
@@ -33,6 +37,7 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
             Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("LocalPlayerModel"));
             Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("LocalPlayerModel"));
+            Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("LocalPlayerModel"));
 
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
 
@@ -66,6 +71,22 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
         if (GetInput(out NetworkInputData networkInputData)) {
 
         }
+
+        if(temporarilyIgnored) {
+            Collider[] area = Physics.OverlapSphere(transform.position, ball.pickupDistance + 0.5f);
+            bool ballFound = false;
+            foreach (var item in area) {
+                BallController b = item.GetComponent<BallController>();
+                if(b != null) {
+                    ballFound = true;
+                    return;
+                }
+            }
+            if(!ballFound) {
+                temporarilyIgnored = false;
+            }
+        }
+
     }
 
 }
