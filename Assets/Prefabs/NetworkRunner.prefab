@@ -83,5 +83,5 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 11daed1b3bf17d449a3a3ef57ba3f511, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  playerPrefab: {fileID: 5165869480873457305, guid: f74cb01a22721263c935d6c8dd90f7ec, type: 3}
+  playerPrefab: {fileID: 5165869480873457305, guid: 60dbd70d9fbce6267960e75ea5bdca05, type: 3}
   matchManagerPrefab: {fileID: 8968566800004892807, guid: 397345e23c1b0c2d3b9e79691b1648bf, type: 3}

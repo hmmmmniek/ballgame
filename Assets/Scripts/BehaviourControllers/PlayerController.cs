@@ -5,7 +5,6 @@ using Fusion;
 using System;
 using System.Linq;
 
-[RequireComponent(typeof(CharacterMovementController))]
 public class PlayerController : NetworkBehaviour, IPlayerLeft {
     public static PlayerController Local { get; set; }
 
@@ -14,11 +13,30 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
     public Transform ballModel;
 
     public BallGunController ballGunController;
+    public LocalCharacterMovementController localCharacterMovementController;
 
-    [Networked] public NetworkBool temporarilyIgnored {get; set;}
+    private Queue<float> RttMeasurements = new Queue<float>();
 
-    [HideInInspector]
-    public BallController ball;
+    [HideInInspector][Networked] public NetworkBool temporarilyIgnored {get; set;}
+    [HideInInspector][Networked(OnChanged = nameof(OnLastReceivedInputTimeChanged))] public float lastReceivedLocalTime {get; set;}
+    public static void OnLastReceivedInputTimeChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnLastReceivedInputTimeChanged();
+    }
+    private float lastMeasured = 0;
+    private void OnLastReceivedInputTimeChanged() {
+        float time = Time.time;
+
+        if(Object.HasInputAuthority & time - lastMeasured > 0.1) {
+            lastMeasured = time;
+            RttMeasurements.Enqueue((float)(time - lastReceivedLocalTime) * 1000);
+            if(RttMeasurements.Count > 10) {
+                RttMeasurements.Dequeue();
+            }
+            NetworkStatsState.Dispatch(NetworkStatsState.SetRtt, (float)Math.Round(RttMeasurements.Average(), 1), () => {});
+        }
+    }
+
+    [HideInInspector] public BallController ball;
     // Start is called before the first frame update
     void Start() {
 
@@ -44,12 +62,18 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
         } else {
             Camera localCamera = GetComponentInChildren<Camera>();
-            localCamera.enabled = false;
+            if(localCamera) {
+                localCamera.enabled = false;
+            }
 
             AudioListener audioListener = GetComponentInChildren<AudioListener>();
-            audioListener.enabled = false;
+            if(audioListener) {
+                audioListener.enabled = false;
+            }
 
         }
+
+        transform.name = $"Player {Object.Id}";
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
@@ -61,18 +85,22 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public void PlayerLeft(PlayerRef player) {
         if (player == Object.InputAuthority) {
-
             Runner.Despawn(Object);
         }
 
     }
 
+
+
+
     public override void FixedUpdateNetwork() {
         if (GetInput(out NetworkInputData networkInputData)) {
-
+            if(Object.HasStateAuthority) {
+                lastReceivedLocalTime = networkInputData.localTime;
+            }
         }
 
-        if(temporarilyIgnored) {
+        if(temporarilyIgnored && Object.HasStateAuthority) {
             Collider[] area = Physics.OverlapSphere(transform.position, ball.pickupDistance + 0.5f);
             bool ballFound = false;
             foreach (var item in area) {
@@ -87,6 +115,10 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
             }
         }
 
+    }
+
+    public void OnDestroy (){
+        GameObject.Destroy(localCharacterMovementController.gameObject);
     }
 
 }

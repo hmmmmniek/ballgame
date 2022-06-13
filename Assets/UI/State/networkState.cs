@@ -57,11 +57,13 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
     private async void C(Action complete, (string name, int size) args) {
         if(state.joined == false) {
             var result = await dependencies.networkManager.StartSession(args.name, args.size);
+            Debug.Log(result);
             if (result) {
                 StateChange((NetworkStateData state) => {
                     state.joined = true;
                     state.currentSession = result;
                 });
+
                 ViewManager.instance.Open<GameController>();
             }
         }

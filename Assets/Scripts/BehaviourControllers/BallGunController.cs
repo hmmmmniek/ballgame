@@ -72,59 +72,61 @@ public class BallGunController : NetworkBehaviour {
     }
 
     public override void FixedUpdateNetwork() {
-        if (GetInput(out NetworkInputData networkInputData)) {
+        if(Object.HasStateAuthority) {
 
-            
-            if (networkInputData.isPrimaryPressed) {   
+            if (GetInput(out NetworkInputData networkInputData)) {
+/*
+                if (networkInputData.isPrimaryPressed) {   
 
-                if(isCarrying) {
-                    Charge();
+                    if(isCarrying) {
+                        Charge();
+                    }
+
+                    if(!isCarrying && kickTimer.Expired(Runner)) {
+                        kickTimer = TickTimer.None;
+                        Kick();
+                        isKicking = true;
+                    }
+
+                } else {
+
+                    if(isKicking) {
+                        kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
+                        isKicking = false;
+                    }
+
+                    if(isCarrying && chargePercentage > 0) {
+                        kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
+                        Shoot();
+                    }
                 }
+                if (networkInputData.isSecondaryPressed) {
 
-                if(!isCarrying && kickTimer.Expired(Runner)) {
-                    kickTimer = TickTimer.None;
-                    Kick();
-                    isKicking = true;
-                }
+                    if(isCarrying && !isSucking) {
+                        suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
+                        Pass();
+                    }
 
-            } else {
+                    if(!isCarrying && suckTimer.Expired(Runner)) {
+                        suckTimer = TickTimer.None;
+                        attractTimer = TickTimer.CreateFromSeconds(Runner, attractWaitTime);
+                        Suck();
+                        isSucking = true;
+                    }
 
-                if(isKicking) {
-                    kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-                    isKicking = false;
-                }
+                    if(!isCarrying && attractTimer.Expired(Runner)) {
+                        Attract();
+                    }
 
-                if(isCarrying && chargePercentage > 0) {
-                    kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-                    Shoot();
-                }
-            }
-            if (networkInputData.isSecondaryPressed) {
+                } else {
 
-                if(isCarrying && !isSucking) {
-                    suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
-                    Pass();
-                }
+                    if(isSucking) {
+                        suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
+                        attractTimer = TickTimer.None;
+                        isSucking = false;
+                    }
 
-                if(!isCarrying && suckTimer.Expired(Runner)) {
-                    suckTimer = TickTimer.None;
-                    attractTimer = TickTimer.CreateFromSeconds(Runner, attractWaitTime);
-                    Suck();
-                    isSucking = true;
-                }
-
-                if(!isCarrying && attractTimer.Expired(Runner)) {
-                    Attract();
-                }
-
-            } else {
-
-                if(isSucking) {
-                    suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
-                    attractTimer = TickTimer.None;
-                    isSucking = false;
-                }
-
+                }*/
             }
         }
 

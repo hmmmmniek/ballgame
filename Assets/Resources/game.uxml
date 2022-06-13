@@ -19,5 +19,8 @@
         <engine:VisualElement name="game__charge" class="game__charge" >
             <engine:VisualElement name="game__charge__indicator" class="game__charge__indicator" ></engine:VisualElement>    
         </engine:VisualElement>  
+        <engine:VisualElement class="game__rtt" name="game__rtt">
+            <engine:Label name="game_rtt__label" text="" />
+        </engine:VisualElement>  
     </engine:VisualElement>
 </engine:UXML>

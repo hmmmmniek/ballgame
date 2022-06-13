@@ -7,8 +7,17 @@ public struct NetworkInputData : INetworkInput
 {
     public Vector2 movementInput;
     public Vector2 rotationInput;
-    public NetworkBool isJumpPressed;
-    public NetworkBool isPrimaryPressed;
-    public NetworkBool isSecondaryPressed;
+    public Vector3 clientPosition;
+    public Vector3 clientVelocity;
+    public float clientBoostRemaining;
+    
+    public float jumpPressedTime;
+    public float primaryPressedTime;
+    public float secondaryPressedTime;
+    public float jumpReleaseTime;
+    public float primaryReleaseTime;
+    public float secondaryReleaseTime;
+    public float runnerTime;
+    public float localTime;
 
 }

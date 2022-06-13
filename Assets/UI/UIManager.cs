@@ -23,6 +23,7 @@ public class UIManager : MonoBehaviour
         ViewManager.Init(root.Q<VisualElement>("Root"));
        
         ShowMenu();
+
     }
 
     public void ShowMenu() {

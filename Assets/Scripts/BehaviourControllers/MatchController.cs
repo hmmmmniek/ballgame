@@ -6,6 +6,8 @@ using System;
 public class MatchController : NetworkBehaviour {
 
     public BallController ballPrefab;
+
+
     public override void FixedUpdateNetwork() {
 
     }

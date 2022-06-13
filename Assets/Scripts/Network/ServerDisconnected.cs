@@ -13,6 +13,8 @@ public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
         await runner.Shutdown(true);
     }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) {
+		InputHandler.instance.networkInputDataCache = new NetworkInputData();
+
         if(shutdownReason != ShutdownReason.HostMigration) {         
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
         }

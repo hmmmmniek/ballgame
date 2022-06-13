@@ -17,35 +17,34 @@ public class CharacterMovementController : NetworkTransform {
     public float maxVerticalSpeed = 6f;
     public float boostUsageSpeed = 40f;
     public float boostRechargeSpeed = 15f;
+    public float rememberInputTime = 0.5f;
+    public float maxAllowedClientPositionError = 1f;
+    public float maxAllowedClientVelocityError = 1f;
+    public float maxAllowedClientBoostError = 1f;
 
     public CharacterCameraController cameraController;
+    public LocalCharacterMovementController localCharacterMovementController;
 
-    [Networked]
-    [HideInInspector]
-    public bool IsGrounded { get; set; }
 
-    [Networked]
-    [HideInInspector]
-    public Vector3 Velocity { get; set; }
+    [HideInInspector][Networked]public bool IsGrounded { get; set; }
+    [HideInInspector][Networked]public Vector3 Velocity { get; set; }
+    [HideInInspector][Networked(OnChanged = nameof(OnBoostChanged))]
+    public float boostRemainingPercentage { get; set; }
+    public static void OnBoostChanged(Changed<CharacterMovementController> changed) {
+        changed.Behaviour.OnBoostChanged();
+    }
+    private void OnBoostChanged() {
+        if(Object.HasInputAuthority) {
+            GameState.Dispatch(GameState.SetRemainingBoostPercentage, boostRemainingPercentage, () => {});
+        }
+    }
 
-    [Networked]
-    private float boostRemainingPercentage { get; set; }
-
-    /// <summary>
-    /// Sets the default teleport interpolation velocity to be the CC's current velocity.
-    /// For more details on how this field is used, see <see cref="NetworkTransform.TeleportToPosition"/>.
-    /// </summary>
     protected override Vector3 DefaultTeleportInterpolationVelocity => Velocity;
-
-    /// <summary>
-    /// Sets the default teleport interpolation angular velocity to be the CC's rotation speed on the Z axis.
-    /// For more details on how this field is used, see <see cref="NetworkTransform.TeleportToRotation"/>.
-    /// </summary>
     protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, InputHandler.instance.lookHorizontalSpeed);
-
     public CharacterController Controller { get; private set; }
 
-    private bool isLocalPlayer = false;
+    public void Start() {
+    }
 
     protected override void Awake() {
         base.Awake();
@@ -55,13 +54,14 @@ public class CharacterMovementController : NetworkTransform {
     public override void Spawned() {
         base.Spawned();
         CacheController();
-        if (Object.HasInputAuthority) {
-            isLocalPlayer = true;
-        }
 
-        // Caveat: this is needed to initialize the Controller's state and avoid unwanted spikes in its perceived velocity
-        Controller.Move(transform.position);
+       // Controller.Move(transform.position);
         boostRemainingPercentage = 100f;
+
+        Physics.IgnoreCollision(localCharacterMovementController.GetComponent<CharacterController>(), GetComponent<CharacterController>());
+
+        localCharacterMovementController.Init(Object.HasInputAuthority);
+        localCharacterMovementController.Synchronize();
     }
 
     private void CacheController() {
@@ -73,98 +73,95 @@ public class CharacterMovementController : NetworkTransform {
     }
 
     protected override void CopyFromBufferToEngine() {
-        // Trick: CC must be disabled before resetting the transform state
         Controller.enabled = false;
-
-        // Pull base (NetworkTransform) state from networked data buffer
         base.CopyFromBufferToEngine();
-
-        // Re-enable CC
         Controller.enabled = true;
     }
 
+    private float inputSendTime;
+    private Vector2 movement;
+    private float jumpPressedTime;
+    private float jumpReleaseTime;
+    private Vector3 clientPosition;
+    private Vector3 clientVelocity;
+    private float clientBoostRemaining;
+
     public override void FixedUpdateNetwork() {
-        if (GetInput(out NetworkInputData networkInputData)) {
-            if (networkInputData.isJumpPressed) {
-                Jump();
+
+        if(Object.HasStateAuthority) {
+            bool receivedInput = false;
+            if (GetInput(out NetworkInputData networkInputData)) {
+                jumpPressedTime = networkInputData.jumpPressedTime;
+                jumpReleaseTime = networkInputData.jumpReleaseTime;
+                movement = networkInputData.movementInput;
+                clientPosition = networkInputData.clientPosition;
+                clientVelocity = networkInputData.clientVelocity;
+                clientBoostRemaining = networkInputData.clientBoostRemaining;
+                inputSendTime = networkInputData.runnerTime;
+                receivedInput = true;
             }
-            Move(networkInputData.movementInput);
+            float delta = Runner.DeltaTime;
+
+            if(jumpPressedTime == inputSendTime) {
+                Velocity = Utils.Jump(
+                    delta,
+                    Velocity,
+                    Controller,
+                    jumpImpulse
+                );
+            }
+            if(jumpPressedTime < inputSendTime && jumpReleaseTime < jumpPressedTime) {
+                (float b, Vector3 v) = Utils.Boost(
+                    delta,
+                    Velocity,
+                    Controller,
+                    boostImpulse,
+                    boostUsageSpeed,
+                    boostRemainingPercentage
+                );
+                boostRemainingPercentage = b;
+                Velocity = v;
+            }
+
+            Velocity = Utils.Move(
+                delta,
+                movement,
+                transform,
+                Velocity,
+                Controller,
+                gravity,
+                braking,
+                acceleration,
+                maxGroundSpeed,
+                maxVerticalSpeed
+            );
+
+            boostRemainingPercentage = Utils.RechargeBoost(
+                delta,
+                Controller,
+                boostRemainingPercentage,
+                boostRechargeSpeed
+            );
+
+            if(
+                receivedInput && 
+                Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError &&
+                Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError &&
+                Math.Abs(boostRemainingPercentage - clientBoostRemaining) < maxAllowedClientBoostError
+            ) {
+                Velocity = clientVelocity;
+                boostRemainingPercentage = clientBoostRemaining;
+                Controller.enabled = false;
+                transform.position = clientPosition;
+                Controller.enabled = true;
+            }
 
         }
-        RechargeBoost();
-        Rotate();
     }
 
-    private void RechargeBoost() {
-        if(IsGrounded && boostRemainingPercentage < 100) {
-            boostRemainingPercentage = boostRemainingPercentage + boostRechargeSpeed * Runner.DeltaTime;
-            if(boostRemainingPercentage > 100) {
-                boostRemainingPercentage = 100;
-            }
-            if(isLocalPlayer) {
-                GameState.Dispatch(GameState.SetRemainingBoostPercentage, boostRemainingPercentage, () => {});
-            }
-        }
+    public void Update() {
+        Utils.Rotate(transform, cameraController.transform.localEulerAngles.y);
     }
 
-    public virtual void Jump(bool ignoreGrounded = false, float? overrideImpulse = null) {
-        if (IsGrounded || ignoreGrounded) {
-            var newVel = Velocity;
-            newVel.y += overrideImpulse ?? jumpImpulse;
-            Velocity = newVel;
-        } else if(boostRemainingPercentage > 0) {
-            var newVel = Velocity;
-            newVel.y += boostImpulse * Runner.DeltaTime;
-            Velocity = newVel;
-            boostRemainingPercentage = boostRemainingPercentage - boostUsageSpeed * Runner.DeltaTime;
-            if(boostRemainingPercentage < 0) {
-                boostRemainingPercentage = 0;
-            }
-            if(isLocalPlayer) {
-                GameState.Dispatch(GameState.SetRemainingBoostPercentage, boostRemainingPercentage, () => {});
-            }
-        }
 
-    }
-
-    public virtual void Move(Vector2 movementInput) {
-
-        var deltaTime = Runner.DeltaTime;
-        var previousPos = transform.position;
-        var moveVelocity = Velocity;
-
-        Vector3 direction = transform.forward * movementInput.y + transform.right * movementInput.x;
-        direction = direction.normalized;
-
-        if (IsGrounded && moveVelocity.y < 0) {
-            moveVelocity.y = 0f;
-        }
-
-        moveVelocity.y += gravity * Runner.DeltaTime;
-
-        var horizontalVel = default(Vector3);
-        horizontalVel.x = moveVelocity.x;
-        horizontalVel.z = moveVelocity.z;
-
-        if (direction == default) {
-            horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
-        } else {
-            horizontalVel = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, maxGroundSpeed);
-        }
-
-        moveVelocity.x = horizontalVel.x;
-        moveVelocity.z = horizontalVel.z;
-        if(moveVelocity.y > maxVerticalSpeed) {
-            moveVelocity.y = maxVerticalSpeed;
-        }
-        Controller.Move(moveVelocity * deltaTime);
-
-        Velocity = (transform.position - previousPos) * Runner.Simulation.Config.TickRate;
-        IsGrounded = Controller.isGrounded;
-    }
-
-    public void Rotate() {
-        transform.localRotation = Quaternion.Euler(0, cameraController.transform.localEulerAngles.y, 0f);
-
-    }
 }

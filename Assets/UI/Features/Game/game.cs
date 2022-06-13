@@ -11,12 +11,15 @@ public class GameController: Module {
     VisualElement boostIndicator;
     VisualElement chargeIndicator;
     VisualElement crossHairContainer;
+    Label rttLabel;
 
     public GameController(VisualElement element) {
         InputHandler.instance.StartGameInput();
         boostIndicator = element.Q<VisualElement>("game__boost__indicator");
         chargeIndicator = element.Q<VisualElement>("game__charge__indicator");
         crossHairContainer = element.Q<VisualElement>("game__crosshair__container");
+        rttLabel = element.Q<Label>("game_rtt__label");
+
 
         Watch(GameState.Select<float>(GameState.GetRemainingBoostPercentage, (boost) => {
             boostIndicator.style.width = new StyleLength(new Length(boost, LengthUnit.Percent));
@@ -33,6 +36,11 @@ public class GameController: Module {
                 crossHairContainer.AddToClassList("empty");
             }
         }));
+
+        Watch(NetworkStatsState.Select<float>(NetworkStatsState.GetRtt, (rtt) => {
+            rttLabel.text = $"{rtt}{(rtt%1==0 ? ".0" : "")} ms";
+        }));
+        
 
     }
 }

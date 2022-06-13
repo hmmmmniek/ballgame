@@ -13,6 +13,8 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public MatchController matchManagerPrefab;
     private MatchController matchManager;
 
+    private float lastRtt = -1;
+
     public void OnConnectedToServer(NetworkRunner runner) {}
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) { }
@@ -45,8 +47,32 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
 
 
     public void OnInput(NetworkRunner runner, NetworkInput input) {
-        input.Set(InputHandler.instance.networkInputDataCache);
-        InputHandler.instance.ResetNetworkState();
+        if(PlayerController.Local != null) {
+            InputHandler.instance.networkInputDataCache.localTime = Time.time;
+            InputHandler.instance.networkInputDataCache.runnerTime = runner.SimulationTime;
+            InputHandler.instance.networkInputDataCache.clientPosition = PlayerController.Local.localCharacterMovementController.transform.position;
+            InputHandler.instance.networkInputDataCache.clientVelocity = PlayerController.Local.localCharacterMovementController.Velocity;
+            InputHandler.instance.networkInputDataCache.clientBoostRemaining = PlayerController.Local.localCharacterMovementController.boostRemainingPercentage;
+            if(InputHandler.instance.networkInputDataCache.jumpPressedTime == -1) {
+                InputHandler.instance.networkInputDataCache.jumpPressedTime = runner.SimulationTime;
+            }
+            if(InputHandler.instance.networkInputDataCache.primaryPressedTime == -1) {
+                InputHandler.instance.networkInputDataCache.primaryPressedTime = runner.SimulationTime;
+            }
+            if(InputHandler.instance.networkInputDataCache.secondaryPressedTime == -1) {
+                InputHandler.instance.networkInputDataCache.secondaryPressedTime = runner.SimulationTime;
+            }
+            if(InputHandler.instance.networkInputDataCache.jumpReleaseTime == -1) {
+                InputHandler.instance.networkInputDataCache.jumpReleaseTime = runner.SimulationTime;
+            }
+            if(InputHandler.instance.networkInputDataCache.primaryReleaseTime == -1) {
+                InputHandler.instance.networkInputDataCache.primaryReleaseTime = runner.SimulationTime;
+            }
+            if(InputHandler.instance.networkInputDataCache.secondaryReleaseTime == -1) {
+                InputHandler.instance.networkInputDataCache.secondaryReleaseTime = runner.SimulationTime;
+            }
+            input.Set(InputHandler.instance.networkInputDataCache);
+        }
     }
 
 

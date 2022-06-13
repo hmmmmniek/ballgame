@@ -4,6 +4,22 @@
     width: 100%;
 }
 
+.game__rtt {
+    position: absolute;
+    top: 10px;
+    right: 10px;
+    background-color: black;
+    margin: 5px;
+    border-radius: 5px;
+
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+}
+.game__rtt Label {
+    color: white;
+}
 
 .game__boost, .game__charge {
     position: absolute;

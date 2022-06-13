@@ -40,8 +40,11 @@ public class InputHandler : MonoBehaviour {
 
     private void HandleAction(InputAction.CallbackContext context) {
         if (context.action.name == "Jump") {
-            networkInputDataCache.isJumpPressed = networkInputDataCache.isJumpPressed || context.ReadValueAsButton();
-            latestJumpValue = context.ReadValueAsButton();
+            if(context.ReadValueAsButton()) {
+                networkInputDataCache.jumpPressedTime = -1; //-1 is replaced by runner.SimulationTime in PlayerSessionManager
+            } else {
+                networkInputDataCache.jumpReleaseTime = -1;
+            }
         }
         if (context.action.name == "Move") {
             networkInputDataCache.movementInput = context.ReadValue<Vector2>();
@@ -51,23 +54,23 @@ public class InputHandler : MonoBehaviour {
             networkInputDataCache.rotationInput = new Vector2(networkInputDataCache.rotationInput.x, Mathf.Clamp(networkInputDataCache.rotationInput.y, -90, 90));
         }
         if (context.action.name == "Primary") {
-            networkInputDataCache.isPrimaryPressed = networkInputDataCache.isPrimaryPressed || context.ReadValueAsButton();
-            latestPrimaryValue = context.ReadValueAsButton();
+            if(context.ReadValueAsButton()) {
+                networkInputDataCache.primaryPressedTime = -1;
+            } else {
+                networkInputDataCache.primaryReleaseTime = -1;
+            }
         }
         if (context.action.name == "Secondary") {
-            networkInputDataCache.isSecondaryPressed = networkInputDataCache.isSecondaryPressed || context.ReadValueAsButton();
-            latestSecondaryValue = context.ReadValueAsButton();
+            if(context.ReadValueAsButton()) {
+                networkInputDataCache.secondaryPressedTime = -1;
+            } else {
+                networkInputDataCache.secondaryReleaseTime = -1;
+            }
         }
         if (context.action.name == "Escape") {
             StopGameInput();
             uiManager.ShowMenu();
         }
-    }
-    public void ResetNetworkState() {
-        networkInputDataCache.isJumpPressed = latestJumpValue;
-        networkInputDataCache.isPrimaryPressed = latestPrimaryValue;
-        networkInputDataCache.isSecondaryPressed = latestSecondaryValue;
-
     }
 }
 

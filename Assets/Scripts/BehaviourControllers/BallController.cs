@@ -28,6 +28,9 @@ public class BallController : NetworkTransform {
                     player.ballGunController.ball = this;
                     player.playerController.ball = this;
                     Physics.IgnoreCollision(GetComponent<SphereCollider>(), player.playerController.GetComponent<CharacterController>());
+                    Physics.IgnoreCollision(GetComponent<SphereCollider>(), player.playerController.localCharacterMovementController.GetComponent<CharacterController>());
+                    Physics.IgnoreCollision(player.playerController.localCharacterMovementController.GetComponent<CharacterController>(), player.playerController.GetComponent<CharacterController>());
+
                 }
                 if(Object.HasStateAuthority) {
 
