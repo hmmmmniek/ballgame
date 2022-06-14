@@ -45,9 +45,9 @@ public class InputHandler : MonoBehaviour {
     private void HandleAction(InputAction.CallbackContext context) {
         if (context.action.name == "Jump") {
             if(context.ReadValueAsButton()) {
-                networkInputDataCache.jumpPressedTime = -1; //-1 is replaced by runner.SimulationTime in PlayerSessionManager
+                localInputDataCache.jumpPressed = true;
             } else {
-                networkInputDataCache.jumpReleaseTime = -1;
+                localInputDataCache.jumpPressed = false;
             }
         }
         if (context.action.name == "Move") {

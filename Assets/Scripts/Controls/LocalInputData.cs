@@ -7,7 +7,6 @@ public struct LocalInputData
 {
     public bool primaryPressed;
     public bool secondaryPressed;
-    public float jumpPressedTime;
-    public float jumpReleaseTime;
+    public bool jumpPressed;
 
 }

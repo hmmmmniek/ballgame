@@ -12,6 +12,9 @@ public class LocalCharacterMovementController : MonoBehaviour {
     public float boostRemainingPercentage;
     public bool hasInputAuthority;
 
+    private bool _localJump;
+    public bool localJump { get { return _localJump; } set { _localJump = value; } } 
+
     public void Init(bool hasInputAuthority) {
         this.hasInputAuthority = hasInputAuthority;
         transform.parent = null;
@@ -33,12 +36,20 @@ public class LocalCharacterMovementController : MonoBehaviour {
     }
     public void Update() {
         
-
+        /*
+        * Move model to position when not in control
+        */
         if(!hasInputAuthority) {
             transform.position = bodyAnchorPoint.position;
             return;
         }
+        
         float deltaTime = Time.deltaTime;
+
+
+        /*
+        * Accept/refuse server state
+        */
         if( 
             Vector3.Distance(transform.position, networkMovementController.transform.position) > networkMovementController.maxAllowedClientPositionError ||
             Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
@@ -46,17 +57,42 @@ public class LocalCharacterMovementController : MonoBehaviour {
         ) {
             Synchronize();
         }
-        if(InputHandler.instance.networkInputDataCache.jumpPressedTime + deltaTime - networkMovementController.Runner.SimulationTime > 0) {
+
+        /*
+        * Jump
+        */
+        if(
+            InputHandler.instance.localInputDataCache.jumpPressed &&
+            Controller.isGrounded
+        ) {
             Velocity = Utils.Jump(
                 deltaTime,
                 Velocity,
                 Controller,
                 networkMovementController.jumpImpulse
             );
+            localJump = true;
+        }
+
+        /*
+        * Stop jump
+        */
+        if (
+            !InputHandler.instance.localInputDataCache.jumpPressed &&
+            localJump &&
+            networkMovementController.jumpReceived
+        ) {   
+            localJump = false;
         }
 
 
-        if(InputHandler.instance.networkInputDataCache.jumpPressedTime < InputHandler.instance.networkInputDataCache.runnerTime && InputHandler.instance.networkInputDataCache.jumpReleaseTime < InputHandler.instance.networkInputDataCache.jumpPressedTime) {
+        /*
+        * Boost
+        */
+        if(
+            InputHandler.instance.localInputDataCache.jumpPressed &&
+            !Controller.isGrounded
+        ) {
             (float b, Vector3 v) = Utils.Boost(
                 deltaTime,
                 Velocity,
@@ -69,9 +105,23 @@ public class LocalCharacterMovementController : MonoBehaviour {
             Velocity = v;
         }
 
+        /*
+        * Recharge boost
+        */
+        if(
+            Controller.isGrounded
+        ) {
+            boostRemainingPercentage = Utils.RechargeBoost(
+                deltaTime,
+                Controller,
+                boostRemainingPercentage,
+                networkMovementController.boostRechargeSpeed
+            );
+        }
 
-
-
+        /*
+        * Move
+        */
         Velocity = Utils.Move(
             deltaTime,
             InputHandler.instance.networkInputDataCache.movementInput,
@@ -85,12 +135,9 @@ public class LocalCharacterMovementController : MonoBehaviour {
             networkMovementController.maxVerticalSpeed
         );
 
-        boostRemainingPercentage = Utils.RechargeBoost(
-            deltaTime,
-            Controller,
-            boostRemainingPercentage,
-            networkMovementController.boostRechargeSpeed
-        );
+        /*
+        * Rotate
+        */
         transform.rotation = Quaternion.Euler(0, InputHandler.instance.networkInputDataCache.rotationInput.x, 0);
 
         

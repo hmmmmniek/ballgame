@@ -77,7 +77,7 @@ public static class Utils {
     }
 
     public static float RechargeBoost(float deltaTime, CharacterController controller, float boostRemainingPercentage, float boostRechargeSpeed) {
-        if(controller.isGrounded && boostRemainingPercentage < 100) {
+        if(boostRemainingPercentage < 100) {
             boostRemainingPercentage = boostRemainingPercentage + boostRechargeSpeed * deltaTime;
             if(boostRemainingPercentage > 100) {
                 boostRemainingPercentage = 100;

@@ -15,9 +15,7 @@ public struct NetworkInputData : INetworkInput
     public bool clientKick;
     public bool clientPass;
     public bool clientSuck;
-
-    public float jumpPressedTime;
-    public float jumpReleaseTime;
+    public bool clientJump;
     public float runnerTime;
     public float localTime;
 

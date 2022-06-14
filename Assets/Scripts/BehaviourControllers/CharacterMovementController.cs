@@ -26,7 +26,6 @@ public class CharacterMovementController : NetworkTransform {
     public LocalCharacterMovementController localCharacterMovementController;
 
 
-    [HideInInspector][Networked]public bool IsGrounded { get; set; }
     [HideInInspector][Networked]public Vector3 Velocity { get; set; }
     [HideInInspector][Networked(OnChanged = nameof(OnBoostChanged))]
     public float boostRemainingPercentage { get; set; }
@@ -36,6 +35,17 @@ public class CharacterMovementController : NetworkTransform {
     private void OnBoostChanged() {
         if(Object.HasInputAuthority) {
             GameState.Dispatch(GameState.SetRemainingBoostPercentage, boostRemainingPercentage, () => {});
+        }
+    }
+
+    
+    [HideInInspector][Networked(OnChanged = nameof(OnJumpReceived))] public bool jumpReceived { get; set; }
+    public static void OnJumpReceived(Changed<CharacterMovementController> changed) {
+        changed.Behaviour.OnJumpReceived();
+    }
+    private void OnJumpReceived() {
+        if(jumpReceived && Object.HasInputAuthority && !InputHandler.instance.localInputDataCache.jumpPressed) {
+            localCharacterMovementController.localJump = false;
         }
     }
 
@@ -78,39 +88,61 @@ public class CharacterMovementController : NetworkTransform {
         Controller.enabled = true;
     }
 
-    private float inputSendTime;
     private Vector2 movement;
-    private float jumpPressedTime;
-    private float jumpReleaseTime;
+    private bool clientJump;
     private Vector3 clientPosition;
     private Vector3 clientVelocity;
     private float clientBoostRemaining;
 
+    private bool previousClientJump = false;
     public override void FixedUpdateNetwork() {
 
         if(Object.HasStateAuthority) {
             bool receivedInput = false;
             if (GetInput(out NetworkInputData networkInputData)) {
-                jumpPressedTime = networkInputData.jumpPressedTime;
-                jumpReleaseTime = networkInputData.jumpReleaseTime;
+                clientJump = networkInputData.clientJump;
                 movement = networkInputData.movementInput;
                 clientPosition = networkInputData.clientPosition;
                 clientVelocity = networkInputData.clientVelocity;
                 clientBoostRemaining = networkInputData.clientBoostRemaining;
-                inputSendTime = networkInputData.runnerTime;
                 receivedInput = true;
             }
             float delta = Runner.DeltaTime;
 
-            if(jumpPressedTime == inputSendTime) {
+
+            /*
+            * Jump
+            */
+            if(
+                clientJump &&
+                Controller.isGrounded
+            ) {
                 Velocity = Utils.Jump(
                     delta,
                     Velocity,
                     Controller,
                     jumpImpulse
                 );
+                jumpReceived = true;
             }
-            if(jumpPressedTime < inputSendTime && jumpReleaseTime < jumpPressedTime) {
+
+            /*
+            * Reset jump
+            */
+            if(
+                previousClientJump == true &&
+                !clientJump
+            ) {
+                jumpReceived = false;
+            }
+
+            /*
+            * Boost
+            */
+            if(
+                clientJump &&
+                !Controller.isGrounded
+            ) {
                 (float b, Vector3 v) = Utils.Boost(
                     delta,
                     Velocity,
@@ -123,6 +155,25 @@ public class CharacterMovementController : NetworkTransform {
                 Velocity = v;
             }
 
+            /*
+            * Recharge boost
+            */
+            if(
+                Controller.isGrounded
+            ) {
+                boostRemainingPercentage = Utils.RechargeBoost(
+                    delta,
+                    Controller,
+                    boostRemainingPercentage,
+                    boostRechargeSpeed
+                );
+            }
+                        
+
+
+            /*
+            * Move
+            */
             Velocity = Utils.Move(
                 delta,
                 movement,
@@ -136,13 +187,9 @@ public class CharacterMovementController : NetworkTransform {
                 maxVerticalSpeed
             );
 
-            boostRemainingPercentage = Utils.RechargeBoost(
-                delta,
-                Controller,
-                boostRemainingPercentage,
-                boostRechargeSpeed
-            );
-
+            /*
+            * Accept/refuse client state
+            */
             if(
                 receivedInput && 
                 Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError &&

@@ -53,18 +53,12 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
             InputHandler.instance.networkInputDataCache.clientPosition = PlayerController.Local.localCharacterMovementController.transform.position;
             InputHandler.instance.networkInputDataCache.clientVelocity = PlayerController.Local.localCharacterMovementController.Velocity;
             InputHandler.instance.networkInputDataCache.clientBoostRemaining = PlayerController.Local.localCharacterMovementController.boostRemainingPercentage;
+            InputHandler.instance.networkInputDataCache.clientJump = PlayerController.Local.localCharacterMovementController.localJump;
             InputHandler.instance.networkInputDataCache.clientChargeTime = PlayerController.Local.ballGunController.localChargeTime;
             InputHandler.instance.networkInputDataCache.clientShoot = PlayerController.Local.ballGunController.localShoot;
             InputHandler.instance.networkInputDataCache.clientKick = PlayerController.Local.ballGunController.localKick;
             InputHandler.instance.networkInputDataCache.clientPass = PlayerController.Local.ballGunController.localPass;
             InputHandler.instance.networkInputDataCache.clientSuck = PlayerController.Local.ballGunController.localSuck;
-
-            if(InputHandler.instance.networkInputDataCache.jumpPressedTime == -1) {
-                InputHandler.instance.networkInputDataCache.jumpPressedTime = runner.SimulationTime;
-            }
-            if(InputHandler.instance.networkInputDataCache.jumpReleaseTime == -1) {
-                InputHandler.instance.networkInputDataCache.jumpReleaseTime = runner.SimulationTime;
-            }
 
             input.Set(InputHandler.instance.networkInputDataCache);
         }
