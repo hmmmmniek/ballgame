@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Threading.Tasks;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -27,6 +28,9 @@ public class GameController: Module {
 
         Watch(GameState.Select<float>(GameState.GetChargePercentage, (charge) => {
             chargeIndicator.style.width = new StyleLength(new Length(charge, LengthUnit.Percent));
+            if(charge != 0) {
+                ChargeLoop();
+            }
         }));
 
         Watch(GameState.Select<bool>(GameState.GetCarryingBall, (carrying) => {
@@ -42,5 +46,14 @@ public class GameController: Module {
         }));
         
 
+    }
+
+    public async void ChargeLoop() {
+        await Task.Delay(10);
+        float charge = GameState.SelectOnce<float>(GameState.GetChargePercentage);
+        chargeIndicator.style.width = new StyleLength(new Length(charge, LengthUnit.Percent));
+        if(charge != 0) {
+            ChargeLoop();
+        }
     }
 }

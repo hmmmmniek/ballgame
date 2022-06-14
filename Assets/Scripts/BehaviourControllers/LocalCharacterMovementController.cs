@@ -44,7 +44,6 @@ public class LocalCharacterMovementController : MonoBehaviour {
             Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
             Math.Abs(boostRemainingPercentage - networkMovementController.boostRemainingPercentage) > networkMovementController.maxAllowedClientBoostError
         ) {
-            Debug.Log("synchronize to server position");
             Synchronize();
         }
         if(InputHandler.instance.networkInputDataCache.jumpPressedTime + deltaTime - networkMovementController.Runner.SimulationTime > 0) {

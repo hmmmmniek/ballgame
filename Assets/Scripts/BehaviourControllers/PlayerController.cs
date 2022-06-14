@@ -44,7 +44,6 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public override void Spawned() {
         base.Spawned();
-        temporarilyIgnored = true;
         GameState.Dispatch(GameState.AddPlayer, (
             ballGunController: ballGunController,
             playerController: this

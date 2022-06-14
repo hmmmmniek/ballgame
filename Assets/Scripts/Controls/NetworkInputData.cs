@@ -10,7 +10,9 @@ public struct NetworkInputData : INetworkInput
     public Vector3 clientPosition;
     public Vector3 clientVelocity;
     public float clientBoostRemaining;
-    
+    public float clientChargeTime;
+    public bool clientShoot;
+
     public float jumpPressedTime;
     public float primaryPressedTime;
     public float secondaryPressedTime;

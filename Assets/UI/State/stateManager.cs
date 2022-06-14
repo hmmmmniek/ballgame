@@ -44,7 +44,7 @@ public class StateManager {
         EventHandler<StateDataType> handler = (object sender, StateDataType state) => {
             ReturnType newValue = action(state);
 
-            if(!((value == null && newValue == null) || value.Equals(newValue))) {
+            if(!((value == null && newValue == null) || (value != null && value.Equals(newValue)))) {
                 value = newValue;
                 callback(value);
             }

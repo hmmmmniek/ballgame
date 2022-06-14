@@ -164,4 +164,8 @@ public class CharacterMovementController : NetworkTransform {
     }
 
 
+    public void OnDestroy (){
+        GameObject.Destroy(localCharacterMovementController.gameObject);
+    }
+
 }

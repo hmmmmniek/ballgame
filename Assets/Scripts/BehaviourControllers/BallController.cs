@@ -49,7 +49,7 @@ public class BallController : NetworkTransform {
 
         base.FixedUpdateNetwork();
         if(Object.HasStateAuthority) {
-
+            
             if(!isAttached) {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {

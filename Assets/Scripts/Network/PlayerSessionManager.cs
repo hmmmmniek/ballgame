@@ -53,6 +53,9 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
             InputHandler.instance.networkInputDataCache.clientPosition = PlayerController.Local.localCharacterMovementController.transform.position;
             InputHandler.instance.networkInputDataCache.clientVelocity = PlayerController.Local.localCharacterMovementController.Velocity;
             InputHandler.instance.networkInputDataCache.clientBoostRemaining = PlayerController.Local.localCharacterMovementController.boostRemainingPercentage;
+            InputHandler.instance.networkInputDataCache.clientChargeTime = PlayerController.Local.ballGunController.localChargeTime;
+            InputHandler.instance.networkInputDataCache.clientShoot = PlayerController.Local.ballGunController.localShoot;
+            
             if(InputHandler.instance.networkInputDataCache.jumpPressedTime == -1) {
                 InputHandler.instance.networkInputDataCache.jumpPressedTime = runner.SimulationTime;
             }

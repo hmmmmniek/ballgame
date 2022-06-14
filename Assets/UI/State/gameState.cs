@@ -8,7 +8,8 @@ using UnityEngine.UIElements;
 
 public class GameStateData: StateData {
     public float remainingBoostPercentage;
-    public float chargePercentage;
+    public float chargeTime;
+    public float chargeStart;
     public bool carryingBall;
     public (BallGunController ballGunController, PlayerController playerController)[] players = {};
 }
@@ -21,6 +22,7 @@ public class GameState: BaseState<GameStateData, GameState> {
     public GameState(StateDependencies dependencies): base() {
         this.dependencies = dependencies;
         state.remainingBoostPercentage = 100f;
+        state.chargeStart = -1;
     }
     
     public static float GetRemainingBoostPercentage(GameStateData state) {
@@ -35,23 +37,41 @@ public class GameState: BaseState<GameStateData, GameState> {
     }
 
     public static float GetChargePercentage(GameStateData state) {
-        return state.chargePercentage;
+        if(!state.carryingBall || state.chargeStart == -1) {
+            return 0;
+        } else {
+            return Math.Clamp((Time.time - state.chargeStart) / state.chargeTime * 100, 1, 100);
+        }
     }
 
     public static bool GetCarryingBall(GameStateData state) {
         return state.carryingBall;
     }
 
-    public static void SetChargePercentage(BaseState<GameStateData, GameState> s, float args, Action c) { (s as GameState).SCP(c, args); }
-    private void SCP(Action complete, float args) {
-        StateChange((GameStateData state) => {
-            state.chargePercentage = args;
-        });
-    }
+
 
 
     public static (BallGunController ballGunController, PlayerController playerController)[] GetPlayers(GameStateData state) {
         return state.players;
+    }
+
+    public static void SetIsCharging(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SICH(c, args); }
+    private void SICH(Action complete, bool args) {
+        StateChange((GameStateData state) => {
+            if(args) {
+                state.chargeStart = Time.time;
+            } else {
+                state.chargeStart = -1;
+            }
+            
+        });
+    }
+
+    public static void SetChargeTime(BaseState<GameStateData, GameState> s, float args, Action c) { (s as GameState).SCT(c, args); }
+    private void SCT(Action complete, float args) {
+        StateChange((GameStateData state) => {
+            state.chargeTime = args;
+        });
     }
 
     public static void AddPlayer(BaseState<GameStateData, GameState> s, (BallGunController ballGunController, PlayerController playerController) args, Action c) { (s as GameState).AP(c, args); }
