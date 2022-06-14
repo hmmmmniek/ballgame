@@ -9,23 +9,21 @@ public class BallGunController : NetworkBehaviour {
     public float passSpeed = 30;
     public float chargeTimeAmount = 2;
 
-    public float suckDistance = 2;
-    public float suckRadius = 1.5f;
+    public float suckDistance = 5;
+    public float suckAngle = 20f;
     public float suckTimeout = 0.5f;
-    public float suckOffset = 1.5f;
 
-    public float attractDistance = 1;
-    public float attractRadius = 2.5f;
+    public float attractDistance = 6;
+    public float attractAngle = 30f;
     public float attractWaitTime = 0.5f;
-    public float attractOffset = 2.5f;
     public float attractStrength = 20f;
 
-    public float kickDistance = 1f;
-    public float kickRadius = 2.5f;
+    public float kickDistance = 7f;
+    public float kickAngle = 40f;
     public float kickTimeout = 0.5f;
-    public float kickOffset = 2.5f;
     public float kickBallDropSpeed = 4;
     public float kickBallSpeed = 20;
+    public float kickPushForce = 5;
 
     public float maxAllowedClientChargeError = 7;
 
@@ -42,7 +40,6 @@ public class BallGunController : NetworkBehaviour {
     [Networked] private TickTimer attractTimer { get; set; }
     [Networked] private TickTimer kickTimer { get; set; }
 
-    [Networked] private float networkChargeTime { get; set; }
     private float _localChargeTime;
     public float localChargeTime {
         get {
@@ -60,19 +57,24 @@ public class BallGunController : NetworkBehaviour {
         }
     }
     private bool _localShoot;
-    public bool localShoot { get { return _localShoot; } set { _localShoot = value; } } // No idea why, but without the getter/setter it doesnt work??
-    
+    public bool localShoot { get { return _localShoot; } set { _localShoot = value; } }
+    private bool _localKick;
+    public bool localKick { get { return _localKick; } set { _localKick = value; } } 
+    private bool _localPass;
+    public bool localPass { get { return _localPass; } set { _localPass = value; } } 
+    private bool _localSuck;
+    public bool localSuck { get { return _localSuck; } set { _localSuck = value; } } 
+
+
+
     [HideInInspector][Networked(OnChanged = nameof(OnCarryingChanged))] public bool isCarrying { get; set; }
     public static void OnCarryingChanged(Changed<BallGunController> changed) {
         changed.Behaviour.OnCarryingChanged();
     }
     private void OnCarryingChanged() {
         localShoot = false;
+        localPass = false;
         localChargeTime = -1;
-        
-        if(Object.HasStateAuthority) {
-            networkChargeTime = -1;
-        }
 
         if(isCarrying && !ballModel.gameObject.activeSelf) {
             LocalAttach();
@@ -82,16 +84,37 @@ public class BallGunController : NetworkBehaviour {
         }
     }
 
-    private bool isSucking;
-    private bool isKicking;
+    [HideInInspector][Networked(OnChanged = nameof(OnKickReceived))] public bool kickReceived { get; set; }
+    public static void OnKickReceived(Changed<BallGunController> changed) {
+        changed.Behaviour.OnKickReceived();
+    }
+    private void OnKickReceived() {
+        if(kickReceived && Object.HasInputAuthority) {
+            localKick = false;
+        }
+    }
 
-    private float inputSendTime;
-    private float primaryPressedTime;
-    private float primaryReleaseTime;
-    private float secondaryPressedTime;
-    private float secondaryReleaseTime;
+    [HideInInspector][Networked(OnChanged = nameof(OnSuckReceived))] public bool suckReceived { get; set; }
+    public static void OnSuckReceived(Changed<BallGunController> changed) {
+        changed.Behaviour.OnSuckReceived();
+    }
+    private void OnSuckReceived() {
+        if(suckReceived && Object.HasInputAuthority && !InputHandler.instance.localInputDataCache.secondaryPressed) {
+            localSuck = false;
+        }
+    }
+
+
     private float clientChargeTime;
     private bool clientShoot;
+    private bool clientKick;
+    private bool clientPass;
+    private bool clientSuck;
+
+
+    private Action unsubscribePlayers;
+    private (BallGunController ballGunController, PlayerController playerController)[] players;
+
 
 
     protected void Awake() {
@@ -104,157 +127,216 @@ public class BallGunController : NetworkBehaviour {
         } else {
             GameState.Dispatch<float>(GameState.SetChargeTime, chargeTimeAmount, () => {});
         }
-        networkChargeTime = -1;
+        localChargeTime = -1;
         isCarrying = false; 
         suckTimer = TickTimer.CreateFromSeconds(Runner, 0);
         kickTimer = TickTimer.CreateFromSeconds(Runner, 0);
         LocalDetach();
-    }
 
-    public override void Despawned(NetworkRunner runner, bool hasState) {
-        base.Despawned(runner, hasState);
-    }
 
-    private bool a = false;
-    private float t = 0;
-    public override void FixedUpdateNetwork() {
-  
-       // if(Object.HasStateAuthority) {
-            bool receivedInput = false;
-
-            if (GetInput(out NetworkInputData networkInputData)) {
-                primaryPressedTime = networkInputData.primaryPressedTime;
-                primaryReleaseTime = networkInputData.primaryReleaseTime;
-                secondaryPressedTime = networkInputData.secondaryPressedTime;
-                secondaryReleaseTime = networkInputData.secondaryReleaseTime;
-                clientChargeTime = networkInputData.clientChargeTime;
-                clientShoot = networkInputData.clientShoot;
-                inputSendTime = networkInputData.runnerTime;
-                receivedInput = true;
+        unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
+            if (players != null) {
+                this.players = players;
             }
+        });
+    }
 
+    private bool previousPrimaryPressed = false;
+    public void Update() {
+        if(Object.HasInputAuthority) {
             /*
             * Start kick
             */
-        // if (
-        //     primaryPressedTime == inputSendTime &&
-        //     !isCarrying &&
-        //     kickTimer.Expired(Runner)
-        // ) {   
-        //     kickTimer = TickTimer.None;
-        //     Kick();
-        //     isKicking = true;
-        // }
+            if (
+                InputHandler.instance.localInputDataCache.primaryPressed &&
+                !isCarrying &&
+                kickTimer.Expired(Runner)
+            ) {   
+                localKick = true;
+            }
+
+            /*
+            * Stop kick
+            */
+            if (
+                !InputHandler.instance.localInputDataCache.primaryPressed &&
+                localKick &&
+                kickReceived
+            ) {   
+                localKick = false;
+            }
+
+
+            /*
+            * Start pass
+            */
+            if (
+                InputHandler.instance.localInputDataCache.secondaryPressed &&
+                isCarrying &&
+                !localSuck
+            ) {   
+                localPass = true;
+            }
+
+            /*
+            * Start suck
+            */
+            if (
+                InputHandler.instance.localInputDataCache.secondaryPressed &&
+                !isCarrying &&
+                suckTimer.Expired(Runner) &&
+                !localSuck
+            ) {   
+                localSuck = true;
+            }
+
+            /*
+            * Stop suck
+            */
+            if (
+                !InputHandler.instance.localInputDataCache.secondaryPressed &&
+                localSuck &&
+                suckReceived
+            ) {   
+                localSuck = false;
+            }
+
 
             /*
             * Charge
             */
             if (
-                primaryPressedTime == inputSendTime &&
+                InputHandler.instance.localInputDataCache.primaryPressed &&
                 localChargeTime == -1 && 
-                networkChargeTime == -1 &&
                 isCarrying
             ) {   
-                if(Object.HasStateAuthority) {
-                    networkChargeTime = Runner.SimulationTime;
-                    localChargeTime = networkChargeTime;
-                } else if(Object.HasInputAuthority) {
-                    localChargeTime = Runner.SimulationTime;
-                }
+                localChargeTime = Runner.SimulationTime;
             }
-    
-            /*
-            * Stop kick
-            */
-        // if(
-        //     primaryReleaseTime == inputSendTime &&
-        //     isKicking
-        // ) {
-        //     kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-        //     isKicking = false;
-        // }
-            
+
             /*
             * Shoot charged shot
             */
             if(
-                receivedInput &&
-                primaryReleaseTime == inputSendTime &&
+                previousPrimaryPressed == true &&
+                !InputHandler.instance.localInputDataCache.primaryPressed &&
                 isCarrying &&
                 localChargeTime != -1
             ) {
                 localShoot = true;
             }
 
-            /*
-            * Pass
-            */
-        // if(
-        //     secondaryPressedTime == inputSendTime &&
-        //     isCarrying &&
-        //     !isSucking
-        // ) {
-        //     suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
-        //     Pass();
-        // }
+            previousPrimaryPressed = InputHandler.instance.localInputDataCache.primaryPressed;
+            
+        }
+
+    }
+
+    private float previousClientChargeTime = -1;
+    private bool previousClientSuck = false;
+    public override void FixedUpdateNetwork() {
+
+        if(Object.HasStateAuthority) {
+
+            if (GetInput(out NetworkInputData networkInputData)) {
+                clientChargeTime = networkInputData.clientChargeTime;
+                clientShoot = networkInputData.clientShoot;
+                clientKick = networkInputData.clientKick;
+                clientPass = networkInputData.clientPass;
+                clientSuck = networkInputData.clientSuck;
+            }
 
             /*
-            * Suck
+            * Stop kick
             */
-        // if(
-        //     secondaryPressedTime == inputSendTime &&
-        //     !isCarrying &&
-        //     suckTimer.Expired(Runner)
-        // ) {
-        //     suckTimer = TickTimer.None;
-        //     attractTimer = TickTimer.CreateFromSeconds(Runner, attractWaitTime);
-        //     Suck();
-        //     isSucking = true;
-        // }
+            if (
+                !clientKick
+            ) {   
+                kickReceived = false;
+            }
+
+            /*
+            * Execute kick
+            */
+            if (
+                clientKick &&
+                !isCarrying &&
+                kickTimer.Expired(Runner)
+            ) {   
+                kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
+                Kick();
+                kickReceived = true;
+            }
+
+            /*
+            * Execute pass
+            */
+            if (
+                clientPass &&
+                isCarrying
+            ) {   
+                suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
+                Pass();
+            }
+
+
+            /*
+            * Execute suck
+            */
+            if(
+                clientSuck &&
+                !isCarrying &&
+                suckTimer.Expired(Runner)
+            ) {
+                suckTimer = TickTimer.None;
+                attractTimer = TickTimer.CreateFromSeconds(Runner, attractWaitTime);
+                Suck();
+                suckReceived = true;
+            }
 
             /*
             * Attract
             */
-        // if(
-        //     secondaryPressedTime == inputSendTime &&
-        //     !isCarrying &&
-        //     attractTimer.Expired(Runner)
-        // ) {
-        //     Attract();
-        // }
-
+            if(
+                clientSuck &&
+                !isCarrying &&
+                attractTimer.Expired(Runner)
+            ) {
+                Attract();
+            }
+            
             /*
             * Reset sucking
             */
-        // if(
-        //     secondaryReleaseTime == inputSendTime &&
-        //     isSucking
-        // ) {
-        //     suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
-        //     attractTimer = TickTimer.None;
-        //     isSucking = false;
-        // }
+            if(
+                previousClientSuck == true &&
+                !clientSuck
+            ) {
+                suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
+                attractTimer = TickTimer.None;
+                suckReceived = false;
+            }
 
-        // }
-          
-        if( 
-            Object.HasInputAuthority &&
-            (networkChargeTime != -1 && localChargeTime != -1 && Math.Abs(localChargeTime - networkChargeTime) > maxAllowedClientChargeError)
-        ) {
-            localChargeTime = networkChargeTime;
-        }
 
-        if(
-            Object.HasStateAuthority &&
-            receivedInput && 
-            (Math.Abs(networkChargeTime - clientChargeTime) < maxAllowedClientChargeError || (networkChargeTime == -1 && Math.Abs(Runner.SimulationTime - clientChargeTime) < maxAllowedClientChargeError)) 
-        ) {
-            networkChargeTime = clientChargeTime;
-        }
+            /*
+            * Execute charged shot
+            */
+            if(
+                clientChargeTime != -1 &&
+                previousClientChargeTime == -1 &&
+                Runner.SimulationTime - clientChargeTime > 0.5f // Dont allow sudden large change in charge time
+            ) {
+                clientChargeTime = -1;
+            }
 
-        if(Object.HasStateAuthority && (clientShoot || localShoot)) {
-            kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-            ShootCharged(Math.Clamp((Runner.SimulationTime - networkChargeTime) / chargeTimeAmount * 100, 0, 100));
+            if(
+                clientShoot &&
+                isCarrying
+            ) {
+                kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
+                ShootCharged(Math.Clamp((Runner.SimulationTime - clientChargeTime) / chargeTimeAmount * 100, 0, 100));
+            }
+            previousClientSuck = clientSuck;
+            previousClientChargeTime = clientChargeTime;
         }
     }
 
@@ -272,52 +354,86 @@ public class BallGunController : NetworkBehaviour {
 
     public void Attract() {
         if(!ball.isAttached) {
-            RaycastHit[] hits = Physics.SphereCastAll(transform.position + transform.forward.normalized * attractOffset, attractRadius, transform.forward, attractDistance);
-            foreach (var hit in hits) {
-                BallController b = hit.transform.GetComponent<BallController>();
-                if(b) {
-                    Vector3 attraction = transform.forward * -1f * attractStrength * Runner.DeltaTime;
-                    b.ApplyForce(attraction);
-                }
+            Vector3 playerToBall = (ball.transform.position - transform.position);
+            float distance = playerToBall.magnitude;
+
+            if(distance > attractDistance) {
+                return;
             }
+            
+            float angle = Vector3.Angle(playerToBall.normalized, transform.forward);
+            if(angle > attractAngle) {
+                return;
+            }
+            Vector3 attraction = transform.forward * -1f * attractStrength * Runner.DeltaTime;
+            ball.ApplyForce(attraction);
         }
     }
 
 
     public void Suck() {
-        if(Object.HasStateAuthority) {
-            if(!ball.isAttached) {
-                RaycastHit[] hits = Physics.SphereCastAll(transform.position + transform.forward.normalized * suckOffset, suckRadius, transform.forward, suckDistance);
-                foreach (var hit in hits) {
-                    BallController b = hit.transform.GetComponent<BallController>();
-                    if(b) {
-                        isCarrying = true;
-                        b.Attach(ballAnchor);
-                    }
-                }
+        if(!ball.isAttached) {
+            Vector3 playerToBall = (ball.transform.position - transform.position);
+            float distance = playerToBall.magnitude;
+
+            if(distance > suckDistance) {
+                return;
             }
+            
+            float angle = Vector3.Angle(playerToBall.normalized, transform.forward);
+
+            if(angle > suckAngle) {
+                return;
+            }
+
+            isCarrying = true;
+            ball.Attach(ballAnchor);
         }
     }
 
     public void Kick() {
-        RaycastHit[] hits = Physics.SphereCastAll(transform.position + transform.forward.normalized * kickOffset, kickRadius, transform.forward, kickDistance);
-        if(!ball.isAttached) {
-            foreach (var hit in hits) {
-                BallController b = hit.transform.GetComponent<BallController>();
-                if(b) {
-                    Shoot(kickBallSpeed);
-                }
+        bool justDroppedBall = false;
+        foreach (var player in players) {
+            if(player.ballGunController == this) {
+                continue;
             }
-        } else {
-            foreach (var hit in hits) {
-                PlayerController player = hit.transform.GetComponent<PlayerController>();
-                if(player && player.ballGunController.isCarrying) {
-                    if(Object.HasStateAuthority) {
-                        player.ballGunController.isCarrying = false;
-                    }                    
-                    Shoot(kickBallDropSpeed);
-                }
+            
+            Vector3 playerToPlayer = (player.playerController.transform.position - transform.position);
+            float distance = playerToPlayer.magnitude;
+
+            if(distance > kickDistance) {
+                continue;
             }
+            
+            float angle = Vector3.Angle(playerToPlayer.normalized, transform.forward);
+
+            if(angle > kickAngle) {
+                continue;
+            }
+            if(player.ballGunController.isCarrying) {
+                if(Object.HasStateAuthority) {
+                    player.ballGunController.isCarrying = false;
+                }
+                Shoot(kickBallDropSpeed);
+                justDroppedBall = true;
+            }
+            player.playerController.GetComponent<CharacterMovementController>().Push(transform.forward.normalized * kickPushForce);
+        }
+            
+        if(!ball.isAttached && !justDroppedBall) {
+            Vector3 playerToBall = (ball.transform.position - transform.position);
+            float distance = playerToBall.magnitude;
+
+            if(distance > kickDistance) {
+                return;
+            }
+            
+            float angle = Vector3.Angle(playerToBall.normalized, transform.forward);
+            if(angle > kickAngle) {
+                return;
+            }
+
+            Shoot(kickBallSpeed);
         }
 
     }
@@ -363,5 +479,12 @@ public class BallGunController : NetworkBehaviour {
     private void HideBallExternally() {
         ballModel.gameObject.SetActive(false);
     }
+
+    public override void Despawned(NetworkRunner runner, bool hasState) {
+        base.Despawned(runner, hasState);
+
+        unsubscribePlayers();
+    }
+
 
 }

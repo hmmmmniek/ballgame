@@ -12,13 +12,12 @@ public struct NetworkInputData : INetworkInput
     public float clientBoostRemaining;
     public float clientChargeTime;
     public bool clientShoot;
+    public bool clientKick;
+    public bool clientPass;
+    public bool clientSuck;
 
     public float jumpPressedTime;
-    public float primaryPressedTime;
-    public float secondaryPressedTime;
     public float jumpReleaseTime;
-    public float primaryReleaseTime;
-    public float secondaryReleaseTime;
     public float runnerTime;
     public float localTime;
 

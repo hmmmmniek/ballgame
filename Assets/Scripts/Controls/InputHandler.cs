@@ -14,6 +14,10 @@ public class InputHandler : MonoBehaviour {
     [HideInInspector]
     public NetworkInputData networkInputDataCache;
 
+    public LocalInputData localInputDataCache;
+
+
+
     PlayerInput playerInput;
 
     private bool latestJumpValue;
@@ -55,16 +59,16 @@ public class InputHandler : MonoBehaviour {
         }
         if (context.action.name == "Primary") {
             if(context.ReadValueAsButton()) {
-                networkInputDataCache.primaryPressedTime = -1;
+                localInputDataCache.primaryPressed = true;
             } else {
-                networkInputDataCache.primaryReleaseTime = -1;
+                localInputDataCache.primaryPressed = false;
             }
         }
         if (context.action.name == "Secondary") {
             if(context.ReadValueAsButton()) {
-                networkInputDataCache.secondaryPressedTime = -1;
+                localInputDataCache.secondaryPressed = true;
             } else {
-                networkInputDataCache.secondaryReleaseTime = -1;
+                localInputDataCache.secondaryPressed = false;
             }
         }
         if (context.action.name == "Escape") {

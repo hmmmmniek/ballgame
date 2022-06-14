@@ -595,29 +595,29 @@ MonoBehaviour:
   _interpolationDataSource: 3
   maxShootingSpeed: 50
   passSpeed: 30
-  chargeSpeed: 100
-  suckDistance: 2
-  suckRadius: 1.5
+  chargeTimeAmount: 2
+  suckDistance: 4.5
+  suckAngle: 45
   suckTimeout: 0.5
-  suckOffset: 1.5
-  attractDistance: 1.5
-  attractRadius: 3
+  attractDistance: 5.5
+  attractAngle: 55
   attractWaitTime: 0.5
-  attractOffset: 2.5
   attractStrength: 20
-  kickDistance: 1.5
-  kickRadius: 3
+  kickDistance: 6.5
+  kickAngle: 70
   kickTimeout: 0.5
-  kickOffset: 2.5
   kickBallDropSpeed: 4
   kickBallSpeed: 20
+  kickPushForce: 10
+  maxAllowedClientChargeError: 7
   localBallCamera: {fileID: 5779502379193008127}
   playerController: {fileID: 5165869480873457305}
   ballAnchor: {fileID: 3469899950231842776}
   ballModel: {fileID: 4133029749192927420}
   ball: {fileID: 0}
   _isCarrying: 0
-  isLocalPlayer: 0
+  _kickReceived: 0
+  _suckReceived: 0
 --- !u!1 &3846429301406989187
 GameObject:
   m_ObjectHideFlags: 0

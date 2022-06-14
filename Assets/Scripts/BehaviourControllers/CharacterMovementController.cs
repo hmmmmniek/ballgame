@@ -159,6 +159,10 @@ public class CharacterMovementController : NetworkTransform {
         }
     }
 
+    public void Push(Vector3 force) {
+        Velocity += force;
+    }
+
     public void Update() {
         Utils.Rotate(transform, cameraController.transform.localEulerAngles.y);
     }
