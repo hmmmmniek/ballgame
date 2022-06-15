@@ -11,7 +11,7 @@ public class BallController : NetworkTransform {
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
-    private Rigidbody rigidBody;
+    public Rigidbody rigidBody;
 
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
@@ -54,7 +54,7 @@ public class BallController : NetworkTransform {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
-                    if(player != null && !player.temporarilyIgnored) {
+                    if(player != null && !player.temporarilyIgnored && !player.ballGunController.shieldOpen) {
                         Attach(player.ballGunController.ballAnchor);
                         player.ballGunController.isCarrying = true;
                         return;

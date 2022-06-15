@@ -25,6 +25,15 @@ public class BallGunController : NetworkBehaviour {
     public float kickBallSpeed = 20;
     public float kickPushForce = 5;
 
+    public float shieldDistance = 2;
+    public float shieldThickness = 2;
+    public float shieldWidth = 5;
+    public float shieldAngle = 90;
+    public float shieldWaitTime = 0.5f;
+    public float shieldPushBack = 2f;
+    public float shieldStrength = 10;
+    public float shieldHeightPosition = 0.5f;
+
     public float maxAllowedClientChargeError = 7;
 
     public Camera localBallCamera;
@@ -39,6 +48,7 @@ public class BallGunController : NetworkBehaviour {
     [Networked] private TickTimer suckTimer { get; set; }
     [Networked] private TickTimer attractTimer { get; set; }
     [Networked] private TickTimer kickTimer { get; set; }
+    [Networked] private TickTimer shieldTimer { get; set; }
 
     private float _localChargeTime;
     public float localChargeTime {
@@ -89,7 +99,7 @@ public class BallGunController : NetworkBehaviour {
         changed.Behaviour.OnKickReceived();
     }
     private void OnKickReceived() {
-        if(kickReceived && Object.HasInputAuthority) {
+        if(kickReceived && Object.HasInputAuthority && !InputHandler.instance.localInputDataCache.primaryPressed) {
             localKick = false;
         }
     }
@@ -103,6 +113,8 @@ public class BallGunController : NetworkBehaviour {
             localSuck = false;
         }
     }
+
+    [HideInInspector][Networked] public bool shieldOpen { get; set; }
 
 
     private float clientChargeTime;
@@ -150,7 +162,8 @@ public class BallGunController : NetworkBehaviour {
             if (
                 InputHandler.instance.localInputDataCache.primaryPressed &&
                 !isCarrying &&
-                kickTimer.Expired(Runner)
+                kickTimer.Expired(Runner) &&
+                !localKick
             ) {   
                 localKick = true;
             }
@@ -233,6 +246,7 @@ public class BallGunController : NetworkBehaviour {
 
     private float previousClientChargeTime = -1;
     private bool previousClientSuck = false;
+    private bool previousClientKick = false;
     public override void FixedUpdateNetwork() {
 
         if(Object.HasStateAuthority) {
@@ -246,28 +260,6 @@ public class BallGunController : NetworkBehaviour {
             }
 
             /*
-            * Stop kick
-            */
-            if (
-                !clientKick
-            ) {   
-                kickReceived = false;
-            }
-
-            /*
-            * Execute kick
-            */
-            if (
-                clientKick &&
-                !isCarrying &&
-                kickTimer.Expired(Runner)
-            ) {   
-                kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-                Kick();
-                kickReceived = true;
-            }
-
-            /*
             * Execute pass
             */
             if (
@@ -278,6 +270,50 @@ public class BallGunController : NetworkBehaviour {
                 Pass();
             }
 
+
+
+
+            /*
+            * Execute kick
+            */
+            if (
+                clientKick &&
+                !isCarrying &&
+                kickTimer.Expired(Runner)
+            ) {   
+                kickTimer = TickTimer.None;
+                shieldTimer = TickTimer.CreateFromSeconds(Runner, shieldWaitTime);
+                Kick();
+                kickReceived = true;
+            }
+
+            /*
+            * Reset kicking
+            */
+            if (
+                previousClientKick == true &&
+                !clientKick
+            ) {   
+                kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
+                shieldTimer = TickTimer.None;
+                kickReceived = false;
+                shieldOpen = false;
+            }
+
+            /*
+            * Shield
+            */
+            if(
+                clientKick &&
+                !isCarrying &&
+                shieldTimer.Expired(Runner)
+            ) {
+                shieldOpen = true;
+            }
+            if(shieldOpen) {
+                Reflect();
+            }
+            
 
             /*
             * Execute suck
@@ -294,17 +330,6 @@ public class BallGunController : NetworkBehaviour {
             }
 
             /*
-            * Attract
-            */
-            if(
-                clientSuck &&
-                !isCarrying &&
-                attractTimer.Expired(Runner)
-            ) {
-                Attract();
-            }
-            
-            /*
             * Reset sucking
             */
             if(
@@ -316,6 +341,17 @@ public class BallGunController : NetworkBehaviour {
                 suckReceived = false;
             }
 
+            /*
+            * Attract
+            */
+            if(
+                clientSuck &&
+                !isCarrying &&
+                attractTimer.Expired(Runner)
+            ) {
+                Attract();
+            }
+            
 
             /*
             * Execute charged shot
@@ -448,6 +484,45 @@ public class BallGunController : NetworkBehaviour {
             (transform.forward.normalized * ball.GetComponent<Rigidbody>().velocity.magnitude) +
             playerController.GetComponent<CharacterController>().velocity;
         ball.Shoot(forward);
+    }
+
+    private void Reflect() {
+
+        if(!ball.isAttached) {
+            Vector3 shieldCenter = (transform.position + -transform.up * shieldHeightPosition + transform.forward * shieldDistance);
+
+            Vector3 shieldToBall = (ball.transform.position - shieldCenter);
+            float distance = shieldToBall.magnitude;
+
+            float angle = Vector3.Angle(shieldToBall.normalized, transform.forward);
+            if(angle > shieldAngle) {
+                return;
+            }
+
+            float a = shieldThickness;
+            float b = a * (float)Math.Tan(angle * (Math.PI/180));
+            float shieldDistanceOnAngle = Math.Clamp((float)Math.Sqrt(Math.Pow(a, 2) + Math.Pow(b, 2)), shieldThickness, shieldWidth);
+
+            if(distance > shieldDistanceOnAngle) {
+                return;
+            }
+
+
+            Vector3 shieldDirection = transform.forward;
+            Vector3 playerVelocity = playerController.GetComponent<CharacterController>().velocity;
+            Vector3 relativeBallVelocity = ball.rigidBody.velocity - playerVelocity;
+
+
+            Vector3 pos = shieldCenter + shieldToBall.normalized * shieldDistanceOnAngle;
+            if(pos.y < 0.5f) {
+                pos.y = 0.5f;
+            }
+            ball.transform.position = pos;
+
+            Vector3 pushDir = shieldDirection.normalized * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack;
+                
+            ball.Shoot(pushDir);
+        }
     }
 
 

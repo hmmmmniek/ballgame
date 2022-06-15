@@ -609,6 +609,14 @@ MonoBehaviour:
   kickBallDropSpeed: 4
   kickBallSpeed: 20
   kickPushForce: 10
+  shieldDistance: 0.5
+  shieldThickness: 0.8
+  shieldWidth: 2
+  shieldAngle: 100
+  shieldWaitTime: 0.5
+  shieldPushBack: 3
+  shieldStrength: 10
+  shieldHeightPosition: 0
   maxAllowedClientChargeError: 7
   localBallCamera: {fileID: 5779502379193008127}
   playerController: {fileID: 5165869480873457305}
@@ -618,6 +626,7 @@ MonoBehaviour:
   _isCarrying: 0
   _kickReceived: 0
   _suckReceived: 0
+  _shieldOpen: 0
 --- !u!1 &3846429301406989187
 GameObject:
   m_ObjectHideFlags: 0
@@ -1420,9 +1429,9 @@ MonoBehaviour:
   maxAllowedClientBoostError: 7
   cameraController: {fileID: 4587144850840075096}
   localCharacterMovementController: {fileID: 8180254042653263233}
-  _IsGrounded: 0
   _Velocity: {x: 0, y: 0, z: 0}
   _boostRemainingPercentage: 0
+  _jumpReceived: 0
 --- !u!114 &3614968631412294479
 MonoBehaviour:
   m_ObjectHideFlags: 0
