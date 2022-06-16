@@ -601,7 +601,7 @@ MonoBehaviour:
   suckTimeout: 0.5
   attractDistance: 5.5
   attractAngle: 55
-  attractWaitTime: 0.5
+  attractWaitTime: 0.2
   attractStrength: 20
   kickDistance: 6.5
   kickAngle: 70
@@ -613,9 +613,9 @@ MonoBehaviour:
   shieldThickness: 0.8
   shieldWidth: 2
   shieldAngle: 100
-  shieldWaitTime: 0.5
+  shieldWaitTime: 0.2
   shieldPushBack: 3
-  shieldStrength: 10
+  shieldMinGrabSpeed: 10
   shieldHeightPosition: 0
   maxAllowedClientChargeError: 7
   localBallCamera: {fileID: 5779502379193008127}

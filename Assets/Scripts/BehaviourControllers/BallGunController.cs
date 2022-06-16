@@ -31,7 +31,7 @@ public class BallGunController : NetworkBehaviour {
     public float shieldAngle = 90;
     public float shieldWaitTime = 0.5f;
     public float shieldPushBack = 2f;
-    public float shieldStrength = 10;
+    public float shieldMinGrabSpeed = 2f;
     public float shieldHeightPosition = 0.5f;
 
     public float maxAllowedClientChargeError = 7;
@@ -469,7 +469,6 @@ public class BallGunController : NetworkBehaviour {
             if(angle > kickAngle) {
                 return;
             }
-
             Shoot(kickBallSpeed);
         }
 
@@ -507,11 +506,7 @@ public class BallGunController : NetworkBehaviour {
                 return;
             }
 
-
-            Vector3 shieldDirection = transform.forward;
-            Vector3 playerVelocity = playerController.GetComponent<CharacterController>().velocity;
-            Vector3 relativeBallVelocity = ball.rigidBody.velocity - playerVelocity;
-
+           //Vector3 relativeBallVelocity = ball.rigidBody.velocity - playerVelocity;
 
             Vector3 pos = shieldCenter + shieldToBall.normalized * shieldDistanceOnAngle;
             if(pos.y < 0.5f) {
@@ -519,9 +514,16 @@ public class BallGunController : NetworkBehaviour {
             }
             ball.transform.position = pos;
 
-            Vector3 pushDir = shieldDirection.normalized * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack;
+            Vector3 shieldDirection = transform.forward;
+            Vector3 playerVelocity = playerController.GetComponent<CharacterController>().velocity;
+            Vector3 bounceDir = shieldDirection.normalized;
                 
-            ball.Shoot(pushDir);
+            float ballVelocity = ball.getVelocity();
+            if(ballVelocity < shieldMinGrabSpeed) {
+                ball.Shoot(bounceDir * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack);
+            } else {
+                ball.Shoot(bounceDir * ballVelocity);
+            }
         }
     }
 

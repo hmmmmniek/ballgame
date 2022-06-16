@@ -2,10 +2,13 @@ using UnityEngine;
 using Fusion;
 using System;
 using System.Linq;
+using System.Collections.Generic;
 
 public class BallController : NetworkTransform {
     public float pickupDistance = 2f;
     public float maxSpeed = 80;
+    public float velocityMeasuringTimeFrame = 0.3f;
+    public int velocityMeasurementsAmount = 5;
 
     public Transform ballModel;
 
@@ -15,6 +18,26 @@ public class BallController : NetworkTransform {
 
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
+
+
+    private Queue<float> VelocityMeasurements = new Queue<float>();
+
+    private float lastMeasured = 0;
+    private void MeasureVelocity() {
+        float time = Time.time;
+
+        if(time - lastMeasured > velocityMeasuringTimeFrame/velocityMeasurementsAmount) {
+            lastMeasured = time;
+            VelocityMeasurements.Enqueue(rigidBody.velocity.magnitude);
+            if(VelocityMeasurements.Count > velocityMeasurementsAmount) {
+                VelocityMeasurements.Dequeue();
+            }
+        }
+    }
+    public float getVelocity() {
+        return VelocityMeasurements.Average();
+    }
+
 
     public override void Spawned() {
         base.Spawned();
@@ -67,7 +90,7 @@ public class BallController : NetworkTransform {
             }
         }
 
-
+        MeasureVelocity();
     }
 
     public void Update() {
@@ -77,6 +100,7 @@ public class BallController : NetworkTransform {
         if(!isAttached && !ballModel.gameObject.activeSelf){
             ballModel.gameObject.SetActive(true);
         }
+        
     }
 
     public void Attach(NetworkTransform ballAnchor) {
