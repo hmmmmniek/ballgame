@@ -373,6 +373,7 @@ public class BallGunController : NetworkBehaviour {
             }
             previousClientSuck = clientSuck;
             previousClientChargeTime = clientChargeTime;
+            previousClientKick = clientKick;
         }
     }
 
@@ -487,7 +488,6 @@ public class BallGunController : NetworkBehaviour {
     }
 
     private void Reflect() {
-
         if(!ball.isAttached) {
             Vector3 shieldCenter = (transform.position + -transform.up * shieldHeightPosition + transform.forward * shieldDistance);
 
