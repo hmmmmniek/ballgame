@@ -509,9 +509,9 @@ public class BallGunController : NetworkBehaviour {
            //Vector3 relativeBallVelocity = ball.rigidBody.velocity - playerVelocity;
 
             Vector3 pos = shieldCenter + shieldToBall.normalized * shieldDistanceOnAngle;
-            if(pos.y < 0.5f) {
-                pos.y = 0.5f;
-            }
+          //  if(pos.y < 0.5f) {
+         //       pos.y = 0.5f;
+         //   }
             ball.transform.position = pos;
 
             Vector3 shieldDirection = transform.forward;

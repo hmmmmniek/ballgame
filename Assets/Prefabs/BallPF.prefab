@@ -203,10 +203,19 @@ MonoBehaviour:
     RotTeleportRadians: 1.5
   pickupDistance: 1.5
   maxSpeed: 80
+  velocityMeasuringTimeFrame: 0.3
+  velocityMeasurementsAmount: 5
   ballModel: {fileID: 8526808137596034991}
+  walls:
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
+  - {fileID: 0}
   _isAttached:
     _value: 0
   _anchor: {fileID: 0}
+  rigidBody: {fileID: 0}
 --- !u!114 &3582619615417690722
 MonoBehaviour:
   m_ObjectHideFlags: 0
