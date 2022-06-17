@@ -594,7 +594,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   _interpolationDataSource: 3
   maxShootingSpeed: 50
-  passSpeed: 30
+  passSpeed: 20
   chargeTimeAmount: 2
   suckDistance: 4.5
   suckAngle: 45
@@ -617,6 +617,7 @@ MonoBehaviour:
   shieldPushBack: 3
   shieldMinGrabSpeed: 10
   shieldHeightPosition: 0
+  spinPullDistance: 10
   maxAllowedClientChargeError: 7
   localBallCamera: {fileID: 5779502379193008127}
   playerController: {fileID: 5165869480873457305}

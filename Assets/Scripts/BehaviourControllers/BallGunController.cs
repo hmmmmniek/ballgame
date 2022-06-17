@@ -1,7 +1,7 @@
 using System;
 using Fusion;
 using UnityEngine;
-
+using UnityEngine.InputSystem;
 
 public class BallGunController : NetworkBehaviour {
     [Header("Ball gun Settings")]
@@ -33,8 +33,11 @@ public class BallGunController : NetworkBehaviour {
     public float shieldPushBack = 2f;
     public float shieldMinGrabSpeed = 2f;
     public float shieldHeightPosition = 0.5f;
+    
+    public float spinPullDistance = 1f;
 
     public float maxAllowedClientChargeError = 7;
+
 
     public Camera localBallCamera;
     public PlayerController playerController;
@@ -74,6 +77,10 @@ public class BallGunController : NetworkBehaviour {
     public bool localPass { get { return _localPass; } set { _localPass = value; } } 
     private bool _localSuck;
     public bool localSuck { get { return _localSuck; } set { _localSuck = value; } } 
+    private bool _localBallSpin;
+    public bool localBallSpin { get { return _localBallSpin; } set { _localBallSpin = value; } } 
+    private Vector2 _localSpinRotationInputStart;
+    public Vector2 localSpinRotationInputStart { get { return _localSpinRotationInputStart; } set { _localSpinRotationInputStart = value; } } 
 
 
 
@@ -122,12 +129,11 @@ public class BallGunController : NetworkBehaviour {
     private bool clientKick;
     private bool clientPass;
     private bool clientSuck;
-
+    private Vector2 clientBallSpinRotationStart;
+    private Vector2 clientBallSpinRotationEnd;
 
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
-
-
 
     protected void Awake() {
     }
@@ -156,6 +162,32 @@ public class BallGunController : NetworkBehaviour {
     private bool previousPrimaryPressed = false;
     public void Update() {
         if(Object.HasInputAuthority) {
+
+            /*
+            * Pull ball spin
+            */
+            if (
+                InputHandler.instance.localInputDataCache.ballSpinPressed
+            ) {   
+                Vector2 spinPullCurrentToStart = (localSpinRotationInputStart - InputHandler.instance.networkInputDataCache.rotationInput);
+                if(spinPullCurrentToStart.magnitude > spinPullDistance) {
+                    localSpinRotationInputStart = InputHandler.instance.networkInputDataCache.rotationInput + spinPullCurrentToStart.normalized * spinPullDistance;
+                }
+                spinPullCurrentToStart = (localSpinRotationInputStart - InputHandler.instance.networkInputDataCache.rotationInput);
+
+            }
+
+            /*
+            * Reset ball spin
+            */
+            if (
+                !InputHandler.instance.localInputDataCache.ballSpinPressed
+            ) {
+                localBallSpin = false;
+                localSpinRotationInputStart = InputHandler.instance.networkInputDataCache.rotationInput;
+            }
+
+
             /*
             * Start kick
             */
@@ -257,7 +289,12 @@ public class BallGunController : NetworkBehaviour {
                 clientKick = networkInputData.clientKick;
                 clientPass = networkInputData.clientPass;
                 clientSuck = networkInputData.clientSuck;
+                clientBallSpinRotationStart = networkInputData.clientBallSpinRotationStart;
+                clientBallSpinRotationEnd = networkInputData.rotationInput;
+
             }
+
+
 
             /*
             * Execute pass
@@ -265,7 +302,7 @@ public class BallGunController : NetworkBehaviour {
             if (
                 clientPass &&
                 isCarrying
-            ) {   
+            ) {
                 suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
                 Pass();
             }
@@ -483,7 +520,7 @@ public class BallGunController : NetworkBehaviour {
             (transform.forward.normalized * inputSpeed) +
             (transform.forward.normalized * ball.GetComponent<Rigidbody>().velocity.magnitude) +
             playerController.GetComponent<CharacterController>().velocity;
-        ball.Shoot(forward);
+        ball.Shoot(forward, GetSpinInput());
     }
 
     private void Reflect() {
@@ -506,12 +543,7 @@ public class BallGunController : NetworkBehaviour {
                 return;
             }
 
-           //Vector3 relativeBallVelocity = ball.rigidBody.velocity - playerVelocity;
-
             Vector3 pos = shieldCenter + shieldToBall.normalized * shieldDistanceOnAngle;
-          //  if(pos.y < 0.5f) {
-         //       pos.y = 0.5f;
-         //   }
             ball.transform.position = pos;
 
             Vector3 shieldDirection = transform.forward;
@@ -520,13 +552,19 @@ public class BallGunController : NetworkBehaviour {
                 
             float ballVelocity = ball.getVelocity();
             if(ballVelocity < shieldMinGrabSpeed) {
-                ball.Shoot(bounceDir * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack);
+                ball.Shoot(bounceDir * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack, new Vector2());
             } else {
-                ball.Shoot(bounceDir * ballVelocity);
+                ball.Shoot(bounceDir * ballVelocity, GetSpinInput());
             }
         }
     }
 
+
+    private Vector2 GetSpinInput() {
+        Vector2 pullDirection = clientBallSpinRotationEnd - clientBallSpinRotationStart;
+        Vector2 spinInput = pullDirection.normalized * (pullDirection.magnitude / spinPullDistance);
+        return spinInput;
+    }
 
     private void LocalAttach() {
         ShowBallExternally();

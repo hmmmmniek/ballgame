@@ -8,5 +8,5 @@ public struct LocalInputData
     public bool primaryPressed;
     public bool secondaryPressed;
     public bool jumpPressed;
-
+    public bool ballSpinPressed;
 }

@@ -10,15 +10,26 @@ public class BallController : NetworkTransform {
     public float velocityMeasuringTimeFrame = 0.3f;
     public int velocityMeasurementsAmount = 5;
 
+    public float spinAirMaxForce = 5f;
+    public float spinAirSpeedInfluence = 1f;
+    public float spinVerticalSpeedInfluence = 1f;
+    public float spinGroundMaxForce = 10;
+    public float spinGroundMaxVelocity = 5f;
+    public float spinTime = 3f;
+    public float spinMaxAngularVelocity = 1000f;
+
     public Transform ballModel;
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
+    [HideInInspector][Networked] public Vector2 spinInput {get; set;}
+    [Networked] private TickTimer spinTimer { get; set; }
+    [Networked] private Vector3 spinInitialForward { get; set; }
     public Rigidbody rigidBody;
 
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
-
+    private bool isColliding;
 
     private Queue<float> VelocityMeasurements = new Queue<float>();
 
@@ -42,7 +53,7 @@ public class BallController : NetworkTransform {
     public override void Spawned() {
         base.Spawned();
         rigidBody = GetComponent<Rigidbody>();
-
+        rigidBody.maxAngularVelocity = spinMaxAngularVelocity;
 
         unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
@@ -68,6 +79,11 @@ public class BallController : NetworkTransform {
         });
     }
 
+    public virtual void OnCollisionStay(Collision c) {
+        isColliding = true;
+    }
+
+    private bool previousIsColliding;
     public override void FixedUpdateNetwork() {
 
         base.FixedUpdateNetwork();
@@ -84,13 +100,36 @@ public class BallController : NetworkTransform {
                     }            
                 }
             }
-
-            if(isAttached) {
-                transform.position = anchor.ReadPosition();
-            }
         }
 
+        if(isAttached) {
+            transform.position = anchor.ReadPosition();
+        }
+
+        if(spinTimer.Expired(Runner)) {
+            spinTimer = TickTimer.None;
+            spinInput = new Vector2();
+        }
+
+        if(spinInput.magnitude > 0.05 && !spinTimer.ExpiredOrNotRunning(Runner)) {
+            (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) = GetSpinEffect();
+            float timeEffect = ((float)spinTimer.RemainingTime(Runner) / spinTime);
+            rigidBody.AddForce(airForce * timeEffect, ForceMode.Impulse);
+            rigidBody.AddTorque(angularVelocity * timeEffect, ForceMode.VelocityChange);
+
+            if(previousIsColliding && isColliding && getVelocity() < spinGroundMaxVelocity) {
+                rigidBody.AddForce(groundForce * timeEffect, ForceMode.Impulse);
+            }
+            
+        }
+
+
+
         MeasureVelocity();
+
+        previousIsColliding = isColliding;
+        isColliding = false;
+
     }
 
     public void Update() {
@@ -100,8 +139,15 @@ public class BallController : NetworkTransform {
         if(!isAttached && !ballModel.gameObject.activeSelf){
             ballModel.gameObject.SetActive(true);
         }
-        
+
     }
+
+     static Vector3 RotateVectorAroundAxis(Vector3 vector, Vector3 axis, float degrees)
+         {
+             return Quaternion.AngleAxis(degrees, axis) * vector;
+         }
+ 
+
 
     public void Attach(NetworkTransform ballAnchor) {
         if(Object.HasStateAuthority) {
@@ -138,10 +184,18 @@ public class BallController : NetworkTransform {
         rigidBody.useGravity = true;
     }
 
-    public void Shoot(Vector3 forward) {
+    public void Shoot(Vector3 forward, Vector2 spinInput) {
         if(isAttached) {
             Detach();
         }
+        if(spinInput.magnitude > 0.05) {
+            this.spinInput = spinInput;
+            spinTimer = TickTimer.CreateFromSeconds(Runner, spinTime);
+        } else {
+            this.spinInput = new Vector3();
+            spinTimer = TickTimer.None;
+        }
+        spinInitialForward = forward.normalized;
         rigidBody.velocity = Vector3.ClampMagnitude(forward, maxSpeed);
     }
 
@@ -149,6 +203,32 @@ public class BallController : NetworkTransform {
         rigidBody.AddForce(forward, ForceMode.Impulse);
     }
 
+
+    private (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) GetSpinEffect() {
+        if(spinInput.magnitude < 0.05) {
+            return (new Vector3(), new Vector3(), new Vector3());
+        }
+        float ballVelocity =  getVelocity() / maxSpeed;
+        float spinAirStrength = Math.Clamp((spinInput.magnitude * spinAirMaxForce) * ((float)Math.Pow(ballVelocity, spinAirSpeedInfluence)), 0, spinAirMaxForce);
+                    
+        Vector3 horizontal = Vector3.Cross(Vector3.down, rigidBody.velocity.normalized).normalized;
+        Vector3 vertical = Quaternion.AngleAxis(-90, rigidBody.velocity.normalized) * horizontal;
+        Vector3 magnusForce = ((horizontal * spinInput.x) + (vertical * spinInput.y)).normalized;
+        Vector3 speedChangeForce = -rigidBody.velocity.normalized * Math.Clamp(Vector3.Dot(Vector3.up, magnusForce), 0, 1) * spinVerticalSpeedInfluence;
+        
+        Vector3 angularAxis = -Vector3.Cross(magnusForce, spinInitialForward).normalized;
+        Vector3 angularVelocity = angularAxis * spinMaxAngularVelocity * spinInput.magnitude;
+       // angularAxis = Quaternion.AngleAxis(-90, rigidBody.velocity.normalized) * angularAxis;
+        Vector3 airForce = (magnusForce + speedChangeForce) * spinAirStrength;
+
+        Vector3 backSpinGroundForce = (-spinInitialForward).normalized * spinInput.y * spinGroundMaxForce;
+
+        return (
+            airForce: airForce,
+            groundForce: backSpinGroundForce,
+            angularVelocity: angularVelocity
+        );
+    }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);

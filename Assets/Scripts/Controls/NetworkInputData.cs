@@ -9,6 +9,7 @@ public struct NetworkInputData : INetworkInput
     public Vector2 rotationInput;
     public Vector3 clientPosition;
     public Vector3 clientVelocity;
+    public Vector3 clientBallSpinRotationStart;
     public float clientBoostRemaining;
     public float clientChargeTime;
     public bool clientShoot;
