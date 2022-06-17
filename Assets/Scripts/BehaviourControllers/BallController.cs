@@ -15,6 +15,8 @@ public class BallController : NetworkTransform {
     public float spinVerticalSpeedInfluence = 1f;
     public float spinGroundMaxForce = 10;
     public float spinGroundMaxVelocity = 5f;
+    public float spinGroundFullGripVelocity = 20f;
+    public float spinGroundMinGrip = 0.1f;
     public float spinTime = 3f;
     public float spinMaxAngularVelocity = 1000f;
 
@@ -23,6 +25,7 @@ public class BallController : NetworkTransform {
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
     [HideInInspector][Networked] public Vector2 spinInput {get; set;}
+    [HideInInspector][Networked] public float rollInput {get; set;}
     [Networked] private TickTimer spinTimer { get; set; }
     [Networked] private Vector3 spinInitialForward { get; set; }
     public Rigidbody rigidBody;
@@ -30,6 +33,7 @@ public class BallController : NetworkTransform {
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
     private bool isColliding;
+    private float collidingSpeed;
 
     private Queue<float> VelocityMeasurements = new Queue<float>();
 
@@ -79,9 +83,14 @@ public class BallController : NetworkTransform {
         });
     }
 
-    public virtual void OnCollisionStay(Collision c) {
+    public virtual void OnCollisionEnter(Collision c) {
         isColliding = true;
+        collidingSpeed = c.relativeVelocity.y;
     }
+    public virtual void OnCollisionExit(Collision c) {
+        isColliding = false;
+    }
+
 
     private bool previousIsColliding;
     public override void FixedUpdateNetwork() {
@@ -109,26 +118,31 @@ public class BallController : NetworkTransform {
         if(spinTimer.Expired(Runner)) {
             spinTimer = TickTimer.None;
             spinInput = new Vector2();
+            rollInput = 0;
         }
 
-        if(spinInput.magnitude > 0.05 && !spinTimer.ExpiredOrNotRunning(Runner)) {
+        if((spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && !spinTimer.ExpiredOrNotRunning(Runner)) {
             (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) = GetSpinEffect();
             float timeEffect = ((float)spinTimer.RemainingTime(Runner) / spinTime);
             rigidBody.AddForce(airForce * timeEffect, ForceMode.Impulse);
-            rigidBody.AddTorque(angularVelocity * timeEffect, ForceMode.VelocityChange);
+            rigidBody.AddTorque(angularVelocity * (float)Math.Pow(1000, -(1 - timeEffect)), ForceMode.VelocityChange);
 
+            if(collidingSpeed > 0) {
+                float x = Math.Clamp(collidingSpeed / spinGroundFullGripVelocity, spinGroundMinGrip, 1);
+                rigidBody.AddForce(groundForce * x * timeEffect, ForceMode.Impulse);
+                Debug.Log(x);
+                collidingSpeed = 0;
+            }
             if(previousIsColliding && isColliding && getVelocity() < spinGroundMaxVelocity) {
-                rigidBody.AddForce(groundForce * timeEffect, ForceMode.Impulse);
+                rigidBody.AddForce(groundForce * spinGroundMinGrip * timeEffect, ForceMode.Impulse);
             }
             
         }
 
 
-
         MeasureVelocity();
 
         previousIsColliding = isColliding;
-        isColliding = false;
 
     }
 
@@ -184,15 +198,17 @@ public class BallController : NetworkTransform {
         rigidBody.useGravity = true;
     }
 
-    public void Shoot(Vector3 forward, Vector2 spinInput) {
+    public void Shoot(Vector3 forward, Vector2 spinInput, float rollInput) {
         if(isAttached) {
             Detach();
         }
-        if(spinInput.magnitude > 0.05) {
+        if(spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) {
             this.spinInput = spinInput;
+            this.rollInput = rollInput;
             spinTimer = TickTimer.CreateFromSeconds(Runner, spinTime);
         } else {
             this.spinInput = new Vector3();
+            this.rollInput = 0;
             spinTimer = TickTimer.None;
         }
         spinInitialForward = forward.normalized;
@@ -205,7 +221,8 @@ public class BallController : NetworkTransform {
 
 
     private (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) GetSpinEffect() {
-        if(spinInput.magnitude < 0.05) {
+
+        if(spinInput.magnitude < 0.05 && Math.Abs(rollInput) < 0.05) {
             return (new Vector3(), new Vector3(), new Vector3());
         }
         float ballVelocity =  getVelocity() / maxSpeed;
@@ -216,16 +233,21 @@ public class BallController : NetworkTransform {
         Vector3 magnusForce = ((horizontal * spinInput.x) + (vertical * spinInput.y)).normalized;
         Vector3 speedChangeForce = -rigidBody.velocity.normalized * Math.Clamp(Vector3.Dot(Vector3.up, magnusForce), 0, 1) * spinVerticalSpeedInfluence;
         
-        Vector3 angularAxis = -Vector3.Cross(magnusForce, spinInitialForward).normalized;
-        Vector3 angularVelocity = angularAxis * spinMaxAngularVelocity * spinInput.magnitude;
-       // angularAxis = Quaternion.AngleAxis(-90, rigidBody.velocity.normalized) * angularAxis;
+        Vector3 spinAngularAxis = -Vector3.Cross(magnusForce, spinInitialForward).normalized;
+        Vector3 spinAngularVelocity = spinAngularAxis * spinInput.magnitude;
+        
         Vector3 airForce = (magnusForce + speedChangeForce) * spinAirStrength;
 
-        Vector3 backSpinGroundForce = (-spinInitialForward).normalized * spinInput.y * spinGroundMaxForce;
+        Vector3 backSpinGroundForce = (-spinInitialForward).normalized * spinInput.y;
+        Vector3 rollGroundForce = Vector3.Cross(Vector3.down, spinInitialForward).normalized * rollInput;
+        Vector3 rollAngularVelocity = spinInitialForward * rollInput;
+
+        Vector3 groundForce = (backSpinGroundForce + rollGroundForce).normalized * spinGroundMaxForce;
+        Vector3 angularVelocity = (spinAngularVelocity + rollAngularVelocity).normalized * spinMaxAngularVelocity;
 
         return (
             airForce: airForce,
-            groundForce: backSpinGroundForce,
+            groundForce: groundForce,
             angularVelocity: angularVelocity
         );
     }

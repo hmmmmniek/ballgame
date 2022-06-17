@@ -58,6 +58,15 @@ public class InputHandler : MonoBehaviour {
                 localInputDataCache.ballSpinPressed = false;
             }
         }
+        
+        if (context.action.name == "Ball roll") {
+            if(context.ReadValueAsButton()) {
+                localInputDataCache.ballRollPressed = true;
+            } else {
+                localInputDataCache.ballRollPressed = false;
+            }
+        }
+        
         if (context.action.name == "Move") {
             networkInputDataCache.movementInput = context.ReadValue<Vector2>();
         }

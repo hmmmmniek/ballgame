@@ -79,6 +79,8 @@ public class BallGunController : NetworkBehaviour {
     public bool localSuck { get { return _localSuck; } set { _localSuck = value; } } 
     private bool _localBallSpin;
     public bool localBallSpin { get { return _localBallSpin; } set { _localBallSpin = value; } } 
+    private bool _localBallRoll;
+    public bool localBallRoll { get { return _localBallRoll; } set { _localBallRoll = value; } } 
     private Vector2 _localSpinRotationInputStart;
     public Vector2 localSpinRotationInputStart { get { return _localSpinRotationInputStart; } set { _localSpinRotationInputStart = value; } } 
 
@@ -129,9 +131,10 @@ public class BallGunController : NetworkBehaviour {
     private bool clientKick;
     private bool clientPass;
     private bool clientSuck;
+    private bool clientBallRoll;
+    private bool clientBallSpin;
     private Vector2 clientBallSpinRotationStart;
     private Vector2 clientBallSpinRotationEnd;
-
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
 
@@ -167,8 +170,10 @@ public class BallGunController : NetworkBehaviour {
             * Pull ball spin
             */
             if (
-                InputHandler.instance.localInputDataCache.ballSpinPressed
-            ) {   
+                InputHandler.instance.localInputDataCache.ballSpinPressed || InputHandler.instance.localInputDataCache.ballRollPressed
+            ) {
+                localBallSpin = InputHandler.instance.localInputDataCache.ballSpinPressed;
+                localBallRoll = InputHandler.instance.localInputDataCache.ballRollPressed;
                 Vector2 spinPullCurrentToStart = (localSpinRotationInputStart - InputHandler.instance.networkInputDataCache.rotationInput);
                 if(spinPullCurrentToStart.magnitude > spinPullDistance) {
                     localSpinRotationInputStart = InputHandler.instance.networkInputDataCache.rotationInput + spinPullCurrentToStart.normalized * spinPullDistance;
@@ -181,13 +186,25 @@ public class BallGunController : NetworkBehaviour {
             * Reset ball spin
             */
             if (
+                !InputHandler.instance.localInputDataCache.ballSpinPressed && !InputHandler.instance.localInputDataCache.ballRollPressed
+            ) {
+                localBallSpin = false;
+                localBallRoll = false;
+                localSpinRotationInputStart = InputHandler.instance.networkInputDataCache.rotationInput;
+            }
+            if (
                 !InputHandler.instance.localInputDataCache.ballSpinPressed
             ) {
                 localBallSpin = false;
-                localSpinRotationInputStart = InputHandler.instance.networkInputDataCache.rotationInput;
             }
-
-
+            if (
+                !InputHandler.instance.localInputDataCache.ballRollPressed
+            ) {
+                localBallRoll = false;
+            }
+            // I love you, how did i get so lucky??
+            // you're the hottest, smartest, sweetest, funniest, sexiest game developer I've ever met
+            // will you be my boyfriend? <3
             /*
             * Start kick
             */
@@ -289,9 +306,10 @@ public class BallGunController : NetworkBehaviour {
                 clientKick = networkInputData.clientKick;
                 clientPass = networkInputData.clientPass;
                 clientSuck = networkInputData.clientSuck;
+                clientBallRoll = networkInputData.clientBallRoll;
+                clientBallSpin = networkInputData.clientBallSpin;
                 clientBallSpinRotationStart = networkInputData.clientBallSpinRotationStart;
                 clientBallSpinRotationEnd = networkInputData.rotationInput;
-
             }
 
 
@@ -520,7 +538,7 @@ public class BallGunController : NetworkBehaviour {
             (transform.forward.normalized * inputSpeed) +
             (transform.forward.normalized * ball.GetComponent<Rigidbody>().velocity.magnitude) +
             playerController.GetComponent<CharacterController>().velocity;
-        ball.Shoot(forward, GetSpinInput());
+        ball.Shoot(forward, GetSpinInput(), GetRollInput());
     }
 
     private void Reflect() {
@@ -552,19 +570,32 @@ public class BallGunController : NetworkBehaviour {
                 
             float ballVelocity = ball.getVelocity();
             if(ballVelocity < shieldMinGrabSpeed) {
-                ball.Shoot(bounceDir * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack, new Vector2());
+                ball.Shoot(bounceDir * Vector3.Dot(shieldDirection.normalized, playerVelocity.normalized) * playerVelocity.magnitude * shieldPushBack, new Vector2(), 0);
             } else {
-                ball.Shoot(bounceDir * ballVelocity, GetSpinInput());
+                ball.Shoot(bounceDir * ballVelocity, GetSpinInput(), GetRollInput());
             }
         }
     }
 
 
     private Vector2 GetSpinInput() {
+        if(!clientBallSpin) {
+            return new Vector2();
+        }
         Vector2 pullDirection = clientBallSpinRotationEnd - clientBallSpinRotationStart;
         Vector2 spinInput = pullDirection.normalized * (pullDirection.magnitude / spinPullDistance);
         return spinInput;
     }
+
+    private float GetRollInput() {
+        if(!clientBallRoll) {
+            return 0;
+        }
+        float pullDirection = clientBallSpinRotationEnd.x - clientBallSpinRotationStart.x;
+        float rollInput = pullDirection / spinPullDistance;
+        return rollInput;
+    }
+
 
     private void LocalAttach() {
         ShowBallExternally();

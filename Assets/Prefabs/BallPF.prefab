@@ -208,8 +208,10 @@ MonoBehaviour:
   spinAirMaxForce: 0.8
   spinAirSpeedInfluence: 1.4
   spinVerticalSpeedInfluence: 1.1
-  spinGroundMaxForce: 1
+  spinGroundMaxForce: 20
   spinGroundMaxVelocity: 5
+  spinGroundFullGripVelocity: 30
+  spinGroundMinGrip: 0.05
   spinTime: 4
   spinMaxAngularVelocity: 20
   ballModel: {fileID: 8526808137596034991}
@@ -217,6 +219,7 @@ MonoBehaviour:
     _value: 0
   _anchor: {fileID: 0}
   _spinInput: {x: 0, y: 0}
+  _rollInput: 0
   rigidBody: {fileID: 0}
 --- !u!114 &3582619615417690722
 MonoBehaviour:

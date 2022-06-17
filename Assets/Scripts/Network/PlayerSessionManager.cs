@@ -59,6 +59,8 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
             InputHandler.instance.networkInputDataCache.clientKick = PlayerController.Local.ballGunController.localKick;
             InputHandler.instance.networkInputDataCache.clientPass = PlayerController.Local.ballGunController.localPass;
             InputHandler.instance.networkInputDataCache.clientSuck = PlayerController.Local.ballGunController.localSuck;
+            InputHandler.instance.networkInputDataCache.clientBallRoll = PlayerController.Local.ballGunController.localBallRoll;
+            InputHandler.instance.networkInputDataCache.clientBallSpin = PlayerController.Local.ballGunController.localBallSpin;
             InputHandler.instance.networkInputDataCache.clientBallSpinRotationStart = PlayerController.Local.ballGunController.localSpinRotationInputStart;
             input.Set(InputHandler.instance.networkInputDataCache);
         }
