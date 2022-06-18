@@ -78,9 +78,25 @@ public class BallGunController : NetworkBehaviour {
     private bool _localSuck;
     public bool localSuck { get { return _localSuck; } set { _localSuck = value; } } 
     private bool _localBallSpin;
-    public bool localBallSpin { get { return _localBallSpin; } set { _localBallSpin = value; } } 
+    public bool localBallSpin {
+        get {
+            return _localBallSpin;
+        }
+        set {
+            GameState.Dispatch<bool>(GameState.SetInputtingSpin, value, () => {});
+            _localBallSpin = value;
+        }
+    } 
     private bool _localBallRoll;
-    public bool localBallRoll { get { return _localBallRoll; } set { _localBallRoll = value; } } 
+    public bool localBallRoll {
+        get {
+            return _localBallRoll;
+        }
+        set {
+            GameState.Dispatch<bool>(GameState.SetInputtingRoll, value, () => {});
+            _localBallRoll = value;
+        }
+    } 
     private Vector2 _localSpinRotationInputStart;
     public Vector2 localSpinRotationInputStart { get { return _localSpinRotationInputStart; } set { _localSpinRotationInputStart = value; } } 
 
@@ -93,6 +109,7 @@ public class BallGunController : NetworkBehaviour {
     private void OnCarryingChanged() {
         localShoot = false;
         localPass = false;
+        attracting = false;
         localChargeTime = -1;
 
         if(isCarrying && !ballModel.gameObject.activeSelf) {
@@ -123,7 +140,22 @@ public class BallGunController : NetworkBehaviour {
         }
     }
 
-    [HideInInspector][Networked] public bool shieldOpen { get; set; }
+    [HideInInspector][Networked(OnChanged = nameof(OnShieldOpenChanged))] public bool shieldOpen { get; set; }
+    public static void OnShieldOpenChanged(Changed<BallGunController> changed) {
+        changed.Behaviour.OnShieldOpenChanged();
+    }
+    private void OnShieldOpenChanged() {
+        GameState.Dispatch<bool>(GameState.SetShielding, shieldOpen, () => {});
+    }
+
+    [HideInInspector][Networked(OnChanged = nameof(OnAttractingChanged))] public bool attracting { get; set; }
+    public static void OnAttractingChanged(Changed<BallGunController> changed) {
+        changed.Behaviour.OnAttractingChanged();
+    }
+    private void OnAttractingChanged() {
+        GameState.Dispatch<bool>(GameState.SetAttracting, attracting, () => {});
+    }
+
 
 
     private float clientChargeTime;
@@ -173,12 +205,28 @@ public class BallGunController : NetworkBehaviour {
                 InputHandler.instance.localInputDataCache.ballSpinPressed || InputHandler.instance.localInputDataCache.ballRollPressed
             ) {
                 localBallSpin = InputHandler.instance.localInputDataCache.ballSpinPressed;
-                localBallRoll = InputHandler.instance.localInputDataCache.ballRollPressed;
+                localBallRoll = InputHandler.instance.localInputDataCache.ballSpinPressed ? false : InputHandler.instance.localInputDataCache.ballRollPressed;
                 Vector2 spinPullCurrentToStart = (localSpinRotationInputStart - InputHandler.instance.networkInputDataCache.rotationInput);
-                if(spinPullCurrentToStart.magnitude > spinPullDistance) {
+                float magnitude = 0;
+                if(localBallSpin) {
+                    magnitude = spinPullCurrentToStart.magnitude;
+                }
+                if(localBallRoll) {
+                    magnitude = Math.Abs(localSpinRotationInputStart.x - InputHandler.instance.networkInputDataCache.rotationInput.x);
+                }
+                
+                if(magnitude > spinPullDistance) {
                     localSpinRotationInputStart = InputHandler.instance.networkInputDataCache.rotationInput + spinPullCurrentToStart.normalized * spinPullDistance;
                 }
-                spinPullCurrentToStart = (localSpinRotationInputStart - InputHandler.instance.networkInputDataCache.rotationInput);
+                
+                if(localBallSpin) {
+                    spinPullCurrentToStart = (localSpinRotationInputStart - InputHandler.instance.networkInputDataCache.rotationInput);
+                    GameState.Dispatch<Vector2>(GameState.SetSpinInput,  spinPullCurrentToStart.normalized * (spinPullCurrentToStart.magnitude / spinPullDistance), () => {});
+                }
+                if(localBallRoll) {
+                    GameState.Dispatch<float>(GameState.SetRollInput, (localSpinRotationInputStart.x - InputHandler.instance.networkInputDataCache.rotationInput.x) / spinPullDistance, () => {});
+                }
+                
 
             }
 
@@ -350,7 +398,6 @@ public class BallGunController : NetworkBehaviour {
                 !clientKick
             ) {   
                 kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-                shieldTimer = TickTimer.None;
                 kickReceived = false;
                 shieldOpen = false;
             }
@@ -364,6 +411,7 @@ public class BallGunController : NetworkBehaviour {
                 shieldTimer.Expired(Runner)
             ) {
                 shieldOpen = true;
+                shieldTimer = TickTimer.None;
             }
             if(shieldOpen) {
                 Reflect();
@@ -392,8 +440,8 @@ public class BallGunController : NetworkBehaviour {
                 !clientSuck
             ) {
                 suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
-                attractTimer = TickTimer.None;
                 suckReceived = false;
+                attracting = false;
             }
 
             /*
@@ -404,6 +452,10 @@ public class BallGunController : NetworkBehaviour {
                 !isCarrying &&
                 attractTimer.Expired(Runner)
             ) {
+                attracting = true;
+                attractTimer = TickTimer.None;
+            }
+            if(attracting) {
                 Attract();
             }
             

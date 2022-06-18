@@ -11,6 +11,15 @@ public class GameStateData: StateData {
     public float chargeTime;
     public float chargeStart;
     public bool carryingBall;
+
+    public bool shielding;
+    public bool attracting;
+    public bool inputtingRoll;
+    public bool inputtingSpin;
+    
+    public float rollInput;
+    public Vector2 spinInput;
+
     public (BallGunController ballGunController, PlayerController playerController)[] players = {};
 }
 
@@ -48,8 +57,30 @@ public class GameState: BaseState<GameStateData, GameState> {
         return state.carryingBall;
     }
 
+    public static bool GetInputtingSpin(GameStateData state) {
+        return state.inputtingSpin;
+    }
+
+    public static bool GetInputtingRoll(GameStateData state) {
+        return state.inputtingRoll;
+    }
+
+    public static bool GetAttracting(GameStateData state) {
+        return state.attracting;
+    }
+
+    public static bool GetShielding(GameStateData state) {
+        return state.shielding;
+    }
+
+    public static float GetRollInput(GameStateData state) {
+        return state.rollInput;
+    }
 
 
+    public static Vector2 GetSpinInput(GameStateData state) {
+        return state.spinInput;
+    }
 
     public static (BallGunController ballGunController, PlayerController playerController)[] GetPlayers(GameStateData state) {
         return state.players;
@@ -106,4 +137,46 @@ public class GameState: BaseState<GameStateData, GameState> {
         });
     }
 
+
+    public static void SetShielding(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SS(c, args); }
+    private void SS(Action complete, bool args) {
+        StateChange((GameStateData state) => {
+            state.shielding = args;
+        });
+    }
+
+    public static void SetInputtingRoll(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SIR(c, args); }
+    private void SIR(Action complete, bool args) {
+        StateChange((GameStateData state) => {
+            state.inputtingRoll = args;
+        });
+    }
+
+    public static void SetInputtingSpin(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SIS(c, args); }
+    private void SIS(Action complete, bool args) {
+        StateChange((GameStateData state) => {
+            state.inputtingSpin = args;
+        });
+    }
+
+    public static void SetAttracting(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SA(c, args); }
+    private void SA(Action complete, bool args) {
+        StateChange((GameStateData state) => {
+            state.attracting = args;
+        });
+    }
+
+    public static void SetRollInput(BaseState<GameStateData, GameState> s, float args, Action c) { (s as GameState).SRI(c, args); }
+    private void SRI(Action complete, float args) {
+        StateChange((GameStateData state) => {
+            state.rollInput = args;
+        });
+    }
+
+    public static void SetSpinInput(BaseState<GameStateData, GameState> s, Vector2 args, Action c) { (s as GameState).SSI(c, args); }
+    private void SSI(Action complete, Vector2 args) {
+        StateChange((GameStateData state) => {
+            state.spinInput = args;
+        });
+    }
 }

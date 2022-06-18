@@ -202,7 +202,7 @@ MonoBehaviour:
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
   pickupDistance: 1.5
-  maxSpeed: 80
+  maxSpeed: 65
   velocityMeasuringTimeFrame: 0.3
   velocityMeasurementsAmount: 5
   spinAirMaxForce: 0.8

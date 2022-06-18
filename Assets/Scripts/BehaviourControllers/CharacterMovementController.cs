@@ -207,7 +207,7 @@ public class CharacterMovementController : NetworkTransform {
     }
 
     public void Push(Vector3 force) {
-        Velocity += force;
+        Velocity = force;
     }
 
     public void Update() {

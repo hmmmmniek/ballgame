@@ -90,7 +90,7 @@ public class InputHandler : MonoBehaviour {
         }
         if (context.action.name == "Escape") {
             StopGameInput();
-            uiManager.ShowMenu();
+           // uiManager.ShowMenu();
         }
     }
 }

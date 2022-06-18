@@ -593,7 +593,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 3
-  maxShootingSpeed: 50
+  maxShootingSpeed: 40
   passSpeed: 20
   chargeTimeAmount: 2
   suckDistance: 4.5
@@ -607,8 +607,8 @@ MonoBehaviour:
   kickAngle: 70
   kickTimeout: 0.5
   kickBallDropSpeed: 4
-  kickBallSpeed: 20
-  kickPushForce: 10
+  kickBallSpeed: 17
+  kickPushForce: 15
   shieldDistance: 0.5
   shieldThickness: 0.8
   shieldWidth: 2
@@ -617,7 +617,7 @@ MonoBehaviour:
   shieldPushBack: 3
   shieldMinGrabSpeed: 10
   shieldHeightPosition: 0
-  spinPullDistance: 10
+  spinPullDistance: 15
   maxAllowedClientChargeError: 7
   localBallCamera: {fileID: 5779502379193008127}
   playerController: {fileID: 5165869480873457305}
