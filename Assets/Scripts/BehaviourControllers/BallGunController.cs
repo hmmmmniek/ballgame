@@ -13,6 +13,7 @@ public class BallGunController : NetworkBehaviour {
     public float suckDistance = 5;
     public float suckAngle = 20f;
     public float suckTimeout = 0.5f;
+    public float suckPushForce = 5f;
 
     public float attractDistance = 6;
     public float attractAngle = 30f;
@@ -517,6 +518,30 @@ public class BallGunController : NetworkBehaviour {
 
 
     public void Suck() {
+
+        foreach (var player in players) {
+            if(player.ballGunController == this) {
+                continue;
+            }
+            
+            Vector3 playerToPlayer = (player.playerController.transform.position - transform.position);
+            float distance = playerToPlayer.magnitude;
+
+            if(distance > suckDistance) {
+                continue;
+            }
+            
+            float angle = Vector3.Angle(playerToPlayer.normalized, transform.forward);
+
+            if(angle > suckAngle) {
+                continue;
+            }
+         
+            player.playerController.GetComponent<CharacterMovementController>().Push((-transform.forward.normalized) * suckPushForce);
+            playerController.localCharacterMovementController.networkMovementController.Push(transform.forward.normalized * suckPushForce);
+
+        }
+
         if(!ball.isAttached) {
             Vector3 playerToBall = (ball.transform.position - transform.position);
             float distance = playerToBall.magnitude;

@@ -332,19 +332,6 @@ public class CharacterMovementController : NetworkTransform {
                 Controller.enabled = false;
                 transform.position = clientPosition;
                 Controller.enabled = true;
-            } else if(receivedInput) {
-                if(!(Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError)) {
-                    Debug.Log("not accept position >:(");
-
-                }
-
-                if(!(Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError)) {
-                    Debug.Log("not accept velocity >:(");
-
-                }
-                if(!(Math.Abs(boostRemainingPercentage - clientBoostRemaining) < maxAllowedClientBoostError)) {
-                    Debug.Log("not accept boost >:(");
-                }
             }
 
 
