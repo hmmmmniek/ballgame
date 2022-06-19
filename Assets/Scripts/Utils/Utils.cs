@@ -24,6 +24,27 @@ public static class Utils {
         return velocity;
     }
 
+
+    public static (float boost, Vector3 velocity) Dash(
+        CharacterController controller,
+        Vector2 movementInput,
+        Transform transform,
+        float dashImpulse,
+        float dashBoostUsage,
+        float boostRemainingPercentage
+    ) {
+        if(boostRemainingPercentage < dashBoostUsage || movementInput.magnitude == 0) {
+            return (boost: boostRemainingPercentage, velocity: new Vector3());
+        }
+        Vector3 direction = transform.forward * movementInput.y + transform.right * movementInput.x;
+        direction = direction.normalized;
+
+        Vector3 newVelocity = direction * dashImpulse;
+
+        return (boost: boostRemainingPercentage - dashBoostUsage, velocity: newVelocity);
+        
+    }
+
     public static (float, Vector3) Boost(float deltaTime, Vector3 velocity, CharacterController controller, float boostImpulse, float boostUsageSpeed, float boostRemainingPercentage) {
         if(boostRemainingPercentage > 0) {
             var newVel = velocity;

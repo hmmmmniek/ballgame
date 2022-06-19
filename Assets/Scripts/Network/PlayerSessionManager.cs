@@ -55,6 +55,8 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
             InputHandler.instance.networkInputDataCache.clientBoostRemaining = PlayerController.Local.localCharacterMovementController.boostRemainingPercentage;
             InputHandler.instance.networkInputDataCache.clientJump = PlayerController.Local.localCharacterMovementController.localJump;
             InputHandler.instance.networkInputDataCache.clientSprint = PlayerController.Local.localCharacterMovementController.localSprint;
+            InputHandler.instance.networkInputDataCache.clientDash = PlayerController.Local.localCharacterMovementController.localDash;
+            InputHandler.instance.networkInputDataCache.clientHitGround = PlayerController.Local.localCharacterMovementController.localHitGround;
             InputHandler.instance.networkInputDataCache.clientChargeTime = PlayerController.Local.ballGunController.localChargeTime;
             InputHandler.instance.networkInputDataCache.clientShoot = PlayerController.Local.ballGunController.localShoot;
             InputHandler.instance.networkInputDataCache.clientKick = PlayerController.Local.ballGunController.localKick;

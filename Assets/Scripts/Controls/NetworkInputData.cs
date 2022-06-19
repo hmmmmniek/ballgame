@@ -17,7 +17,9 @@ public struct NetworkInputData : INetworkInput
     public bool clientPass;
     public bool clientSuck;
     public bool clientJump;
+    public bool clientDash;
     public bool clientSprint;
+    public bool clientHitGround;
     public bool clientBallRoll;
     public bool clientBallSpin;
     public float runnerTime;

@@ -23,10 +23,14 @@ public class CharacterMovementController : NetworkTransform {
     public float maxAllowedClientPositionError = 1f;
     public float maxAllowedClientVelocityError = 1f;
     public float maxAllowedClientBoostError = 1f;
+    public float dashTimeout = 0.2f;
+    public float dashImpulse = 10f;
+    public float dashBoostUsage = 50f;
 
     public CharacterCameraController cameraController;
     public LocalCharacterMovementController localCharacterMovementController;
     public BallGunController ballGunController;
+
 
 
     [HideInInspector][Networked]public Vector3 Velocity { get; set; }
@@ -68,6 +72,28 @@ public class CharacterMovementController : NetworkTransform {
             localCharacterMovementController.localJump = false;
         }
     }
+
+    [HideInInspector][Networked(OnChanged = nameof(OnDashReceived))] public bool dashReceived { get; set; }
+    public static void OnDashReceived(Changed<CharacterMovementController> changed) {
+        changed.Behaviour.OnDashReceived();
+    }
+    private void OnDashReceived() {
+        if(dashReceived && Object.HasInputAuthority) {
+            localCharacterMovementController.localDash = false;
+        }
+    }
+
+    [HideInInspector][Networked(OnChanged = nameof(OnHitGroundReceived))] public bool hitGroundReceived { get; set; }
+    public static void OnHitGroundReceived(Changed<CharacterMovementController> changed) {
+        changed.Behaviour.OnHitGroundReceived();
+    }
+    private void OnHitGroundReceived() {
+        if(hitGroundReceived && Object.HasInputAuthority) {
+            localCharacterMovementController.localHitGround = false;
+        }
+    }
+
+    
 
     protected override Vector3 DefaultTeleportInterpolationVelocity => Velocity;
     protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, InputHandler.instance.lookHorizontalSpeed);
@@ -111,12 +137,18 @@ public class CharacterMovementController : NetworkTransform {
 
     private Vector2 movement;
     private bool clientJump;
+    private bool clientDash;
+    private bool clientHitGround;
     private bool clientSprint;
     private Vector3 clientPosition;
     private Vector3 clientVelocity;
     private float clientBoostRemaining;
 
     private bool previousClientJump = false;
+    private bool previousClientDash = false;
+    private bool previousClientHitGround = false;
+    private float previousClientBoostRemaining = 0;
+
     public override void FixedUpdateNetwork() {
 
         if(Object.HasStateAuthority) {
@@ -128,6 +160,8 @@ public class CharacterMovementController : NetworkTransform {
                 clientPosition = networkInputData.clientPosition;
                 clientVelocity = networkInputData.clientVelocity;
                 clientBoostRemaining = networkInputData.clientBoostRemaining;
+                clientDash = networkInputData.clientDash;
+                clientHitGround = networkInputData.clientHitGround;
                 receivedInput = true;
                 if(networkInputData.pushedReceived) {
                     pushed = false;
@@ -135,6 +169,7 @@ public class CharacterMovementController : NetworkTransform {
                 if(pushed) {
                     clientVelocity = Velocity;
                 }
+
             }
             float delta = Runner.DeltaTime;
 
@@ -163,6 +198,40 @@ public class CharacterMovementController : NetworkTransform {
                 !clientJump
             ) {
                 jumpReceived = false;
+            }
+
+            
+            /*
+            * Dash
+            */
+            if(
+                clientDash &&
+                !dashReceived
+            ) {
+                (float b, Vector3 v) = Utils.Dash(
+                    Controller,
+                    movement,
+                    transform,
+                    dashImpulse,
+                    dashBoostUsage,
+                    boostRemainingPercentage
+                );
+                boostRemainingPercentage = b;
+                if(v.magnitude > 0) {
+                    Velocity = v;
+                }
+                dashReceived = true;
+            }
+
+
+            /*
+            * Reset dash
+            */
+            if(
+                previousClientDash == true &&
+                !clientDash
+            ) {
+                dashReceived = false;
             }
 
             /*
@@ -225,6 +294,28 @@ public class CharacterMovementController : NetworkTransform {
             Velocity = v2;
             boostRemainingPercentage = b2;
 
+            /*
+            * Hit ground
+            */
+            if(
+                clientHitGround &&
+                !hitGroundReceived
+            ) {
+                hitGroundReceived = true;
+            }
+
+
+            /*
+            * Reset hit ground
+            */
+            if(
+                previousClientHitGround == true &&
+                !clientHitGround
+            ) {
+                hitGroundReceived = false;
+            }
+
+
 
             /*
             * Accept/refuse client state
@@ -234,14 +325,33 @@ public class CharacterMovementController : NetworkTransform {
                 Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError &&
                 (Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError) &&
                 Math.Abs(boostRemainingPercentage - clientBoostRemaining) < maxAllowedClientBoostError
+            
             ) {
                 Velocity = clientVelocity;
                 boostRemainingPercentage = clientBoostRemaining;
                 Controller.enabled = false;
                 transform.position = clientPosition;
                 Controller.enabled = true;
+            } else if(receivedInput) {
+                if(!(Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError)) {
+                    Debug.Log("not accept position >:(");
+
+                }
+
+                if(!(Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError)) {
+                    Debug.Log("not accept velocity >:(");
+
+                }
+                if(!(Math.Abs(boostRemainingPercentage - clientBoostRemaining) < maxAllowedClientBoostError)) {
+                    Debug.Log("not accept boost >:(");
+                }
             }
 
+
+            previousClientJump = clientJump;
+            previousClientDash = clientDash;
+            previousClientBoostRemaining = clientBoostRemaining;
+            previousClientHitGround = clientHitGround;
         }
     }
 

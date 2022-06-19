@@ -1432,6 +1432,9 @@ MonoBehaviour:
   maxAllowedClientPositionError: 1.5
   maxAllowedClientVelocityError: 7
   maxAllowedClientBoostError: 7
+  dashTimeout: 0.3
+  dashImpulse: 13
+  dashBoostUsage: 60
   cameraController: {fileID: 4587144850840075096}
   localCharacterMovementController: {fileID: 8180254042653263233}
   ballGunController: {fileID: 5538467927710914934}
@@ -1439,6 +1442,7 @@ MonoBehaviour:
   _boostRemainingPercentage: 0
   _pushed: 0
   _jumpReceived: 0
+  _dashReceived: 0
 --- !u!114 &3614968631412294479
 MonoBehaviour:
   m_ObjectHideFlags: 0

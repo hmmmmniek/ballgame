@@ -12,10 +12,16 @@ public class LocalCharacterMovementController : MonoBehaviour {
     public float boostRemainingPercentage;
     public bool hasInputAuthority;
 
+    private float lastJumpTime;
+
     private bool _localJump;
     public bool localJump { get { return _localJump; } set { _localJump = value; } } 
     private bool _localSprint;
     public bool localSprint { get { return _localSprint; } set { _localSprint = value; } } 
+    private bool _localDash;
+    public bool localDash { get { return _localDash; } set { _localDash = value; } } 
+    private bool _localHitGround;
+    public bool localHitGround { get { return _localHitGround; } set { _localHitGround = value; } } 
 
     public void Init(bool hasInputAuthority) {
         this.hasInputAuthority = hasInputAuthority;
@@ -36,8 +42,10 @@ public class LocalCharacterMovementController : MonoBehaviour {
         Velocity = networkMovementController.Velocity;
 
     }
+
+    private bool lastIsGrounded = false;
     public void Update() {
-        
+
         /*
         * Move model to position when not in control
         */
@@ -52,10 +60,13 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Accept/refuse server state
         */
+
         if( 
-            Vector3.Distance(transform.position, networkMovementController.transform.position) > networkMovementController.maxAllowedClientPositionError ||
-            Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
-            Math.Abs(boostRemainingPercentage - networkMovementController.boostRemainingPercentage) > networkMovementController.maxAllowedClientBoostError
+            !localDash && !localHitGround && (
+                Vector3.Distance(transform.position, networkMovementController.transform.position) > networkMovementController.maxAllowedClientPositionError ||
+                Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
+                Math.Abs(boostRemainingPercentage - networkMovementController.boostRemainingPercentage) > networkMovementController.maxAllowedClientBoostError
+            )
         ) {
             Synchronize();
         }
@@ -74,6 +85,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
                 networkMovementController.jumpImpulse
             );
             localJump = true;
+            lastJumpTime = Time.time;
         }
 
         /*
@@ -85,6 +97,43 @@ public class LocalCharacterMovementController : MonoBehaviour {
             networkMovementController.jumpReceived
         ) {   
             localJump = false;
+        }
+
+        /*
+        * Dash
+        */
+        if(
+            localJump == false &&
+            InputHandler.instance.localInputDataCache.jumpPressed &&
+            Time.time - lastJumpTime < networkMovementController.dashTimeout &&
+            boostRemainingPercentage >= networkMovementController.dashBoostUsage
+        ) {
+            lastJumpTime = 0;
+            (float b, Vector3 v) = Utils.Dash(
+                Controller,
+                InputHandler.instance.networkInputDataCache.movementInput,
+                transform,
+                networkMovementController.dashImpulse,
+                networkMovementController.dashBoostUsage,
+                boostRemainingPercentage
+            );
+            boostRemainingPercentage = b;
+            if(v.magnitude > 0) {
+                Velocity = v;
+            }
+
+            localDash = true;
+        }
+
+        /*
+        * Stop dash
+        */
+        if (
+            !InputHandler.instance.localInputDataCache.jumpPressed &&
+            localDash &&
+            networkMovementController.dashReceived
+        ) {   
+            localDash = false;
         }
 
 
@@ -152,6 +201,26 @@ public class LocalCharacterMovementController : MonoBehaviour {
         transform.rotation = Quaternion.Euler(0, InputHandler.instance.networkInputDataCache.rotationInput.x, 0);
 
         
+        
+        /*
+        * Grounded
+        */
+        if(
+            Controller.isGrounded &&
+            !lastIsGrounded
+        ) {
+            localHitGround = true;
+        }
+        
+        if (
+            localHitGround &&
+            networkMovementController.hitGroundReceived
+        ) {   
+            localHitGround = false;
+        }
+
+
+        lastIsGrounded = Controller.isGrounded;
     }
 
     public void OnDestroy (){
