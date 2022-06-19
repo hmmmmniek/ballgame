@@ -603,12 +603,12 @@ MonoBehaviour:
   attractAngle: 55
   attractWaitTime: 0.2
   attractStrength: 20
-  kickDistance: 6.5
+  kickDistance: 5.5
   kickAngle: 70
   kickTimeout: 0.5
   kickBallDropSpeed: 4
   kickBallSpeed: 17
-  kickPushForce: 15
+  kickPushForce: 27
   shieldDistance: 0.5
   shieldThickness: 0.8
   shieldWidth: 2
@@ -628,6 +628,7 @@ MonoBehaviour:
   _kickReceived: 0
   _suckReceived: 0
   _shieldOpen: 0
+  _attracting: 0
 --- !u!1 &3846429301406989187
 GameObject:
   m_ObjectHideFlags: 0

@@ -17,9 +17,10 @@ public class BallController : NetworkTransform {
     public float spinGroundMaxVelocity = 5f;
     public float spinGroundFullGripVelocity = 20f;
     public float spinGroundMinGrip = 0.1f;
+    public float spinGroundEffectTollerance = 0.1f;
     public float spinTime = 3f;
     public float spinMaxAngularVelocity = 1000f;
-
+    public float rollingResistance = 0.01f;
     public Transform ballModel;
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
@@ -87,9 +88,7 @@ public class BallController : NetworkTransform {
         isColliding = true;
         collidingSpeed = c.relativeVelocity.y;
     }
-    public virtual void OnCollisionExit(Collision c) {
-        isColliding = false;
-    }
+
 
 
     private bool previousIsColliding;
@@ -121,6 +120,11 @@ public class BallController : NetworkTransform {
             rollInput = 0;
         }
 
+        if(isColliding) {
+            Vector3 nearestSurfaceVector = GetNearestSurfaceVector();
+            isColliding = nearestSurfaceVector.magnitude > 0;
+        }
+
         if((spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && !spinTimer.ExpiredOrNotRunning(Runner)) {
             (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) = GetSpinEffect();
             float timeEffect = ((float)spinTimer.RemainingTime(Runner) / spinTime);
@@ -130,19 +134,17 @@ public class BallController : NetworkTransform {
             if(collidingSpeed > 0) {
                 float x = Math.Clamp(collidingSpeed / spinGroundFullGripVelocity, spinGroundMinGrip, 1);
                 rigidBody.AddForce(groundForce * x * timeEffect, ForceMode.Impulse);
-                Debug.Log(x);
                 collidingSpeed = 0;
             }
-            if(previousIsColliding && isColliding && getVelocity() < spinGroundMaxVelocity) {
+            if(isColliding) {
                 rigidBody.AddForce(groundForce * spinGroundMinGrip * timeEffect, ForceMode.Impulse);
             }
             
         }
 
+        rigidBody.AddForce(GetRollingResistance(), ForceMode.Impulse);
 
         MeasureVelocity();
-
-        previousIsColliding = isColliding;
 
     }
 
@@ -239,7 +241,9 @@ public class BallController : NetworkTransform {
         Vector3 airForce = (magnusForce + speedChangeForce) * spinAirStrength;
 
         Vector3 backSpinGroundForce = (-spinInitialForward).normalized * spinInput.y;
-        Vector3 rollGroundForce = Vector3.Cross(Vector3.down, spinInitialForward).normalized * rollInput;
+        Vector3 nearestSurfaceVector = GetNearestSurfaceVector();
+
+        Vector3 rollGroundForce = nearestSurfaceVector.magnitude == 0 ? new Vector3() : (Vector3.Cross(nearestSurfaceVector.normalized, spinInitialForward).normalized * rollInput);
         Vector3 rollAngularVelocity = spinInitialForward * rollInput;
 
         Vector3 groundForce = (backSpinGroundForce + rollGroundForce).normalized * spinGroundMaxForce;
@@ -250,6 +254,33 @@ public class BallController : NetworkTransform {
             groundForce: groundForce,
             angularVelocity: angularVelocity
         );
+    }
+
+    private Vector3 GetNearestSurfaceVector() {
+        SphereCollider sphereCollider = GetComponent<SphereCollider>();
+        Collider[] objects = Physics.OverlapSphere(transform.position, sphereCollider.radius + spinGroundEffectTollerance);
+        Vector3 closestObject = new Vector3();
+        foreach (var collider in objects) {
+
+            if(collider != sphereCollider && collider.GetComponent<CharacterController>() == null) {
+                
+                Vector3 ballToObject = collider.ClosestPoint(transform.position) - transform.position;
+                if(closestObject.magnitude == 0 || ballToObject.magnitude < closestObject.magnitude) {
+                    closestObject = ballToObject;
+                }
+            }
+        }
+
+        return closestObject;
+    }
+
+    private Vector3 GetRollingResistance() {
+        Vector3 nearestSurfaceVector = GetNearestSurfaceVector();
+        if(nearestSurfaceVector.magnitude != 0) {
+            return -rigidBody.velocity.normalized * rollingResistance;
+        } else {
+            return new Vector3();
+        }
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {

@@ -130,7 +130,7 @@ Rigidbody:
   serializedVersion: 2
   m_Mass: 1
   m_Drag: 0
-  m_AngularDrag: 0.05
+  m_AngularDrag: 0.2
   m_UseGravity: 1
   m_IsKinematic: 0
   m_Interpolate: 0
@@ -211,9 +211,11 @@ MonoBehaviour:
   spinGroundMaxForce: 20
   spinGroundMaxVelocity: 5
   spinGroundFullGripVelocity: 30
-  spinGroundMinGrip: 0.05
+  spinGroundMinGrip: 0.01
+  spinGroundEffectTollerance: 0.25
   spinTime: 4
   spinMaxAngularVelocity: 20
+  rollingResistance: 0.01
   ballModel: {fileID: 8526808137596034991}
   _isAttached:
     _value: 0
