@@ -38,7 +38,24 @@ public static class Utils {
         return (boostRemainingPercentage, velocity);
 
     }
-    public static Vector3 Move(float deltaTime, Vector2 movementInput, Transform transform, Vector3 velocity, CharacterController controller, float gravity, float braking, float acceleration, float maxGroundSpeed, float maxVerticalSpeed) {
+
+
+    public static (float boost, Vector3 velocity) Move(
+        float deltaTime,
+        Vector2 movementInput,
+        Transform transform,
+        Vector3 velocity,
+        CharacterController controller,
+        float boostRemainingPercentage,
+        float gravity,
+        float braking,
+        float acceleration,
+        float maxSprintGroundSpeed,
+        float maxGroundSpeed,
+        float maxVerticalSpeed,
+        bool isSprinting,
+        float boostUsageSpeed
+    ) {
 
         var previousPos = transform.position;
         var moveVelocity = velocity;
@@ -58,21 +75,21 @@ public static class Utils {
 
         Vector3 x = horizontalVel + direction * acceleration * deltaTime;
 
+        float maximumGroundSpeed = (isSprinting && boostRemainingPercentage > 0) ? maxSprintGroundSpeed : maxGroundSpeed;
+
         if(controller.isGrounded) {
             if (direction == default) {
                 horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
             } else {
-                horizontalVel = Vector3.ClampMagnitude(x, maxGroundSpeed);
+                horizontalVel = Vector3.ClampMagnitude(x, maximumGroundSpeed);
             }
         } else {
             float groundSpeed = new Vector2(velocity.x, velocity.z).magnitude;
-            if(groundSpeed > maxGroundSpeed) {
+            if(groundSpeed > maximumGroundSpeed) {
                 horizontalVel = Vector3.ClampMagnitude(x, groundSpeed);
             } else {
-                horizontalVel = Vector3.ClampMagnitude(x, maxGroundSpeed);
+                horizontalVel = Vector3.ClampMagnitude(x, maximumGroundSpeed);
             }
-            
-
         }
 
 
@@ -83,7 +100,16 @@ public static class Utils {
         }
         controller.Move(moveVelocity * deltaTime);
         velocity = (transform.position - previousPos) / deltaTime;
-        return velocity;
+
+        if(isSprinting && boostRemainingPercentage > 0 && movementInput.magnitude > 0) {
+            boostRemainingPercentage = boostRemainingPercentage - boostUsageSpeed * deltaTime;
+            if(boostRemainingPercentage < 0) {
+                boostRemainingPercentage = 0;
+            }
+
+        }
+
+        return (boost: boostRemainingPercentage, velocity: velocity);
     }
 
     public static void Rotate(Transform transform, float eulerAngles) {

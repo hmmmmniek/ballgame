@@ -14,6 +14,8 @@ public class LocalCharacterMovementController : MonoBehaviour {
 
     private bool _localJump;
     public bool localJump { get { return _localJump; } set { _localJump = value; } } 
+    private bool _localSprint;
+    public bool localSprint { get { return _localSprint; } set { _localSprint = value; } } 
 
     public void Init(bool hasInputAuthority) {
         this.hasInputAuthority = hasInputAuthority;
@@ -55,7 +57,6 @@ public class LocalCharacterMovementController : MonoBehaviour {
             Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
             Math.Abs(boostRemainingPercentage - networkMovementController.boostRemainingPercentage) > networkMovementController.maxAllowedClientBoostError
         ) {
-            Debug.Log("synchronize");
             Synchronize();
         }
 
@@ -110,7 +111,8 @@ public class LocalCharacterMovementController : MonoBehaviour {
         * Recharge boost
         */
         if(
-            Controller.isGrounded
+            Controller.isGrounded &&
+            (!InputHandler.instance.localInputDataCache.sprintPressed || InputHandler.instance.networkInputDataCache.movementInput.magnitude == 0)
         ) {
             boostRemainingPercentage = Utils.RechargeBoost(
                 deltaTime,
@@ -123,18 +125,24 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Move
         */
-        Velocity = Utils.Move(
+        (float b2, Vector3 v2) = Utils.Move(
             deltaTime,
             InputHandler.instance.networkInputDataCache.movementInput,
             transform,
             Velocity,
             Controller,
+            boostRemainingPercentage,
             networkMovementController.gravity,
             networkMovementController.braking,
             networkMovementController.acceleration,
+            networkMovementController.maxSprintGroundSpeed,
             networkMovementController.maxGroundSpeed,
-            networkMovementController.maxVerticalSpeed
+            networkMovementController.maxVerticalSpeed,
+            InputHandler.instance.localInputDataCache.sprintPressed,
+            networkMovementController.boostUsageSpeed
         );
+        Velocity = v2;
+        boostRemainingPercentage = b2;
 
         /*
         * Rotate

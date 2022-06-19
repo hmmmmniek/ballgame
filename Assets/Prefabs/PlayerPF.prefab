@@ -1423,6 +1423,7 @@ MonoBehaviour:
   acceleration: 30
   braking: 10
   maxGroundSpeed: 6
+  maxSprintGroundSpeed: 8.5
   maxVerticalSpeed: 6
   boostUsageSpeed: 70
   boostRechargeSpeed: 40

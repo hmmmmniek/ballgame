@@ -51,6 +51,14 @@ public class InputHandler : MonoBehaviour {
             }
         }
 
+        if (context.action.name == "Sprint") {
+            if(context.ReadValueAsButton()) {
+                localInputDataCache.sprintPressed = true;
+            } else {
+                localInputDataCache.sprintPressed = false;
+            }
+        }
+
         if (context.action.name == "Ball spin") {
             if(context.ReadValueAsButton()) {
                 localInputDataCache.ballSpinPressed = true;

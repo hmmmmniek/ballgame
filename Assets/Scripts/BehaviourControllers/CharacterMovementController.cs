@@ -14,6 +14,7 @@ public class CharacterMovementController : NetworkTransform {
     public float acceleration = 10.0f;
     public float braking = 10.0f;
     public float maxGroundSpeed = 2.0f;
+    public float maxSprintGroundSpeed = 3.5f;
     public float maxVerticalSpeed = 6f;
     public float boostUsageSpeed = 40f;
     public float boostRechargeSpeed = 15f;
@@ -107,6 +108,7 @@ public class CharacterMovementController : NetworkTransform {
 
     private Vector2 movement;
     private bool clientJump;
+    private bool clientSprint;
     private Vector3 clientPosition;
     private Vector3 clientVelocity;
     private float clientBoostRemaining;
@@ -118,6 +120,7 @@ public class CharacterMovementController : NetworkTransform {
             bool receivedInput = false;
             if (GetInput(out NetworkInputData networkInputData)) {
                 clientJump = networkInputData.clientJump;
+                clientSprint = networkInputData.clientSprint;
                 movement = networkInputData.movementInput;
                 clientPosition = networkInputData.clientPosition;
                 clientVelocity = networkInputData.clientVelocity;
@@ -182,7 +185,8 @@ public class CharacterMovementController : NetworkTransform {
             * Recharge boost
             */
             if(
-                Controller.isGrounded
+                Controller.isGrounded &&
+                (!clientSprint || movement.magnitude == 0)
             ) {
                 boostRemainingPercentage = Utils.RechargeBoost(
                     delta,
@@ -197,18 +201,25 @@ public class CharacterMovementController : NetworkTransform {
             /*
             * Move
             */
-            Velocity = Utils.Move(
+            (float b2, Vector3 v2) = Utils.Move(
                 delta,
                 movement,
                 transform,
                 Velocity,
                 Controller,
+                boostRemainingPercentage,
                 gravity,
                 braking,
                 acceleration,
+                maxSprintGroundSpeed,
                 maxGroundSpeed,
-                maxVerticalSpeed
+                maxVerticalSpeed,
+                clientSprint,
+                boostUsageSpeed
             );
+            Velocity = v2;
+            boostRemainingPercentage = b2;
+
 
             /*
             * Accept/refuse client state
