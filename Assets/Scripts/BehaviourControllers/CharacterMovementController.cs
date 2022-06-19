@@ -38,6 +38,23 @@ public class CharacterMovementController : NetworkTransform {
         }
     }
 
+
+    [HideInInspector][Networked(OnChanged = nameof(OnPushedChanged))]
+    public bool pushed { get; set; }
+    public static void OnPushedChanged(Changed<CharacterMovementController> changed) {
+        changed.Behaviour.OnPushedChanged();
+    }
+    private void OnPushedChanged() {
+        if(Object.HasInputAuthority && pushed) {
+            localCharacterMovementController.Velocity = Velocity;
+            pushedReceived = true;
+        }
+        if(Object.HasInputAuthority && !pushed) {
+            pushedReceived = false;
+        }
+    }
+    private bool _pushedReceived;
+    public bool pushedReceived { get { return _pushedReceived; } set { _pushedReceived = value; } } 
     
     [HideInInspector][Networked(OnChanged = nameof(OnJumpReceived))] public bool jumpReceived { get; set; }
     public static void OnJumpReceived(Changed<CharacterMovementController> changed) {
@@ -106,6 +123,12 @@ public class CharacterMovementController : NetworkTransform {
                 clientVelocity = networkInputData.clientVelocity;
                 clientBoostRemaining = networkInputData.clientBoostRemaining;
                 receivedInput = true;
+                if(networkInputData.pushedReceived) {
+                    pushed = false;
+                }
+                if(pushed) {
+                    clientVelocity = Velocity;
+                }
             }
             float delta = Runner.DeltaTime;
 
@@ -193,7 +216,7 @@ public class CharacterMovementController : NetworkTransform {
             if(
                 receivedInput && 
                 Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError &&
-                Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError &&
+                (Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError) &&
                 Math.Abs(boostRemainingPercentage - clientBoostRemaining) < maxAllowedClientBoostError
             ) {
                 Velocity = clientVelocity;
@@ -207,7 +230,8 @@ public class CharacterMovementController : NetworkTransform {
     }
 
     public void Push(Vector3 force) {
-        Velocity = force;
+        Velocity += force;
+        pushed = true;
     }
 
     public void Update() {

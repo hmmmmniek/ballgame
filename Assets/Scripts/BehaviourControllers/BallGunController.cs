@@ -8,6 +8,7 @@ public class BallGunController : NetworkBehaviour {
     public float maxShootingSpeed = 50;
     public float passSpeed = 30;
     public float chargeTimeAmount = 2;
+    public float maxShootRecoilForce = 10;
 
     public float suckDistance = 5;
     public float suckAngle = 20f;
@@ -561,7 +562,10 @@ public class BallGunController : NetworkBehaviour {
                 Shoot(kickBallDropSpeed);
                 justDroppedBall = true;
             }
+
             player.playerController.GetComponent<CharacterMovementController>().Push(transform.forward.normalized * kickPushForce);
+            playerController.localCharacterMovementController.networkMovementController.Push(-(transform.forward.normalized) * kickPushForce);
+
         }
             
         if(!ball.isAttached && !justDroppedBall) {
@@ -591,6 +595,11 @@ public class BallGunController : NetworkBehaviour {
             (transform.forward.normalized * ball.GetComponent<Rigidbody>().velocity.magnitude) +
             playerController.GetComponent<CharacterController>().velocity;
         ball.Shoot(forward, GetSpinInput(), GetRollInput());
+
+        Vector3 recoil = (-transform.forward.normalized) * maxShootRecoilForce * (forward.magnitude / ball.maxSpeed);
+        playerController.localCharacterMovementController.networkMovementController.Push(recoil);
+
+        
     }
 
     private void Reflect() {

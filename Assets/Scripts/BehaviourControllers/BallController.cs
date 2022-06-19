@@ -9,7 +9,7 @@ public class BallController : NetworkTransform {
     public float maxSpeed = 80;
     public float velocityMeasuringTimeFrame = 0.3f;
     public int velocityMeasurementsAmount = 5;
-
+    public float maxPickupForce = 20f;
     public float spinAirMaxForce = 5f;
     public float spinAirSpeedInfluence = 1f;
     public float spinVerticalSpeedInfluence = 1f;
@@ -102,8 +102,11 @@ public class BallController : NetworkTransform {
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
                     if(player != null && !player.temporarilyIgnored && !player.ballGunController.shieldOpen) {
+                        float speed = getVelocity();
+                        player.GetComponent<CharacterMovementController>().Push(rigidBody.velocity.normalized * (maxPickupForce * (speed / maxSpeed)));
                         Attach(player.ballGunController.ballAnchor);
                         player.ballGunController.isCarrying = true;
+                        
                         return;
                     }            
                 }

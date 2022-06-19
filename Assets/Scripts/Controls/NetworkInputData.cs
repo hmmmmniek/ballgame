@@ -21,5 +21,5 @@ public struct NetworkInputData : INetworkInput
     public bool clientBallSpin;
     public float runnerTime;
     public float localTime;
-
+    public bool pushedReceived;
 }

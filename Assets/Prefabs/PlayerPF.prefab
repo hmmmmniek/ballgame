@@ -596,6 +596,7 @@ MonoBehaviour:
   maxShootingSpeed: 40
   passSpeed: 20
   chargeTimeAmount: 2
+  maxShootRecoilForce: 17
   suckDistance: 4.5
   suckAngle: 45
   suckTimeout: 0.5
@@ -608,7 +609,7 @@ MonoBehaviour:
   kickTimeout: 0.5
   kickBallDropSpeed: 4
   kickBallSpeed: 17
-  kickPushForce: 27
+  kickPushForce: 6
   shieldDistance: 0.5
   shieldThickness: 0.8
   shieldWidth: 2
@@ -1433,6 +1434,7 @@ MonoBehaviour:
   localCharacterMovementController: {fileID: 8180254042653263233}
   _Velocity: {x: 0, y: 0, z: 0}
   _boostRemainingPercentage: 0
+  _pushed: 0
   _jumpReceived: 0
 --- !u!114 &3614968631412294479
 MonoBehaviour:

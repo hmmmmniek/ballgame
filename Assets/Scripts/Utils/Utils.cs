@@ -56,11 +56,25 @@ public static class Utils {
         horizontalVel.x = moveVelocity.x;
         horizontalVel.z = moveVelocity.z;
 
-        if (direction == default) {
-            horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
+        Vector3 x = horizontalVel + direction * acceleration * deltaTime;
+
+        if(controller.isGrounded) {
+            if (direction == default) {
+                horizontalVel = Vector3.Lerp(horizontalVel, default, braking * deltaTime);
+            } else {
+                horizontalVel = Vector3.ClampMagnitude(x, maxGroundSpeed);
+            }
         } else {
-            horizontalVel = Vector3.ClampMagnitude(horizontalVel + direction * acceleration * deltaTime, maxGroundSpeed);
+            float groundSpeed = new Vector2(velocity.x, velocity.z).magnitude;
+            if(groundSpeed > maxGroundSpeed) {
+                horizontalVel = Vector3.ClampMagnitude(x, groundSpeed);
+            } else {
+                horizontalVel = Vector3.ClampMagnitude(x, maxGroundSpeed);
+            }
+            
+
         }
+
 
         moveVelocity.x = horizontalVel.x;
         moveVelocity.z = horizontalVel.z;

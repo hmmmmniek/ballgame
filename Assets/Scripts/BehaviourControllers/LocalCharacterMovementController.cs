@@ -55,6 +55,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
             Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
             Math.Abs(boostRemainingPercentage - networkMovementController.boostRemainingPercentage) > networkMovementController.maxAllowedClientBoostError
         ) {
+            Debug.Log("synchronize");
             Synchronize();
         }
 
@@ -142,7 +143,6 @@ public class LocalCharacterMovementController : MonoBehaviour {
 
         
     }
-
 
     public void OnDestroy (){
         GameObject.Destroy(cameraController.gameObject);
