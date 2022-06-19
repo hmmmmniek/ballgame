@@ -15,6 +15,7 @@ public class CharacterMovementController : NetworkTransform {
     public float braking = 10.0f;
     public float maxGroundSpeed = 2.0f;
     public float maxSprintGroundSpeed = 3.5f;
+    public float maxBallWalkingSpeed = 1.5f;
     public float maxVerticalSpeed = 6f;
     public float boostUsageSpeed = 40f;
     public float boostRechargeSpeed = 15f;
@@ -25,6 +26,7 @@ public class CharacterMovementController : NetworkTransform {
 
     public CharacterCameraController cameraController;
     public LocalCharacterMovementController localCharacterMovementController;
+    public BallGunController ballGunController;
 
 
     [HideInInspector][Networked]public Vector3 Velocity { get; set; }
@@ -90,6 +92,7 @@ public class CharacterMovementController : NetworkTransform {
 
         localCharacterMovementController.Init(Object.HasInputAuthority);
         localCharacterMovementController.Synchronize();
+
     }
 
     private void CacheController() {
@@ -186,7 +189,7 @@ public class CharacterMovementController : NetworkTransform {
             */
             if(
                 Controller.isGrounded &&
-                (!clientSprint || movement.magnitude == 0)
+                (!clientSprint || movement.magnitude == 0 || ballGunController.isCarrying)
             ) {
                 boostRemainingPercentage = Utils.RechargeBoost(
                     delta,
@@ -211,11 +214,13 @@ public class CharacterMovementController : NetworkTransform {
                 gravity,
                 braking,
                 acceleration,
+                maxBallWalkingSpeed,
                 maxSprintGroundSpeed,
                 maxGroundSpeed,
                 maxVerticalSpeed,
                 clientSprint,
-                boostUsageSpeed
+                boostUsageSpeed,
+                ballGunController.isCarrying
             );
             Velocity = v2;
             boostRemainingPercentage = b2;

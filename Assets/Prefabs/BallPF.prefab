@@ -205,7 +205,7 @@ MonoBehaviour:
   maxSpeed: 65
   velocityMeasuringTimeFrame: 0.3
   velocityMeasurementsAmount: 5
-  maxPickupForce: 22
+  maxPickupForce: 18
   spinAirMaxForce: 0.8
   spinAirSpeedInfluence: 1.4
   spinVerticalSpeedInfluence: 1.1

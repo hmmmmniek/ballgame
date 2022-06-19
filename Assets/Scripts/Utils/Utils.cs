@@ -50,11 +50,13 @@ public static class Utils {
         float gravity,
         float braking,
         float acceleration,
+        float maxBallWalkingSpeed,
         float maxSprintGroundSpeed,
         float maxGroundSpeed,
         float maxVerticalSpeed,
         bool isSprinting,
-        float boostUsageSpeed
+        float boostUsageSpeed,
+        bool isCarrying
     ) {
 
         var previousPos = transform.position;
@@ -75,7 +77,7 @@ public static class Utils {
 
         Vector3 x = horizontalVel + direction * acceleration * deltaTime;
 
-        float maximumGroundSpeed = (isSprinting && boostRemainingPercentage > 0) ? maxSprintGroundSpeed : maxGroundSpeed;
+        float maximumGroundSpeed = isCarrying ? maxBallWalkingSpeed : ((isSprinting && boostRemainingPercentage > 0) ? maxSprintGroundSpeed : maxGroundSpeed);
 
         if(controller.isGrounded) {
             if (direction == default) {
@@ -101,7 +103,7 @@ public static class Utils {
         controller.Move(moveVelocity * deltaTime);
         velocity = (transform.position - previousPos) / deltaTime;
 
-        if(isSprinting && boostRemainingPercentage > 0 && movementInput.magnitude > 0) {
+        if(!isCarrying && isSprinting && boostRemainingPercentage > 0 && movementInput.magnitude > 0) {
             boostRemainingPercentage = boostRemainingPercentage - boostUsageSpeed * deltaTime;
             if(boostRemainingPercentage < 0) {
                 boostRemainingPercentage = 0;

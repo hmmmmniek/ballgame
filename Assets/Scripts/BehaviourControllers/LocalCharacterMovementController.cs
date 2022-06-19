@@ -112,7 +112,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
         */
         if(
             Controller.isGrounded &&
-            (!InputHandler.instance.localInputDataCache.sprintPressed || InputHandler.instance.networkInputDataCache.movementInput.magnitude == 0)
+            (!InputHandler.instance.localInputDataCache.sprintPressed || InputHandler.instance.networkInputDataCache.movementInput.magnitude == 0 || networkMovementController.ballGunController.isCarrying)
         ) {
             boostRemainingPercentage = Utils.RechargeBoost(
                 deltaTime,
@@ -135,11 +135,13 @@ public class LocalCharacterMovementController : MonoBehaviour {
             networkMovementController.gravity,
             networkMovementController.braking,
             networkMovementController.acceleration,
+            networkMovementController.maxBallWalkingSpeed,
             networkMovementController.maxSprintGroundSpeed,
             networkMovementController.maxGroundSpeed,
             networkMovementController.maxVerticalSpeed,
             InputHandler.instance.localInputDataCache.sprintPressed,
-            networkMovementController.boostUsageSpeed
+            networkMovementController.boostUsageSpeed,
+            networkMovementController.ballGunController.isCarrying
         );
         Velocity = v2;
         boostRemainingPercentage = b2;

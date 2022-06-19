@@ -596,7 +596,7 @@ MonoBehaviour:
   maxShootingSpeed: 40
   passSpeed: 20
   chargeTimeAmount: 2
-  maxShootRecoilForce: 17
+  maxShootRecoilForce: 10
   suckDistance: 4.5
   suckAngle: 45
   suckTimeout: 0.5
@@ -1424,6 +1424,7 @@ MonoBehaviour:
   braking: 10
   maxGroundSpeed: 6
   maxSprintGroundSpeed: 8.5
+  maxBallWalkingSpeed: 4.5
   maxVerticalSpeed: 6
   boostUsageSpeed: 70
   boostRechargeSpeed: 40
@@ -1433,6 +1434,7 @@ MonoBehaviour:
   maxAllowedClientBoostError: 7
   cameraController: {fileID: 4587144850840075096}
   localCharacterMovementController: {fileID: 8180254042653263233}
+  ballGunController: {fileID: 5538467927710914934}
   _Velocity: {x: 0, y: 0, z: 0}
   _boostRemainingPercentage: 0
   _pushed: 0
