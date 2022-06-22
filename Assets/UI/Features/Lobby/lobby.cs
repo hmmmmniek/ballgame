@@ -77,7 +77,7 @@ public class LobbyController : Module {
         Action<VisualElement, int> bindItem = (e, i) => {
             var controller = new SessionListItemController(e);
             controller.Init(sessions[i]);
-            e.userData = controller;
+            e.userData = (controller: controller, type: "widget");
         };
 
         listView.makeItem = makeItem;

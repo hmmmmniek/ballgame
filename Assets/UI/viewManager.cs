@@ -32,16 +32,24 @@ public class ViewManager {
         }
         var template = GetTemplate<T>();
         var element = template.Instantiate();
+        root.Add(element);
 
         var controller = Activator.CreateInstance(typeof(T), new object[] { element }) as T;
-        element.userData = controller;
-        root.Add(element);
+        var widgets = InitializeWidgetsOfModule<T>();
+        var userData = new Dictionary<string, object>();
+        userData.Add("controller", controller);
+        userData.Add("type", "module");
+        userData.Add("widgets", widgets);
+        element.userData = userData;
+
         element.RegisterCallback<DetachFromPanelEvent>((e) => {
-            (currentModule.userData as Module).OnDestroy();
+            foreach (var widget in widgets) {
+                (widget as Widget).OnDestroy();
+            }
+            (controller as Module).OnDestroy();
         });
         currentModule = element;
 
-        InitializeWidgetsOfModule<T>();
 
         return controller;
     }
@@ -56,26 +64,35 @@ public class ViewManager {
         return template;
     }
 
-    private void InitializeWidgetsOfModule<T>() where T: Module {
+    private List<Widget> InitializeWidgetsOfModule<T>() where T: Module {
         var elementNames = typeof(T).GetField("WIDGET_ELEMENT_NAMES").GetValue(null) as IEnumerable<string>;
+        var widgets = new List<Widget>();
         foreach (var elementName in elementNames) {
             switch (elementName){
                 case BackButtonController.ELEMENT_NAME: {
-                    InitializeWidgetsOfType<BackButtonController>();
+                    widgets.AddRange(InitializeWidgetsOfType<BackButtonController>());
+                    break;
+                }
+                case CursorController.ELEMENT_NAME: {
+                    widgets.AddRange(InitializeWidgetsOfType<CursorController>());
                     break;
                 }
             }
         }
+        return widgets;
     }
 
     private List<T> InitializeWidgetsOfType<T>() where T: Widget {
         var elementName = typeof(T).GetField("ELEMENT_NAME").GetValue(null) as string;
         var widgetElements = new List<VisualElement>();
-        root.Query(elementName).Descendents<VisualElement>().Build().ToList(widgetElements);
+        root.Query(elementName).Build().ToList(widgetElements);
         var controllers = new List<T>();
         foreach (var widgetElement in widgetElements) {
             var controller = Activator.CreateInstance(typeof(T), new object[] { widgetElement }) as T;
-            widgetElement.userData = controller;
+            var userData = new Dictionary<string, object>();
+            userData.Add("controller", controller);
+            userData.Add("type", "widget");
+            widgetElement.userData = userData;
             controllers.Add(controller);
         }
 

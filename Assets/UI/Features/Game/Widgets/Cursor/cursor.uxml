@@ -1,0 +1,63 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/Game/Widgets/Cursor/cursor.uss" />
+
+    <engine:VisualElement class="cursor" name="Cursor">
+        <engine:VisualElement name="game__default-cursor__container" class="game__default-cursor__container" >
+            <engine:VisualElement name="game__default-cursor__dot" class="game__default-cursor__dot" ></engine:VisualElement>    
+        </engine:VisualElement>
+        <engine:VisualElement name="game__carrying-cursor__container" class="game__carrying-cursor__container inactive" >
+            <engine:VisualElement name="game__carrying-cursor__shadow" class="game__carrying-cursor__shadow" ></engine:VisualElement>
+            <engine:VisualElement name="game__carrying-cursor" class="game__carrying-cursor" ></engine:VisualElement>
+            <engine:VisualElement name="game__carrying-cursor__dot" class="game__default-cursor__dot" ></engine:VisualElement>    
+        </engine:VisualElement>
+        <engine:VisualElement name="game__attracting-cursor__container" class="game__attracting-cursor__container inactive" >
+            <engine:VisualElement class="game__attracting-cursor__section__wrapper section__0" >
+                <engine:VisualElement class="game__attracting-cursor__section section__0 section__shadow" ></engine:VisualElement>
+                <engine:VisualElement class="game__attracting-cursor__section section__0" ></engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement class="game__attracting-cursor__section__wrapper section__1" >
+                <engine:VisualElement class="game__attracting-cursor__section section__1 section__shadow" ></engine:VisualElement>
+                <engine:VisualElement class="game__attracting-cursor__section section__1" ></engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement class="game__attracting-cursor__section__wrapper section__2" >
+                <engine:VisualElement class="game__attracting-cursor__section section__2 section__shadow" ></engine:VisualElement>
+                <engine:VisualElement class="game__attracting-cursor__section section__2" ></engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement class="game__attracting-cursor__section__wrapper section__3" >
+                <engine:VisualElement class="game__attracting-cursor__section section__3 section__shadow" ></engine:VisualElement>
+                <engine:VisualElement class="game__attracting-cursor__section section__3" ></engine:VisualElement>
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="game__shield-cursor__container" class="game__shield-cursor__container inactive" >
+            <engine:VisualElement class="game__shield-cursor shadow" ></engine:VisualElement>
+            <engine:VisualElement class="game__shield-cursor" ></engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="game__roll-input-cursor__container" class="game__roll-input-cursor__container inactive" >
+            <engine:VisualElement class="game__roll-input-cursor__section__lines shadow" ></engine:VisualElement>
+            <engine:VisualElement class="game__roll-input-cursor__section__lines" >
+                <engine:VisualElement name="game__roll-input-cursor__section__lines__arrow" class="game__roll-input-cursor__section__lines__arrow" >
+                    <engine:VisualElement name="game__roll-input-cursor__section__lines__arrow__head__shadow" class="game__roll-input-cursor__section__lines__arrow__head shadow" ></engine:VisualElement>
+                    <engine:VisualElement name="game__roll-input-cursor__section__lines__arrow__head" class="game__roll-input-cursor__section__lines__arrow__head" ></engine:VisualElement>
+                    <engine:VisualElement name="game__roll-input-cursor__section__lines__arrow__tail" class="game__roll-input-cursor__section__lines__arrow__tail" ></engine:VisualElement>
+                </engine:VisualElement>
+            </engine:VisualElement>
+        </engine:VisualElement>
+        <engine:VisualElement name="game__spin-input-cursor__container" class="game__spin-input-cursor__container inactive" >
+                <engine:VisualElement name="game__spin-input-cursor__ring__shadow" class="game__spin-input-cursor__ring shadow" >
+                    <engine:VisualElement name="game__spin-input-cursor__arrow" class="game__spin-input-cursor__arrow" >
+                        <engine:VisualElement name="game__spin-input-cursor__arrow__head__shadow" class="game__spin-input-cursor__arrow__head shadow" ></engine:VisualElement>
+                        <engine:VisualElement name="game__spin-input-cursor__arrow__head" class="game__spin-input-cursor__arrow__head" ></engine:VisualElement>
+                        <engine:VisualElement name="game__spin-input-cursor__arrow__tail" class="game__spin-input-cursor__arrow__tail" ></engine:VisualElement>
+                    </engine:VisualElement>
+                </engine:VisualElement>
+                <engine:VisualElement name="game__spin-input-cursor__ring" class="game__spin-input-cursor__ring" ></engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
+

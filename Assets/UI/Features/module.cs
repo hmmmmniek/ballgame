@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using UnityEngine;
 using UnityEngine.UIElements;
 
 public class Module: Template {
@@ -10,7 +11,7 @@ public class Module: Template {
     protected void Watch(Action subscription) {
         subscriptions.Add(subscription);
     }
-    public void OnDestroy() {
+    public virtual void OnDestroy() {
         foreach (var unsubscribe in subscriptions) {
             unsubscribe();
         }
