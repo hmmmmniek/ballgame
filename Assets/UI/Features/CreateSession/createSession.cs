@@ -17,6 +17,11 @@ public class CreateSessionController : Module {
         _3v3,
         _5v5
     }
+    public enum MapSize {
+        Small,
+        Medium,
+        Large
+    }
    
 
     private SessionSize _selectedSessionSize;
@@ -57,6 +62,46 @@ public class CreateSessionController : Module {
         }
     }
 
+    private MapSize _selectedMapSize;
+    private MapSize selectedMapSize {
+        get {
+            return _selectedMapSize;
+        }
+        set {
+            Button unselectedButton = element.Q<VisualElement>(null, "map-size-selector").Q<Button>(null, "selected");
+            if(unselectedButton != null) {
+                unselectedButton.RemoveFromClassList("selected");
+            }
+            
+            Button selectedButton;
+            switch(value) {
+                case MapSize.Small: {
+                    selectedButton = element.Q<Button>("map-size-selector__small");
+                    break;
+                }
+                case MapSize.Medium: {
+                    selectedButton = element.Q<Button>("map-size-selector__medium");
+                    break;
+                }
+                case MapSize.Large: {
+                    selectedButton = element.Q<Button>("map-size-selector__large");
+                    break;
+                }
+                default: {
+                    selectedButton = null;
+                    break;
+                }
+            }
+            if(selectedButton != null) {
+                selectedButton.AddToClassList("selected");
+            }
+           
+            _selectedMapSize = value;
+        }
+    }
+
+
+
     private string sessionName;
 
     public CreateSessionController(VisualElement element) {
@@ -74,6 +119,16 @@ public class CreateSessionController : Module {
         sessionSizeButton3v3.clicked += () => { selectedSessionSize = SessionSize._3v3; };
         sessionSizeButton5v5.clicked += () => { selectedSessionSize = SessionSize._5v5; };
 
+        selectedMapSize = MapSize.Small;
+
+        Button mapSizeButtonSmall = element.Q<Button>("map-size-selector__small");
+        Button mapSizeButtonMedium = element.Q<Button>("map-size-selector__medium");
+        Button mapSizeButtonLarge = element.Q<Button>("map-size-selector__large");
+        mapSizeButtonSmall.clicked += () => { selectedMapSize = MapSize.Small; };
+        mapSizeButtonMedium.clicked += () => { selectedMapSize = MapSize.Medium; };
+        mapSizeButtonLarge.clicked += () => { selectedMapSize = MapSize.Large; };
+
+
         TextField sessionNameInput = element.Q<TextField>("session-name-input__textfield");
         sessionNameInput.RegisterValueChangedCallback((change) => {
             sessionName = change.newValue;
@@ -88,8 +143,7 @@ public class CreateSessionController : Module {
         Button sessionCreateButton = element.Q<Button>("session-create__button");
         sessionCreateButton.clicked += StartSession;
 
-        
-
+    
 
     }
     private void GoToLobby() {
@@ -112,7 +166,8 @@ public class CreateSessionController : Module {
                 break;
             }
         }
-        NetworkState.Dispatch(NetworkState.Create, (name: sessionName, size: sessionSize), () => {});
+
+        NetworkState.Dispatch(NetworkState.Create, (name: sessionName, size: sessionSize, map: selectedMapSize), () => {});
     }
  
     private String getRandomSessionName() {

@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 using UnityEngine.UIElements;
+using static CreateSessionController;
 
 public class NetworkStateData: StateData {
     public bool joined;
@@ -53,11 +54,10 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
     }
 
 
-    public static void Create(BaseState<NetworkStateData, NetworkState> s, (string, int) args, Action c) { (s as NetworkState).C(c, args); }
-    private async void C(Action complete, (string name, int size) args) {
+    public static void Create(BaseState<NetworkStateData, NetworkState> s, (string, int, MapSize) args, Action c) { (s as NetworkState).C(c, args); }
+    private async void C(Action complete, (string name, int size, MapSize mapSize) args) {
         if(state.joined == false) {
-            var result = await dependencies.networkManager.StartSession(args.name, args.size);
-            Debug.Log(result);
+            var result = await dependencies.networkManager.StartSession(args.name, args.size, args.mapSize);
             if (result) {
                 StateChange((NetworkStateData state) => {
                     state.joined = true;

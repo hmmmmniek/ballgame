@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using System;
 using System.Linq;
 using Fusion.Photon.Realtime;
+using static CreateSessionController;
 
 public class NetworkManager : Fusion.Behaviour {
     public NetworkRunner runnerPrefab;
@@ -16,7 +17,7 @@ public class NetworkManager : Fusion.Behaviour {
         await ResetRunner();
     }
 
-    public async Task<SessionInfo> StartSession(string name, int size) {
+    public async Task<SessionInfo> StartSession(string name, int size, MapSize mapSize) {
         await ResetRunner();
         
         var startGameArgs = new StartGameArgs {
@@ -25,6 +26,9 @@ public class NetworkManager : Fusion.Behaviour {
             PlayerCount = size,
             SceneObjectProvider = GetSceneObjectProvider(),
             DisableClientSessionCreation = true,
+            SessionProperties = new Dictionary<string, SessionProperty>(new KeyValuePair<string, SessionProperty>[] {
+                new KeyValuePair<string, SessionProperty>("mapSize", (int)mapSize)
+            })
         };
         var result = await runner.StartGame(startGameArgs);
 

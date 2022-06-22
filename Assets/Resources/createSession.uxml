@@ -21,6 +21,13 @@
                 <engine:Button name="session-size-selector__5v5" text="5v5" />
             </engine:VisualElement>
 
+            <engine:VisualElement class="map-size-selector">
+            
+                <engine:Button name="map-size-selector__small" text="small" />
+                <engine:Button name="map-size-selector__medium" text="medium" />
+                <engine:Button name="map-size-selector__large" text="large" />
+            </engine:VisualElement>
+
             <engine:VisualElement class="session-name-input">
                 <engine:TextField name="session-name-input__textfield" max-length="100" />
                 <engine:Button name="session-name-input__clear" text="Clear" />

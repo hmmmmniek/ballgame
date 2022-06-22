@@ -19,7 +19,7 @@
 .hidden {
     display: none;
 }
-.wrapper .session-size-selector, .wrapper .session-name-input {
+.wrapper .session-size-selector, .wrapper .map-size-selector, .wrapper .session-name-input {
     flex-direction: row;
     height: 50px;
 }

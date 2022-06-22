@@ -21,6 +21,8 @@ public class GameStateData: StateData {
     public Vector2 spinInput;
 
     public (BallGunController ballGunController, PlayerController playerController)[] players = {};
+    public BallController ball;
+
 }
 
 public class GameState: BaseState<GameStateData, GameState> {
@@ -85,6 +87,10 @@ public class GameState: BaseState<GameStateData, GameState> {
     public static (BallGunController ballGunController, PlayerController playerController)[] GetPlayers(GameStateData state) {
         return state.players;
     }
+    
+    public static BallController GetBall(GameStateData state) {
+        return state.ball;
+    }
 
     public static void SetIsCharging(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SICH(c, args); }
     private void SICH(Action complete, bool args) {
@@ -113,7 +119,6 @@ public class GameState: BaseState<GameStateData, GameState> {
         });
     }
 
-
     public static void RemovePlayer(BaseState<GameStateData, GameState> s, (BallGunController ballGunController, PlayerController playerController) args, Action c) { (s as GameState).RP(c, args); }
     private void RP(Action complete, (BallGunController ballGunController, PlayerController playerController) args) {
         StateChange((GameStateData state) => {
@@ -129,6 +134,12 @@ public class GameState: BaseState<GameStateData, GameState> {
         });
     }
 
+    public static void SetBall(BaseState<GameStateData, GameState> s, BallController args, Action c) { (s as GameState).SB(c, args); }
+    private void SB(Action complete, BallController args) {
+        StateChange((GameStateData state) => {
+            state.ball = args;
+        });
+    }
 
     public static void SetCarryingBall(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SCB(c, args); }
     private void SCB(Action complete, bool args) {
@@ -136,7 +147,6 @@ public class GameState: BaseState<GameStateData, GameState> {
             state.carryingBall = args;
         });
     }
-
 
     public static void SetShielding(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SS(c, args); }
     private void SS(Action complete, bool args) {

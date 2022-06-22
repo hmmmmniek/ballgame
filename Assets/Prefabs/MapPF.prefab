@@ -1,6 +1,6 @@
 %YAML 1.1
 %TAG !u! tag:unity3d.com,2011:
---- !u!1 &2836473140285503250
+--- !u!1 &6252119335805703766
 GameObject:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
@@ -8,53 +8,56 @@ GameObject:
   m_PrefabAsset: {fileID: 0}
   serializedVersion: 6
   m_Component:
-  - component: {fileID: 8138630272029549466}
-  - component: {fileID: 8968566800004892807}
-  - component: {fileID: 6051919901979969472}
+  - component: {fileID: 6252119335805703765}
+  - component: {fileID: 6252119335805703764}
+  - component: {fileID: 6252119335805703767}
   m_Layer: 0
-  m_Name: MatchManagerPF
+  m_Name: MapPF
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!4 &8138630272029549466
+--- !u!4 &6252119335805703765
 Transform:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2836473140285503250}
+  m_GameObject: {fileID: 6252119335805703766}
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: 4.541977, y: 4.7246866, z: 0.5956173}
+  m_LocalPosition: {x: 0, y: 0, z: 0}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children: []
   m_Father: {fileID: 0}
   m_RootOrder: 0
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &8968566800004892807
+--- !u!114 &6252119335805703764
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2836473140285503250}
+  m_GameObject: {fileID: 6252119335805703766}
   m_Enabled: 1
   m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 894c2727fdbc0f31b9aa6ca010d6894c, type: 3}
+  m_Script: {fileID: 11500000, guid: bdca6f649718f8fbdb7c92a4f5121ace, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  _interpolationDataSource: 0
-  ballPrefab: {fileID: 1728854556392403748, guid: 8595f93511d7fa72fab4958b67eea968, type: 3}
-  mapPrefab: {fileID: 6252119335805703764, guid: ba7fb832c73dd2eedab5403aedd4da69, type: 3}
---- !u!114 &6051919901979969472
+  _interpolationDataSource: 3
+  generateMeshes: 0
+  material: {fileID: 2100000, guid: e481d18f69c09a62d896010185a87dfd, type: 2}
+  smallMesh: {fileID: 4300000, guid: a1c93b83a5f874e52a316ecad42e2b0c, type: 2}
+  mediumMesh: {fileID: 4300000, guid: ced63dbf2ea8711a199009ab8e774fde, type: 2}
+  largeMesh: {fileID: 4300000, guid: 4b3cfeb2456d5b9a5a811a3ab6f9bd27, type: 2}
+--- !u!114 &6252119335805703767
 MonoBehaviour:
   m_ObjectHideFlags: 0
   m_CorrespondingSourceObject: {fileID: 0}
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 2836473140285503250}
+  m_GameObject: {fileID: 6252119335805703766}
   m_Enabled: 1
   m_EditorHideFlags: 0
   m_Script: {fileID: -1552182283, guid: e725a070cec140c4caffb81624c8c787, type: 3}
@@ -67,8 +70,8 @@ MonoBehaviour:
   AoiPositionSource: {fileID: 0}
   Flags: 2305
   NetworkGuid:
-    RawGuidValue: 397345e23c1b0c2d3b9e79691b1648bf
+    RawGuidValue: ba7fb832c73dd2eedab5403aedd4da69
   NestedObjects: []
   NetworkedBehaviours:
-  - {fileID: 8968566800004892807}
+  - {fileID: 6252119335805703764}
   SimulationBehaviours: []
