@@ -44,10 +44,6 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     public override void Spawned() {
         base.Spawned();
-        GameState.Dispatch(GameState.AddPlayer, (
-            ballGunController: ballGunController,
-            playerController: this
-        ), () => {});
 
         if (Object.HasInputAuthority) {
             Local = this;
@@ -73,6 +69,12 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
         }
 
         transform.name = $"Player {Object.Id}";
+
+        GameState.Dispatch(GameState.AddPlayer, (
+            ballGunController: ballGunController,
+            playerController: this
+        ), () => {});
+
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {

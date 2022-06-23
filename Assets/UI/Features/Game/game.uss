@@ -35,9 +35,10 @@
 .game__boost, .game__charge {
     position: absolute;
     bottom: 20px;
-    right: 20px;
+    right: 50%;
     width: 200px;
     height: 20px;
+    margin-right: -100px;
     background-color: grey;
     display: flex;
     flex-direction: row;

@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/Game/Widgets/MiniMap/miniMap.uss" />
+
+    <engine:VisualElement class="miniMap" name="MiniMap">
+        <engine:VisualElement class="miniMap__container" name="miniMap__container">
+            <engine:VisualElement class="miniMap__field" name="miniMap__field">
+
+                <engine:VisualElement class="miniMap__field__goal south" name="miniMap__field__goal-south"></engine:VisualElement>
+                <engine:VisualElement class="miniMap__field__goal north" name="miniMap__field__goal-north"></engine:VisualElement>
+
+                <engine:VisualElement class="miniMap__field__ball" name="miniMap__field__ball"></engine:VisualElement>
+            </engine:VisualElement>
+
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
+

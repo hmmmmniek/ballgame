@@ -77,6 +77,10 @@ public class ViewManager {
                     widgets.AddRange(InitializeWidgetsOfType<CursorController>());
                     break;
                 }
+                case MiniMapController.ELEMENT_NAME: {
+                    widgets.AddRange(InitializeWidgetsOfType<MiniMapController>());
+                    break;
+                }
             }
         }
         return widgets;

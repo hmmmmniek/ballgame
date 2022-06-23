@@ -1,4 +1,5 @@
 using System;
+using System.Collections;
 using System.Collections.Generic;
 using Fusion;
 using UnityEditor;
@@ -6,7 +7,7 @@ using UnityEngine;
 using static CreateSessionController;
 
 public class MapController : NetworkBehaviour {
-    
+
     public bool generateMeshes = false;
 
     public Material material;
@@ -14,21 +15,43 @@ public class MapController : NetworkBehaviour {
     public Mesh mediumMesh;
     public Mesh largeMesh;
 
+    public bool testSmallGeneration;
+
 
     public void OnValidate() {
-        if(generateMeshes) {
+        if (generateMeshes) {
             generateMeshes = false;
             MapGenerator gen = new MapGenerator();
             gen.GenerateMesh(MapSize.Small);
             gen.GenerateMesh(MapSize.Medium);
             gen.GenerateMesh(MapSize.Large);
         }
+        if (testSmallGeneration) {
+            testSmallGeneration = false;
+            CreateMap(MapSize.Small);
+        }
     }
 
     public override void Spawned() {
         base.Spawned();
+        SessionProperty mapSize;
+        if (Runner.SessionInfo.Properties.TryGetValue("mapSize", out mapSize)) {
+            CreateMap((MapSize)(int)mapSize);
+        } else {
+            Debug.LogError("Corrupt session state");
+            NetworkState.Dispatch<object>(NetworkState.Leave, null, () => { });
+            return;
+        }
+    }
+
+    private IEnumerator DestroyObject (GameObject go) {
+        yield return null;
+        DestroyImmediate(go);
+    }
+
+    private void CreateMap(MapSize mapSize) {
         foreach (Transform child in transform) {
-            Destroy(child.gameObject);
+           StartCoroutine(DestroyObject(child.gameObject));
         }
 
         float mapWidth = 0;
@@ -45,69 +68,63 @@ public class MapController : NetworkBehaviour {
         float lightRotation = 0;
         float lightRange = 0;
         Mesh mesh = null;
-        SessionProperty mapSize;
-        
+
         MapGenerator gen = new MapGenerator();
 
-        if (Runner.SessionInfo.Properties.TryGetValue("mapSize", out mapSize)) {
-            switch ((int)mapSize) {
-                case (int)MapSize.Small: {
-                        mapWidth = gen.mapSmallWidth;
-                        mapLength = gen.mapSmallLength;
-                        mapHeight = gen.mapSmallHeight;
-                        mapGoalWidth = gen.mapSmallGoalWidth;
-                        mapGoalHeight = gen.mapSmallGoalHeight;
-                        mapGoalDepth = gen.mapSmallGoalDepth;
-                        mapGoalPostRadius = gen.mapSmallGoalPostRadius;
-                        mapGoalPostSegments = gen.mapSmallGoalPostSegments;
-                        lightMaxDistanceBetween = gen.mapSmallLightMaxDistanceBetween;
-                        lightSpotAngle = gen.mapSmallLightSpotAngle;
-                        lightIntensity = gen.mapSmallLightIntensity;
-                        lightRotation = gen.mapSmallLightRotation;
-                        lightRange = gen.mapSmallLightRange;
-                        mesh = smallMesh;
-                        break;
-                    }
-                case (int)MapSize.Medium: {
-                        mapWidth = gen.mapMediumWidth;
-                        mapLength = gen.mapMediumLength;
-                        mapHeight = gen.mapMediumHeight;
-                        mapGoalWidth = gen.mapMediumGoalWidth;
-                        mapGoalHeight = gen.mapMediumGoalHeight;
-                        mapGoalDepth = gen.mapMediumGoalDepth;
-                        mapGoalPostRadius = gen.mapMediumGoalPostRadius;
-                        mapGoalPostSegments = gen.mapMediumGoalPostSegments;
-                        lightMaxDistanceBetween = gen.mapMediumLightMaxDistanceBetween;
-                        lightSpotAngle = gen.mapMediumLightSpotAngle;
-                        lightIntensity = gen.mapMediumLightIntensity;
-                        lightRotation = gen.mapMediumLightRotation;
-                        lightRange = gen.mapMediumLightRange;
-                        mesh = mediumMesh;
-                        break;
-                    }
-                case (int)MapSize.Large: {
-                        mapWidth = gen.mapLargeWidth;
-                        mapLength = gen.mapLargeLength;
-                        mapHeight = gen.mapLargeHeight;
-                        mapGoalWidth = gen.mapLargeGoalWidth;
-                        mapGoalHeight = gen.mapLargeGoalHeight;
-                        mapGoalDepth = gen.mapLargeGoalDepth;
-                        mapGoalPostRadius = gen.mapLargeGoalPostRadius;
-                        mapGoalPostSegments = gen.mapLargeGoalPostSegments;
-                        lightMaxDistanceBetween = gen.mapLargeLightMaxDistanceBetween;
-                        lightSpotAngle = gen.mapLargeLightSpotAngle;
-                        lightIntensity = gen.mapLargeLightIntensity;
-                        lightRotation = gen.mapLargeLightRotation;
-                        lightRange = gen.mapLargeLightRange;
-                        mesh = largeMesh;
-                        break;
-                    }
-            }
-        } else {
-            Debug.LogError("Corrupt session state");
-            NetworkState.Dispatch<object>(NetworkState.Leave, null, () => { });
-            return;
+        switch (mapSize) {
+            case MapSize.Small: {
+                    mapWidth = gen.mapSmallWidth;
+                    mapLength = gen.mapSmallLength;
+                    mapHeight = gen.mapSmallHeight;
+                    mapGoalWidth = gen.mapSmallGoalWidth;
+                    mapGoalHeight = gen.mapSmallGoalHeight;
+                    mapGoalDepth = gen.mapSmallGoalDepth;
+                    mapGoalPostRadius = gen.mapSmallGoalPostRadius;
+                    mapGoalPostSegments = gen.mapSmallGoalPostSegments;
+                    lightMaxDistanceBetween = gen.mapSmallLightMaxDistanceBetween;
+                    lightSpotAngle = gen.mapSmallLightSpotAngle;
+                    lightIntensity = gen.mapSmallLightIntensity;
+                    lightRotation = gen.mapSmallLightRotation;
+                    lightRange = gen.mapSmallLightRange;
+                    mesh = smallMesh;
+                    break;
+                }
+            case MapSize.Medium: {
+                    mapWidth = gen.mapMediumWidth;
+                    mapLength = gen.mapMediumLength;
+                    mapHeight = gen.mapMediumHeight;
+                    mapGoalWidth = gen.mapMediumGoalWidth;
+                    mapGoalHeight = gen.mapMediumGoalHeight;
+                    mapGoalDepth = gen.mapMediumGoalDepth;
+                    mapGoalPostRadius = gen.mapMediumGoalPostRadius;
+                    mapGoalPostSegments = gen.mapMediumGoalPostSegments;
+                    lightMaxDistanceBetween = gen.mapMediumLightMaxDistanceBetween;
+                    lightSpotAngle = gen.mapMediumLightSpotAngle;
+                    lightIntensity = gen.mapMediumLightIntensity;
+                    lightRotation = gen.mapMediumLightRotation;
+                    lightRange = gen.mapMediumLightRange;
+                    mesh = mediumMesh;
+                    break;
+                }
+            case MapSize.Large: {
+                    mapWidth = gen.mapLargeWidth;
+                    mapLength = gen.mapLargeLength;
+                    mapHeight = gen.mapLargeHeight;
+                    mapGoalWidth = gen.mapLargeGoalWidth;
+                    mapGoalHeight = gen.mapLargeGoalHeight;
+                    mapGoalDepth = gen.mapLargeGoalDepth;
+                    mapGoalPostRadius = gen.mapLargeGoalPostRadius;
+                    mapGoalPostSegments = gen.mapLargeGoalPostSegments;
+                    lightMaxDistanceBetween = gen.mapLargeLightMaxDistanceBetween;
+                    lightSpotAngle = gen.mapLargeLightSpotAngle;
+                    lightIntensity = gen.mapLargeLightIntensity;
+                    lightRotation = gen.mapLargeLightRotation;
+                    lightRange = gen.mapLargeLightRange;
+                    mesh = largeMesh;
+                    break;
+                }
         }
+
 
         GameObject map = new GameObject("Map");
         map.transform.position = new Vector3(-mapWidth / 2, 0, -mapLength / 2);
@@ -123,44 +140,44 @@ public class MapController : NetworkBehaviour {
 
         BoxCollider floor = map.AddComponent<BoxCollider>();
         float floorLength = mapLength + mapGoalDepth * 2 + 20;
-        floor.size = new Vector3(mapWidth, 10, floorLength);
+        floor.size = new Vector3(mapWidth + 20, 10, floorLength);
         floor.center = new Vector3(mapWidth / 2, -5, mapLength / 2);
 
         BoxCollider ceiling = map.AddComponent<BoxCollider>();
-        ceiling.size = new Vector3(mapWidth, 10, floorLength);
+        ceiling.size = new Vector3(mapWidth + 20, 10, floorLength);
         ceiling.center = new Vector3(mapWidth / 2, mapHeight + 5, mapLength / 2);
 
         BoxCollider southTop = map.AddComponent<BoxCollider>();
-        southTop.size = new Vector3(mapWidth, mapHeight - mapGoalHeight, 10 + mapGoalDepth);
-        southTop.center = new Vector3(mapWidth / 2, mapGoalHeight + (mapHeight - mapGoalHeight) / 2, -(10f + mapGoalDepth) / 2);
+        southTop.size = new Vector3(mapWidth + 20, mapHeight - mapGoalHeight + 10, 10 + mapGoalDepth);
+        southTop.center = new Vector3(mapWidth / 2, mapGoalHeight + (mapHeight - mapGoalHeight) / 2 + 5, -(10f + mapGoalDepth) / 2);
 
         BoxCollider northTop = map.AddComponent<BoxCollider>();
-        northTop.size = new Vector3(mapWidth, mapHeight - mapGoalHeight, 10 + mapGoalDepth);
-        northTop.center = new Vector3(mapWidth / 2, mapGoalHeight + (mapHeight - mapGoalHeight) / 2, (10f + mapGoalDepth) / 2 + mapLength);
+        northTop.size = new Vector3(mapWidth + 20, mapHeight - mapGoalHeight + 10, 10 + mapGoalDepth);
+        northTop.center = new Vector3(mapWidth / 2, mapGoalHeight + (mapHeight - mapGoalHeight) / 2 + 5, (10f + mapGoalDepth) / 2 + mapLength);
 
         BoxCollider southGoalBack = map.AddComponent<BoxCollider>();
-        southGoalBack.size = new Vector3(mapGoalWidth, mapGoalHeight, 10);
+        southGoalBack.size = new Vector3(mapGoalWidth + 10, mapGoalHeight + 10, 10);
         southGoalBack.center = new Vector3(mapWidth / 2, mapGoalHeight / 2, -mapGoalDepth - 5);
 
         BoxCollider northGoalBack = map.AddComponent<BoxCollider>();
-        northGoalBack.size = new Vector3(mapGoalWidth, mapGoalHeight, 10);
+        northGoalBack.size = new Vector3(mapGoalWidth + 10, mapGoalHeight + 10, 10);
         northGoalBack.center = new Vector3(mapWidth / 2, mapGoalHeight / 2, mapLength + mapGoalDepth + 5);
 
         BoxCollider southGoalWest = map.AddComponent<BoxCollider>();
-        southGoalWest.size = new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight, 10 + mapGoalDepth);
-        southGoalWest.center = new Vector3((mapWidth - mapGoalWidth) / 4, mapGoalHeight / 2, -(10 + mapGoalDepth) / 2);
+        southGoalWest.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
+        southGoalWest.center = new Vector3((mapWidth - mapGoalWidth) / 4 - 5, mapGoalHeight / 2, -(10 + mapGoalDepth) / 2);
 
         BoxCollider southGoalEast = map.AddComponent<BoxCollider>();
-        southGoalEast.size = new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight, 10 + mapGoalDepth);
-        southGoalEast.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 4, mapGoalHeight / 2, -(10 + mapGoalDepth) / 2);
+        southGoalEast.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
+        southGoalEast.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 4 + 5, mapGoalHeight / 2, -(10 + mapGoalDepth) / 2);
 
         BoxCollider northGoalWest = map.AddComponent<BoxCollider>();
-        northGoalWest.size = new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight, 10 + mapGoalDepth);
-        northGoalWest.center = new Vector3((mapWidth - mapGoalWidth) / 4, mapGoalHeight / 2, mapLength + (10 + mapGoalDepth) / 2);
+        northGoalWest.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
+        northGoalWest.center = new Vector3((mapWidth - mapGoalWidth) / 4 - 5, mapGoalHeight / 2, mapLength + (10 + mapGoalDepth) / 2);
 
         BoxCollider northGoalEast = map.AddComponent<BoxCollider>();
-        northGoalEast.size = new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight, 10 + mapGoalDepth);
-        northGoalEast.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 4, mapGoalHeight / 2, mapLength + (10 + mapGoalDepth) / 2);
+        northGoalEast.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
+        northGoalEast.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 4 + 5, mapGoalHeight / 2, mapLength + (10 + mapGoalDepth) / 2);
 
         BoxCollider wallWest = map.AddComponent<BoxCollider>();
         wallWest.size = new Vector3(10, mapHeight + 20, mapLength + mapGoalDepth * 2 + 20);
@@ -246,7 +263,6 @@ public class MapController : NetworkBehaviour {
 
         CheckLights(southWestLightPos, northWestLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, 90, 0), lightIntensity, lightSpotAngle);
         CheckLights(southEastLightPos, northEastLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, -90, 0), lightIntensity, lightSpotAngle);
-
 
     }
 

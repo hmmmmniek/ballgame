@@ -57,6 +57,9 @@ public class BallController : NetworkTransform {
 
     public override void Spawned() {
         base.Spawned();
+
+        GameState.Dispatch(GameState.SetBall, this, () => {});
+
         rigidBody = GetComponent<Rigidbody>();
         rigidBody.maxAngularVelocity = spinMaxAngularVelocity;
 
@@ -235,7 +238,7 @@ public class BallController : NetworkTransform {
                     
         Vector3 horizontal = Vector3.Cross(Vector3.down, rigidBody.velocity.normalized).normalized;
         Vector3 vertical = Quaternion.AngleAxis(-90, rigidBody.velocity.normalized) * horizontal;
-        Vector3 magnusForce = ((horizontal * spinInput.x) + (vertical * spinInput.y)).normalized;
+        Vector3 magnusForce = ((horizontal * spinInput.x * 0.5f) + (vertical * spinInput.y)).normalized;
         Vector3 speedChangeForce = -rigidBody.velocity.normalized * Math.Clamp(Vector3.Dot(Vector3.up, magnusForce), 0, 1) * spinVerticalSpeedInfluence;
         
         Vector3 spinAngularAxis = -Vector3.Cross(magnusForce, spinInitialForward).normalized;

@@ -1,0 +1,49 @@
+:root, .miniMap {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+}
+
+.miniMap__container {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+}
+
+.miniMap__field {
+    position: relative;
+    width: 200px;
+    height: 0px;
+    background-color: rgba(100, 0, 0, 0.5);
+}
+
+.miniMap__field__ball {
+    background-color: yellow;
+    width: 8px;
+    height: 8px;
+    border-radius: 8px;
+    position: absolute;
+    margin-top: -4px;
+    margin-left: -4px;
+}
+
+.miniMap__field__goal {
+    background-color: rgba(100, 0, 0, 0.5);
+    position: absolute;
+}
+
+.miniMap__field__player {
+    background-color: #00ABFF; /*#FF5400*/
+    width: 8px;
+    height: 8px;
+    border-radius: 8px;
+    border-top-left-radius: 0px;
+    position: absolute;
+    margin-top: -4px;
+    margin-left: -4px;
+}
+
+.miniMap__field__player.local {
+    background-color: #ffffff;
+
+}

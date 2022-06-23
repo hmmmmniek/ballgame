@@ -36,6 +36,24 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
         return state.region;
     }
 
+    public static MapSize? GetMapSize(NetworkStateData state) {
+        SessionProperty mapSize;
+        if(state.currentSession.Properties.TryGetValue("mapSize", out mapSize)) {
+            switch ((int)mapSize) {
+                case (int)MapSize.Small: {
+                    return MapSize.Small;
+                }
+                case (int)MapSize.Medium: {
+                    return MapSize.Medium;
+                }
+                case (int)MapSize.Large: {
+                    return MapSize.Large;
+                }
+            }
+        }
+        return null;
+    }
+
 
     public static void SetSessionList(BaseState<NetworkStateData, NetworkState> s, List<SessionInfo> args, Action c) { (s as NetworkState).SSL(c, args); }
     private void SSL(Action complete, List<SessionInfo> args) {
