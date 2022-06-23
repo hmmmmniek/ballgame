@@ -12,8 +12,7 @@ public class CharacterCameraController : NetworkTransform {
     public override void Spawned() {    
         base.Spawned();
         transform.parent = null;
-        isLocal = PlayerController.Local == playerController;
-        
+        isLocal = playerController.IsLocal();
     }
 
     public override void FixedUpdateNetwork() {

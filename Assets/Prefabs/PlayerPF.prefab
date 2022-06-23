@@ -600,6 +600,7 @@ MonoBehaviour:
   suckDistance: 4.5
   suckAngle: 45
   suckTimeout: 0.5
+  suckPushForce: 5
   attractDistance: 5.5
   attractAngle: 55
   attractWaitTime: 0.2
@@ -1435,6 +1436,10 @@ MonoBehaviour:
   dashTimeout: 0.3
   dashImpulse: 13
   dashBoostUsage: 60
+  bashPlayerMaximumDistance: 2
+  bashPlayerMinimumSpeed: 10
+  bashPlayerMaximumAngle: 90
+  bashPlayerPushStrength: 10
   cameraController: {fileID: 4587144850840075096}
   localCharacterMovementController: {fileID: 8180254042653263233}
   ballGunController: {fileID: 5538467927710914934}
@@ -1443,6 +1448,7 @@ MonoBehaviour:
   _pushed: 0
   _jumpReceived: 0
   _dashReceived: 0
+  _hitGroundReceived: 0
 --- !u!114 &3614968631412294479
 MonoBehaviour:
   m_ObjectHideFlags: 0

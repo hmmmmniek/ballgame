@@ -26,6 +26,11 @@ public class CharacterMovementController : NetworkTransform {
     public float dashTimeout = 0.2f;
     public float dashImpulse = 10f;
     public float dashBoostUsage = 50f;
+    public float bashPlayerMaximumDistance = 2f;
+    public float bashPlayerMinimumSpeed = 30f;
+    public float bashPlayerMaximumAngle = 90f;
+    public float bashPlayerPushStrength = 10f;
+    public float bashPlayerBallDropSpeed = 4f;
 
     public CharacterCameraController cameraController;
     public LocalCharacterMovementController localCharacterMovementController;
@@ -99,6 +104,11 @@ public class CharacterMovementController : NetworkTransform {
     protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, InputHandler.instance.lookHorizontalSpeed);
     public CharacterController Controller { get; private set; }
 
+    private Action unsubscribePlayers;
+    private (BallGunController ballGunController, PlayerController playerController)[] players;
+
+
+
     public void Start() {
     }
 
@@ -111,7 +121,12 @@ public class CharacterMovementController : NetworkTransform {
         base.Spawned();
         CacheController();
 
-       // Controller.Move(transform.position);
+        unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
+            if (players != null) {
+                this.players = players;
+            }
+        });
+       
         boostRemainingPercentage = 100f;
 
         Physics.IgnoreCollision(localCharacterMovementController.GetComponent<CharacterController>(), GetComponent<CharacterController>());
@@ -334,6 +349,37 @@ public class CharacterMovementController : NetworkTransform {
                 Controller.enabled = true;
             }
 
+            if(
+                Velocity.magnitude > bashPlayerMinimumSpeed
+            ) {
+                foreach (var player in players) {
+                    if(player.playerController == ballGunController.playerController) {
+                        continue;
+                    }
+                    Vector3 otherPlayerPosition = player.playerController.transform.position;
+                    Vector3 playerPosition = transform.position;
+                    Vector3 playerToOtherPlayer = otherPlayerPosition - playerPosition;
+                    
+                    if(playerToOtherPlayer.magnitude > bashPlayerMaximumDistance) {
+                        continue;
+                    }
+                    
+                    float angle = Vector3.Angle(playerToOtherPlayer.normalized, Velocity.normalized);
+
+                    if(angle > bashPlayerMaximumAngle) {
+                        continue;
+                    }
+                    player.playerController.localCharacterMovementController.networkMovementController.Push(Velocity.normalized * bashPlayerPushStrength);
+                    Push(-Velocity.normalized * (Velocity.magnitude + bashPlayerPushStrength));
+
+                    if(player.ballGunController.isCarrying) {
+                        player.ballGunController.isCarrying = false;
+                        player.ballGunController.ball.Shoot(-Velocity.normalized * bashPlayerBallDropSpeed, new Vector2(), 0);
+                        player.playerController.temporarilyIgnored = true;
+                        ballGunController.playerController.temporarilyIgnored = true;
+                    }
+                }
+            }
 
             previousClientJump = clientJump;
             previousClientDash = clientDash;
@@ -354,6 +400,12 @@ public class CharacterMovementController : NetworkTransform {
 
     public void OnDestroy (){
         GameObject.Destroy(localCharacterMovementController.gameObject);
+    }
+
+    public override void Despawned(NetworkRunner runner, bool hasState) {
+        base.Despawned(runner, hasState);
+
+        unsubscribePlayers();
     }
 
 }

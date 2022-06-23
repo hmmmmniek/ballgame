@@ -118,6 +118,14 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
     }
 
+    public bool IsLocal() {
+        if(PlayerController.Local == null) {
+            return false;
+        } else {
+            return PlayerController.Local.Id.Object.Raw == this.Id.Object.Raw;
+        }
+    }
+
     public void OnDestroy (){
         GameObject.Destroy(localCharacterMovementController.gameObject);
     }

@@ -24,6 +24,7 @@ public class BallGunController : NetworkBehaviour {
     public float kickAngle = 40f;
     public float kickTimeout = 0.5f;
     public float kickBallDropSpeed = 4;
+    public float kickBallDropDistance = 3f;
     public float kickBallSpeed = 20;
     public float kickPushForce = 5;
 
@@ -580,7 +581,7 @@ public class BallGunController : NetworkBehaviour {
             if(angle > kickAngle) {
                 continue;
             }
-            if(player.ballGunController.isCarrying) {
+            if(player.ballGunController.isCarrying && distance <= kickBallDropDistance) {
                 if(Object.HasStateAuthority) {
                     player.ballGunController.isCarrying = false;
                 }
@@ -610,15 +611,16 @@ public class BallGunController : NetworkBehaviour {
 
     }
 
-    private void Shoot(float inputSpeed) {
+    public void Shoot(float inputSpeed) {
         if(Object.HasStateAuthority) {
             isCarrying = false;
         }
 
-        Vector3 forward =
+        Vector3 forward = 
             (transform.forward.normalized * inputSpeed) +
             (transform.forward.normalized * ball.GetComponent<Rigidbody>().velocity.magnitude) +
-            playerController.GetComponent<CharacterController>().velocity;
+            playerController.GetComponent<CharacterController>().velocity
+        ;
         ball.Shoot(forward, GetSpinInput(), GetRollInput());
 
         Vector3 recoil = (-transform.forward.normalized) * maxShootRecoilForce * (forward.magnitude / ball.maxSpeed);

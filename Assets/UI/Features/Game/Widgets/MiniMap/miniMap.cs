@@ -139,7 +139,7 @@ public class MiniMapController : Widget {
             VisualElement playerElement = new VisualElement();
             playerElement.AddToClassList("miniMap__field__player");
             if(player.playerController != null && PlayerController.Local != null) {
-                if(player.playerController.Id == PlayerController.Local.Id) {
+                if(player.playerController.IsLocal()) {
                     playerElement.AddToClassList("local");
                 }
                 field.Insert(field.childCount - 2, playerElement);
@@ -156,7 +156,7 @@ public class MiniMapController : Widget {
             foreach (var player in players) {
                 if(player.playerController != null && PlayerController.Local != null) {
 
-                    if(PlayerController.Local.Id == player.playerController.Id) {
+                    if(player.playerController.IsLocal()) {
                         container.style.rotate = new StyleRotate(new Rotate(new Angle(-player.playerController.transform.rotation.eulerAngles.y, AngleUnit.Degree)));
                     }
 
