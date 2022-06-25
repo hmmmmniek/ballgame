@@ -43,7 +43,8 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
         }
     }
 
-    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }
+    public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
+    }
 
 
     public void OnInput(NetworkRunner runner, NetworkInput input) {

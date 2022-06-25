@@ -3,10 +3,9 @@ using Fusion;
 using UnityEngine;
 
 public class LocalCharacterMovementController : MonoBehaviour {
-    public Transform bodyAnchorPoint;
     public CharacterCameraController cameraController;
     public CharacterMovementController networkMovementController;
-    private CharacterController Controller;
+    public CharacterController Controller;
 
     public Vector3 Velocity;
     public float boostRemainingPercentage;
@@ -47,10 +46,16 @@ public class LocalCharacterMovementController : MonoBehaviour {
     public void Update() {
 
         /*
-        * Move model to position when not in control
+        * Dont do anything until object has been initialized
+        */
+        if(transform.parent != null) {
+            return;
+        }
+
+        /*
+        * Dont move model to position when not in control
         */
         if(!hasInputAuthority) {
-            transform.position = bodyAnchorPoint.position;
             return;
         }
         
@@ -106,7 +111,8 @@ public class LocalCharacterMovementController : MonoBehaviour {
             localJump == false &&
             InputHandler.instance.localInputDataCache.jumpPressed &&
             Time.time - lastJumpTime < networkMovementController.dashTimeout &&
-            boostRemainingPercentage >= networkMovementController.dashBoostUsage
+            boostRemainingPercentage >= networkMovementController.dashBoostUsage &&
+            !networkMovementController.ballGunController.isCarrying
         ) {
             lastJumpTime = 0;
             (float b, Vector3 v) = Utils.Dash(
@@ -174,6 +180,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Move
         */
+    
         (float b2, Vector3 v2) = Utils.Move(
             deltaTime,
             InputHandler.instance.networkInputDataCache.movementInput,
@@ -194,11 +201,13 @@ public class LocalCharacterMovementController : MonoBehaviour {
         );
         Velocity = v2;
         boostRemainingPercentage = b2;
-
         /*
         * Rotate
         */
+       
         transform.rotation = Quaternion.Euler(0, InputHandler.instance.networkInputDataCache.rotationInput.x, 0);
+        
+        
 
         
         
@@ -223,8 +232,5 @@ public class LocalCharacterMovementController : MonoBehaviour {
         lastIsGrounded = Controller.isGrounded;
     }
 
-    public void OnDestroy (){
-        GameObject.Destroy(cameraController.gameObject);
-    }
 
 }

@@ -19,6 +19,25 @@ public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
         }
         GameState.Dispatch<object>(GameState.ClearPlayers, null, () => {});
+		
+		MapController map = FindObjectOfType<MapController>();
+		if(map != null) {
+			Destroy(map.gameObject);
+		}
+		BallController ball = FindObjectOfType<BallController>();
+		if(ball != null) {
+			Destroy(ball.gameObject);
+		}
+		
+		foreach (var player in FindObjectsOfType<PlayerController>()){
+			Destroy(player.gameObject);
+		}
+		foreach (var movementController in FindObjectsOfType<LocalCharacterMovementController>()){
+			Destroy(movementController.gameObject);
+		}
+		foreach (var cameraController in FindObjectsOfType<CharacterCameraController>()){
+			Destroy(cameraController.gameObject);
+		}
     }
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }

@@ -2,11 +2,10 @@ using System;
 using Fusion;
 using UnityEngine;
 
-[RequireComponent(typeof(CharacterController))]
 [OrderBefore(typeof(NetworkTransform))]
 [DisallowMultipleComponent]
 // ReSharper disable once CheckNamespace
-public class CharacterMovementController : NetworkTransform {
+public class CharacterMovementController : NetworkBehaviour {
     [Header("Character movement Settings")]
     public float gravity = -20.0f;
     public float jumpImpulse = 5.0f;
@@ -31,7 +30,8 @@ public class CharacterMovementController : NetworkTransform {
     public float bashPlayerMaximumAngle = 90f;
     public float bashPlayerPushStrength = 10f;
     public float bashPlayerBallDropSpeed = 4f;
-
+    public float bashPlayerKnockoutSpeed = 20f;
+    
     public CharacterCameraController cameraController;
     public LocalCharacterMovementController localCharacterMovementController;
     public BallGunController ballGunController;
@@ -98,10 +98,9 @@ public class CharacterMovementController : NetworkTransform {
         }
     }
 
-    
 
-    protected override Vector3 DefaultTeleportInterpolationVelocity => Velocity;
-    protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, InputHandler.instance.lookHorizontalSpeed);
+    //protected override Vector3 DefaultTeleportInterpolationVelocity => Velocity;
+    //protected override Vector3 DefaultTeleportInterpolationAngularVelocity => new Vector3(0f, 0f, InputHandler.instance.lookHorizontalSpeed);
     public CharacterController Controller { get; private set; }
 
     private Action unsubscribePlayers;
@@ -112,14 +111,10 @@ public class CharacterMovementController : NetworkTransform {
     public void Start() {
     }
 
-    protected override void Awake() {
-        base.Awake();
-        CacheController();
-    }
 
     public override void Spawned() {
         base.Spawned();
-        CacheController();
+        Controller = GetComponent<CharacterController>();
 
         unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
@@ -136,19 +131,6 @@ public class CharacterMovementController : NetworkTransform {
 
     }
 
-    private void CacheController() {
-        if (Controller == null) {
-            Controller = GetComponent<CharacterController>();
-
-            Assert.Check(Controller != null, $"An object with {nameof(CharacterMovementController)} must also have a {nameof(CharacterController)} component.");
-        }
-    }
-
-    protected override void CopyFromBufferToEngine() {
-        Controller.enabled = false;
-        base.CopyFromBufferToEngine();
-        Controller.enabled = true;
-    }
 
     private Vector2 movement;
     private bool clientJump;
@@ -167,6 +149,8 @@ public class CharacterMovementController : NetworkTransform {
     public override void FixedUpdateNetwork() {
 
         if(Object.HasStateAuthority) {
+
+
             bool receivedInput = false;
             if (GetInput(out NetworkInputData networkInputData)) {
                 clientJump = networkInputData.clientJump;
@@ -186,6 +170,7 @@ public class CharacterMovementController : NetworkTransform {
                 }
 
             }
+
             float delta = Runner.DeltaTime;
 
 
@@ -221,6 +206,7 @@ public class CharacterMovementController : NetworkTransform {
             */
             if(
                 clientDash &&
+                !ballGunController.isCarrying &&
                 !dashReceived
             ) {
                 (float b, Vector3 v) = Utils.Dash(
@@ -288,6 +274,7 @@ public class CharacterMovementController : NetworkTransform {
             /*
             * Move
             */
+          
             (float b2, Vector3 v2) = Utils.Move(
                 delta,
                 movement,
@@ -308,6 +295,7 @@ public class CharacterMovementController : NetworkTransform {
             );
             Velocity = v2;
             boostRemainingPercentage = b2;
+            
 
             /*
             * Hit ground
@@ -329,7 +317,6 @@ public class CharacterMovementController : NetworkTransform {
             ) {
                 hitGroundReceived = false;
             }
-
 
 
             /*
@@ -369,6 +356,7 @@ public class CharacterMovementController : NetworkTransform {
                     if(angle > bashPlayerMaximumAngle) {
                         continue;
                     }
+                    bool knockedOut = Velocity.magnitude >= bashPlayerKnockoutSpeed;
                     player.playerController.localCharacterMovementController.networkMovementController.Push(Velocity.normalized * bashPlayerPushStrength);
                     Push(-Velocity.normalized * (Velocity.magnitude + bashPlayerPushStrength));
 
@@ -377,6 +365,10 @@ public class CharacterMovementController : NetworkTransform {
                         player.ballGunController.ball.Shoot(-Velocity.normalized * bashPlayerBallDropSpeed, new Vector2(), 0);
                         player.playerController.temporarilyIgnored = true;
                         ballGunController.playerController.temporarilyIgnored = true;
+                    }
+
+                    if(knockedOut) {
+                        player.playerController.knockedOut = true;
                     }
                 }
             }
@@ -397,10 +389,6 @@ public class CharacterMovementController : NetworkTransform {
         Utils.Rotate(transform, cameraController.transform.localEulerAngles.y);
     }
 
-
-    public void OnDestroy (){
-        GameObject.Destroy(localCharacterMovementController.gameObject);
-    }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);

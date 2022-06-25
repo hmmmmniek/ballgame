@@ -5,15 +5,20 @@ using Fusion;
 using System;
 using System.Linq;
 
-public class PlayerController : NetworkBehaviour, IPlayerLeft {
+public class PlayerController : NetworkRigidbody, IPlayerLeft {
     public static PlayerController Local { get; set; }
 
+    public float knockoutTime = 5f;
     public Transform playerModel;
     public Transform glassesModel;
     public Transform ballModel;
+    public CapsuleCollider capsuleCollider;
+    public Rigidbody rigidBody;
 
     public BallGunController ballGunController;
+    public CharacterMovementController networkCharacterMovementController;
     public LocalCharacterMovementController localCharacterMovementController;
+    public BodyTrackingController bodyTrackingController;
 
     private Queue<float> RttMeasurements = new Queue<float>();
 
@@ -36,14 +41,62 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
         }
     }
 
+    
+    [Networked] private TickTimer knockoutTimer { get; set; }
+    [HideInInspector][Networked(OnChanged = nameof(OnKnockedOutChanged))]
+    public bool knockedOut { get; set; }
+    public static void OnKnockedOutChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnKnockedOutChanged();
+    }
+    private void OnKnockedOutChanged() {
+        if(knockedOut) {
+            knockoutTimer = TickTimer.CreateFromSeconds(Runner, knockoutTime);
+            capsuleCollider.enabled = true;
+            rigidBody.isKinematic = false;
+            rigidBody.velocity = localCharacterMovementController.networkMovementController.Velocity;
+            localCharacterMovementController.networkMovementController.Controller.enabled = false;
+            localCharacterMovementController.networkMovementController.enabled = false;
+            localCharacterMovementController.Controller.enabled = false;
+            localCharacterMovementController.enabled = false;
+            
+        }
+        if(!knockedOut) {
+            capsuleCollider.enabled = false;
+            rigidBody.velocity = new Vector3();
+            rigidBody.isKinematic = true;
+            localCharacterMovementController.networkMovementController.Controller.enabled = true;
+            localCharacterMovementController.networkMovementController.enabled = true;
+            localCharacterMovementController.Controller.enabled = true;
+            localCharacterMovementController.enabled = true;
+            transform.rotation = new Quaternion();
+
+        }
+    }
+    
+
     [HideInInspector] public BallController ball;
     // Start is called before the first frame update
     void Start() {
 
     }
 
+    protected override void CopyFromBufferToEngine() {
+        if(networkCharacterMovementController.Controller == null) {
+            base.CopyFromBufferToEngine();
+        } else {
+            bool currentValue = networkCharacterMovementController.Controller.enabled;
+            networkCharacterMovementController.Controller.enabled = false;
+            base.CopyFromBufferToEngine();
+            networkCharacterMovementController.Controller.enabled = currentValue;
+        }
+    }
+
     public override void Spawned() {
         base.Spawned();
+
+        rigidBody.isKinematic = true;
+        capsuleCollider.enabled = false;
+
 
         if (Object.HasInputAuthority) {
             Local = this;
@@ -54,7 +107,7 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
 
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
 
-
+            bodyTrackingController.Init(true);
         } else {
             Camera localCamera = GetComponentInChildren<Camera>();
             if(localCamera) {
@@ -65,6 +118,7 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
             if(audioListener) {
                 audioListener.enabled = false;
             }
+            bodyTrackingController.Init(false);
 
         }
 
@@ -105,15 +159,22 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
             Collider[] area = Physics.OverlapSphere(transform.position, ball.pickupDistance + 0.5f);
             bool ballFound = false;
             foreach (var item in area) {
+                if(ballFound) {
+                    continue;
+                }
                 BallController b = item.GetComponent<BallController>();
                 if(b != null) {
                     ballFound = true;
-                    return;
                 }
             }
             if(!ballFound) {
                 temporarilyIgnored = false;
             }
+        }
+
+        if(Object.HasStateAuthority && knockoutTimer.Expired(Runner)) {
+            knockedOut = false;
+            knockoutTimer = TickTimer.None;
         }
 
     }
@@ -127,6 +188,8 @@ public class PlayerController : NetworkBehaviour, IPlayerLeft {
     }
 
     public void OnDestroy (){
+        GameObject.Destroy(localCharacterMovementController.networkMovementController.cameraController.gameObject);
+        GameObject.Destroy(localCharacterMovementController.networkMovementController.gameObject);
         GameObject.Destroy(localCharacterMovementController.gameObject);
     }
 

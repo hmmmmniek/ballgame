@@ -37,6 +37,9 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
     }
 
     public static MapSize? GetMapSize(NetworkStateData state) {
+        if(state.currentSession == null) {
+            return null;
+        }
         SessionProperty mapSize;
         if(state.currentSession.Properties.TryGetValue("mapSize", out mapSize)) {
             switch ((int)mapSize) {

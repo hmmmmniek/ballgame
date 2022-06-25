@@ -4,7 +4,7 @@ using System;
 using System.Linq;
 using System.Collections.Generic;
 
-public class BallController : NetworkTransform {
+public class BallController : NetworkRigidbody {
     public float pickupDistance = 2f;
     public float maxSpeed = 80;
     public float velocityMeasuringTimeFrame = 0.3f;
@@ -104,7 +104,7 @@ public class BallController : NetworkTransform {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
-                    if(player != null && !player.temporarilyIgnored && !player.ballGunController.shieldOpen) {
+                    if(player != null && !player.temporarilyIgnored && !player.ballGunController.shieldOpen && !player.knockedOut) {
                         float speed = getVelocity();
                         player.GetComponent<CharacterMovementController>().Push(rigidBody.velocity.normalized * (maxPickupForce * (speed / maxSpeed)));
                         Attach(player.ballGunController.ballAnchor);

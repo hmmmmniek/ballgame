@@ -553,6 +553,7 @@ MonoBehaviour:
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
   cameraAnchorPoint: {fileID: 901065504550210975}
+  bodyAnchorPoint: {fileID: 8624380541951960274}
   playerController: {fileID: 5165869480873457305}
 --- !u!114 &4006394330535716081
 MonoBehaviour:
@@ -609,6 +610,7 @@ MonoBehaviour:
   kickAngle: 70
   kickTimeout: 0.5
   kickBallDropSpeed: 4
+  kickBallDropDistance: 3
   kickBallSpeed: 17
   kickPushForce: 6
   shieldDistance: 0.5
@@ -642,6 +644,7 @@ GameObject:
   - component: {fileID: 8990425638556954117}
   - component: {fileID: 8535742055665920817}
   - component: {fileID: 8180254042653263233}
+  - component: {fileID: 4106313812982400560}
   m_Layer: 0
   m_Name: Body
   m_TagString: Untagged
@@ -695,12 +698,26 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 6344258a95ed3dc06b1e2d5dc348db04, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  bodyAnchorPoint: {fileID: 8624380541951960274}
   cameraController: {fileID: 4587144850840075096}
   networkMovementController: {fileID: 6839332496305766221}
+  Controller: {fileID: 8535742055665920817}
   Velocity: {x: 0, y: 0, z: 0}
   boostRemainingPercentage: 0
   hasInputAuthority: 0
+--- !u!114 &4106313812982400560
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 3846429301406989187}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 41e958472093a4b9ea507063818a053b, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  playerController: {fileID: 5165869480873457305}
+  bodyAnchorPoint: {fileID: 8624380541951960274}
 --- !u!1 &4378910479188260659
 GameObject:
   m_ObjectHideFlags: 0
@@ -1328,6 +1345,8 @@ GameObject:
   - component: {fileID: 5165869480873457305}
   - component: {fileID: 6839332496305766221}
   - component: {fileID: 3614968631412294479}
+  - component: {fileID: 8411364181394582157}
+  - component: {fileID: 4287011096316221152}
   m_Layer: 0
   m_Name: PlayerPF
   m_TagString: Untagged
@@ -1383,14 +1402,33 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 3
+  InterpolationSpace: 0
+  InterpolationTarget: {fileID: 7052363114125867258}
+  InterpolateErrorCorrection: 1
+  InterpolatedErrorCorrectionSettings:
+    MinRate: 3.3
+    MaxRate: 10
+    PosBlendStart: 0.25
+    PosBlendEnd: 1
+    PosMinCorrection: 0.025
+    PosTeleportDistance: 2
+    RotBlendStart: 0.1
+    RotBlendEnd: 0.5
+    RotTeleportRadians: 1.5
+  knockoutTime: 5
   playerModel: {fileID: 7052363114125867258}
   glassesModel: {fileID: 7350339520314214961}
   ballModel: {fileID: 4133029749192927420}
+  capsuleCollider: {fileID: 8411364181394582157}
+  rigidBody: {fileID: 4287011096316221152}
   ballGunController: {fileID: 5538467927710914934}
+  networkCharacterMovementController: {fileID: 6839332496305766221}
   localCharacterMovementController: {fileID: 8180254042653263233}
+  bodyTrackingController: {fileID: 4106313812982400560}
   _temporarilyIgnored:
     _value: 0
   _lastReceivedLocalTime: 0
+  _knockedOut: 0
   ball: {fileID: 0}
 --- !u!114 &6839332496305766221
 MonoBehaviour:
@@ -1405,19 +1443,6 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   _interpolationDataSource: 3
-  InterpolationSpace: 0
-  InterpolationTarget: {fileID: 7052363114125867258}
-  InterpolateErrorCorrection: 1
-  InterpolatedErrorCorrectionSettings:
-    MinRate: 3.3
-    MaxRate: 10
-    PosBlendStart: 0.25
-    PosBlendEnd: 1
-    PosMinCorrection: 0.025
-    PosTeleportDistance: 2
-    RotBlendStart: 0.1
-    RotBlendEnd: 0.5
-    RotTeleportRadians: 1.5
   gravity: -20
   jumpImpulse: 5
   boostImpulse: 38
@@ -1440,6 +1465,8 @@ MonoBehaviour:
   bashPlayerMinimumSpeed: 10
   bashPlayerMaximumAngle: 90
   bashPlayerPushStrength: 10
+  bashPlayerBallDropSpeed: 4
+  bashPlayerKnockoutSpeed: 13
   cameraController: {fileID: 4587144850840075096}
   localCharacterMovementController: {fileID: 8180254042653263233}
   ballGunController: {fileID: 5538467927710914934}
@@ -1475,6 +1502,36 @@ MonoBehaviour:
   - {fileID: 5165869480873457305}
   - {fileID: 6839332496305766221}
   SimulationBehaviours: []
+--- !u!136 &8411364181394582157
+CapsuleCollider:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8320181237038313309}
+  m_Material: {fileID: 13400000, guid: 05ee6b069d0f5e8c98568b1670cca843, type: 2}
+  m_IsTrigger: 0
+  m_Enabled: 0
+  m_Radius: 0.5
+  m_Height: 2
+  m_Direction: 1
+  m_Center: {x: 0, y: 0, z: 0}
+--- !u!54 &4287011096316221152
+Rigidbody:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 8320181237038313309}
+  serializedVersion: 2
+  m_Mass: 1
+  m_Drag: 0.01
+  m_AngularDrag: 0.05
+  m_UseGravity: 1
+  m_IsKinematic: 0
+  m_Interpolate: 0
+  m_Constraints: 0
+  m_CollisionDetection: 0
 --- !u!1 &8336474582159727401
 GameObject:
   m_ObjectHideFlags: 0
