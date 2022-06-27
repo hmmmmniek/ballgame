@@ -14,12 +14,13 @@ public class BallController : NetworkRigidbody {
     public float spinAirSpeedInfluence = 1f;
     public float spinVerticalSpeedInfluence = 1f;
     public float spinGroundMaxForce = 10;
-    public float spinGroundMaxVelocity = 5f;
+    public float spinGroundMaxSpeed = 8;
     public float spinGroundFullGripVelocity = 20f;
     public float spinGroundMinGrip = 0.1f;
     public float spinGroundEffectTollerance = 0.1f;
-    public float spinTime = 3f;
     public float spinMaxAngularVelocity = 1000f;
+    public float spinForceCapacity = 100;
+    public float spinRollAirDepletionRate = 0.01f;
     public float rollingResistance = 0.01f;
     public Transform ballModel;
 
@@ -27,14 +28,15 @@ public class BallController : NetworkRigidbody {
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
     [HideInInspector][Networked] public Vector2 spinInput {get; set;}
     [HideInInspector][Networked] public float rollInput {get; set;}
-    [Networked] private TickTimer spinTimer { get; set; }
     [Networked] private Vector3 spinInitialForward { get; set; }
-    public Rigidbody rigidBody;
+    [HideInInspector] public Rigidbody rigidBody;
+    [Networked] private float spinCapacityLeft { get; set; }
 
     private Action unsubscribePlayers;
     private (BallGunController ballGunController, PlayerController playerController)[] players;
     private bool isColliding;
     private float collidingSpeed;
+    private float circumference;
 
     private Queue<float> VelocityMeasurements = new Queue<float>();
 
@@ -51,7 +53,7 @@ public class BallController : NetworkRigidbody {
         }
     }
     public float getVelocity() {
-        return VelocityMeasurements.Average();
+        return VelocityMeasurements.Count > 0 ? VelocityMeasurements.Average() : 0;
     }
 
 
@@ -61,7 +63,9 @@ public class BallController : NetworkRigidbody {
         GameState.Dispatch(GameState.SetBall, this, () => {});
 
         rigidBody = GetComponent<Rigidbody>();
-        rigidBody.maxAngularVelocity = spinMaxAngularVelocity;
+        rigidBody.maxAngularVelocity = spinMaxAngularVelocity * 10;
+
+        circumference = (float)Math.PI * 2f * GetComponent<SphereCollider>().radius;
 
         unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
@@ -89,10 +93,9 @@ public class BallController : NetworkRigidbody {
 
     public virtual void OnCollisionEnter(Collision c) {
         isColliding = true;
-        collidingSpeed = c.relativeVelocity.y;
+        Vector3 surfaceNormal = GetNearestSurfaceNormal();
+        collidingSpeed = getVelocity() * (1f - (float)Math.Pow(10000, -(1f - Vector3.Cross(surfaceNormal, rigidBody.velocity.normalized).magnitude)));
     }
-
-
 
     private bool previousIsColliding;
     public override void FixedUpdateNetwork() {
@@ -116,40 +119,72 @@ public class BallController : NetworkRigidbody {
             }
         }
 
+
         if(isAttached) {
             transform.position = anchor.ReadPosition();
         }
 
-        if(spinTimer.Expired(Runner)) {
-            spinTimer = TickTimer.None;
-            spinInput = new Vector2();
-            rollInput = 0;
-        }
-
         if(isColliding) {
-            Vector3 nearestSurfaceVector = GetNearestSurfaceVector();
-            isColliding = nearestSurfaceVector.magnitude > 0;
+            Vector3 nearestSurfaceNormal = GetNearestSurfaceNormal();
+            isColliding = nearestSurfaceNormal.magnitude > 0;
         }
 
-        if((spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && !spinTimer.ExpiredOrNotRunning(Runner)) {
+        if((spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && spinCapacityLeft > 0) {
             (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) = GetSpinEffect();
-            float timeEffect = ((float)spinTimer.RemainingTime(Runner) / spinTime);
-            rigidBody.AddForce(airForce * timeEffect, ForceMode.Impulse);
-            rigidBody.AddTorque(angularVelocity * (float)Math.Pow(1000, -(1 - timeEffect)), ForceMode.VelocityChange);
 
+            rigidBody.AddForce(Vector3.ClampMagnitude(airForce, spinCapacityLeft), ForceMode.Impulse);
+            spinCapacityLeft = spinCapacityLeft - airForce.magnitude;
+            if(spinCapacityLeft < 0) {
+                spinCapacityLeft = 0;
+            }
+            rigidBody.angularVelocity = angularVelocity;
             if(collidingSpeed > 0) {
                 float x = Math.Clamp(collidingSpeed / spinGroundFullGripVelocity, spinGroundMinGrip, 1);
-                rigidBody.AddForce(groundForce * x * timeEffect, ForceMode.Impulse);
+                Vector3 appliedGroundForce = groundForce * x;
+                rigidBody.AddForce(Vector3.ClampMagnitude(appliedGroundForce, spinCapacityLeft), ForceMode.Impulse);
+                if(getVelocity() * (1f - Vector3.Cross(appliedGroundForce.normalized, rigidBody.velocity.normalized).magnitude) < spinGroundMaxSpeed) {
+                    rigidBody.AddForce(Vector3.ClampMagnitude(appliedGroundForce, spinCapacityLeft), ForceMode.Impulse);
+                }
+                spinCapacityLeft = spinCapacityLeft - appliedGroundForce.magnitude;
+                if(spinCapacityLeft < 0) {
+                    spinCapacityLeft = 0;
+                }
                 collidingSpeed = 0;
             }
             if(isColliding) {
-                rigidBody.AddForce(groundForce * spinGroundMinGrip * timeEffect, ForceMode.Impulse);
+
+                Vector3 appliedGroundForce = groundForce * spinGroundMinGrip;
+                if(getVelocity() * (1f - Vector3.Cross(appliedGroundForce.normalized, rigidBody.velocity.normalized).magnitude) < spinGroundMaxSpeed) {
+                    rigidBody.AddForce(Vector3.ClampMagnitude(appliedGroundForce, spinCapacityLeft), ForceMode.Impulse);
+                }
+
+                spinCapacityLeft = spinCapacityLeft - appliedGroundForce.magnitude;
+                if(spinCapacityLeft < 0) {
+                    spinCapacityLeft = 0;
+                }
+
+            } else {
+                if(!(spinInput.magnitude > 0.05) && Math.Abs(rollInput) > 0.05) {
+                    spinCapacityLeft = spinCapacityLeft - spinRollAirDepletionRate;
+                    if(spinCapacityLeft < 0) {
+                        spinCapacityLeft = 0;
+                    }
+                }
             }
+
             
         }
 
         rigidBody.AddForce(GetRollingResistance(), ForceMode.Impulse);
 
+        if(spinCapacityLeft == 0) {
+            Vector3 nearestSurfaceNormal = GetNearestSurfaceNormal();
+            if(nearestSurfaceNormal.magnitude > 0) {
+                rigidBody.angularVelocity = Vector3.Cross(nearestSurfaceNormal, rigidBody.velocity.normalized) * (getVelocity() / circumference) * (float)Math.PI * 2f;
+            }
+            
+        }
+    Debug.Log($"{spinCapacityLeft / spinForceCapacity * 100}%");
         MeasureVelocity();
 
     }
@@ -213,11 +248,11 @@ public class BallController : NetworkRigidbody {
         if(spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) {
             this.spinInput = spinInput;
             this.rollInput = rollInput;
-            spinTimer = TickTimer.CreateFromSeconds(Runner, spinTime);
+            this.spinCapacityLeft = spinForceCapacity;
         } else {
             this.spinInput = new Vector3();
             this.rollInput = 0;
-            spinTimer = TickTimer.None;
+            this.spinCapacityLeft = 0;
         }
         spinInitialForward = forward.normalized;
         rigidBody.velocity = Vector3.ClampMagnitude(forward, maxSpeed);
@@ -233,41 +268,47 @@ public class BallController : NetworkRigidbody {
         if(spinInput.magnitude < 0.05 && Math.Abs(rollInput) < 0.05) {
             return (new Vector3(), new Vector3(), new Vector3());
         }
-        float ballVelocity =  getVelocity() / maxSpeed;
-        float spinAirStrength = Math.Clamp((spinInput.magnitude * spinAirMaxForce) * ((float)Math.Pow(ballVelocity, spinAirSpeedInfluence)), 0, spinAirMaxForce);
-                    
-        Vector3 horizontal = Vector3.Cross(Vector3.down, rigidBody.velocity.normalized).normalized;
-        Vector3 vertical = Quaternion.AngleAxis(-90, rigidBody.velocity.normalized) * horizontal;
-        Vector3 magnusForce = ((horizontal * spinInput.x * 0.5f) + (vertical * spinInput.y)).normalized;
-        Vector3 speedChangeForce = -rigidBody.velocity.normalized * Math.Clamp(Vector3.Dot(Vector3.up, magnusForce), 0, 1) * spinVerticalSpeedInfluence;
+
+        Vector3 angularVelocity = new Vector3();
+        Vector3 airForce = new Vector3();
+        Vector3 groundForce = new Vector3();
+        Vector3 nearestSurfaceNormal = GetNearestSurfaceNormal();
+
+        if(spinInput.magnitude > 0) {
+            float ballVelocity =  getVelocity() / maxSpeed;
+            float spinAirStrength = Math.Clamp((spinInput.magnitude * spinAirMaxForce) * ((float)Math.Pow(ballVelocity, spinAirSpeedInfluence)), 0, spinAirMaxForce);
+
+            Vector3 horizontal = Vector3.Cross(Vector3.down, rigidBody.velocity.normalized).normalized;
+            Vector3 vertical = Quaternion.AngleAxis(-90, rigidBody.velocity.normalized) * horizontal;
+            Vector3 magnusForce = ((horizontal * spinInput.x * 0.5f) + (vertical * spinInput.y)).normalized;
+            Vector3 speedChangeForce = -rigidBody.velocity.normalized * Math.Clamp(Vector3.Dot(Vector3.up, magnusForce), 0, 1) * spinVerticalSpeedInfluence;
+            Vector3 spinAngularAxis = -Vector3.Cross(((horizontal * spinInput.x) + (vertical * spinInput.y)).normalized, spinInitialForward).normalized;
+
+            angularVelocity = spinAngularAxis * spinInput.magnitude;
+            airForce = (magnusForce + speedChangeForce) * spinAirStrength;
+
+
+            groundForce = Vector3.Cross(nearestSurfaceNormal, -(-Vector3.Cross(((-horizontal * spinInput.x) + (vertical * spinInput.y)).normalized, spinInitialForward).normalized) * spinInput.magnitude) * spinGroundMaxForce;
+
+        } else if(Math.Abs(rollInput) > 0) {
+            angularVelocity = spinInitialForward * rollInput;
+            groundForce = Vector3.Cross(nearestSurfaceNormal, -angularVelocity) * spinGroundMaxForce;
+        }
         
-        Vector3 spinAngularAxis = -Vector3.Cross(magnusForce, spinInitialForward).normalized;
-        Vector3 spinAngularVelocity = spinAngularAxis * spinInput.magnitude;
-        
-        Vector3 airForce = (magnusForce + speedChangeForce) * spinAirStrength;
-
-        Vector3 backSpinGroundForce = (-spinInitialForward).normalized * spinInput.y;
-        Vector3 nearestSurfaceVector = GetNearestSurfaceVector();
-
-        Vector3 rollGroundForce = nearestSurfaceVector.magnitude == 0 ? new Vector3() : (Vector3.Cross(nearestSurfaceVector.normalized, spinInitialForward).normalized * rollInput);
-        Vector3 rollAngularVelocity = spinInitialForward * rollInput;
-
-        Vector3 groundForce = (backSpinGroundForce + rollGroundForce).normalized * spinGroundMaxForce;
-        Vector3 angularVelocity = (spinAngularVelocity + rollAngularVelocity).normalized * spinMaxAngularVelocity;
 
         return (
             airForce: airForce,
             groundForce: groundForce,
-            angularVelocity: angularVelocity
+            angularVelocity: angularVelocity * spinMaxAngularVelocity
         );
     }
 
-    private Vector3 GetNearestSurfaceVector() {
+    private Vector3 GetNearestSurfaceNormal() {
         SphereCollider sphereCollider = GetComponent<SphereCollider>();
         Collider[] objects = Physics.OverlapSphere(transform.position, sphereCollider.radius + spinGroundEffectTollerance);
         Vector3 closestObject = new Vector3();
         foreach (var collider in objects) {
-
+            
             if(collider != sphereCollider && collider.GetComponent<CharacterController>() == null) {
                 
                 Vector3 ballToObject = collider.ClosestPoint(transform.position) - transform.position;
@@ -276,13 +317,27 @@ public class BallController : NetworkRigidbody {
                 }
             }
         }
-
-        return closestObject;
+        RaycastHit? closestHit = null;
+        if(closestObject.magnitude > 0) {
+            RaycastHit[] hits = Physics.RaycastAll(transform.position, closestObject, sphereCollider.radius + spinGroundEffectTollerance);
+            foreach (var hit in hits) {
+                if(hit.collider != sphereCollider && hit.collider.GetComponent<CharacterController>() == null) {
+                    closestHit = hit;
+                }
+            }
+        }
+        if(closestHit.HasValue) {
+            return closestHit.Value.normal.normalized;
+        } else {
+            return new Vector3();
+        }
+        
     }
 
+
     private Vector3 GetRollingResistance() {
-        Vector3 nearestSurfaceVector = GetNearestSurfaceVector();
-        if(nearestSurfaceVector.magnitude != 0) {
+        Vector3 nearestSurfaceNormal = GetNearestSurfaceNormal();
+        if(nearestSurfaceNormal.magnitude != 0) {
             return -rigidBody.velocity.normalized * rollingResistance;
         } else {
             return new Vector3();

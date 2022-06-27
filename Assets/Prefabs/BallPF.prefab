@@ -209,13 +209,14 @@ MonoBehaviour:
   spinAirMaxForce: 0.8
   spinAirSpeedInfluence: 1.4
   spinVerticalSpeedInfluence: 1.1
-  spinGroundMaxForce: 20
-  spinGroundMaxVelocity: 5
+  spinGroundMaxForce: 12
+  spinGroundMaxSpeed: 9
   spinGroundFullGripVelocity: 30
-  spinGroundMinGrip: 0.01
-  spinGroundEffectTollerance: 0.25
-  spinTime: 4
-  spinMaxAngularVelocity: 20
+  spinGroundMinGrip: 0.02
+  spinGroundEffectTollerance: 0.5
+  spinMaxAngularVelocity: 15
+  spinForceCapacity: 30
+  spinRollAirDepletionRate: 0.1
   rollingResistance: 0.01
   ballModel: {fileID: 8526808137596034991}
   _isAttached:
