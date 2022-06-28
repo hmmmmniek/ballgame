@@ -375,11 +375,12 @@ public class CharacterMovementController : NetworkBehaviour {
                         player.ballGunController.ball.Shoot(-Velocity.normalized * bashPlayerBallDropSpeed, new Vector2(), 0);
                         player.playerController.temporarilyIgnored = true;
                         ballGunController.playerController.temporarilyIgnored = true;
+                        if(knockedOut) {
+                            player.playerController.knockedOut = true;
+                        }
                     }
 
-                    if(knockedOut) {
-                        player.playerController.knockedOut = true;
-                    }
+
                 }
             }
 

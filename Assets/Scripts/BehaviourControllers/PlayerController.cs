@@ -54,6 +54,7 @@ public class PlayerController : NetworkRigidbody, IPlayerLeft {
             capsuleCollider.enabled = true;
             rigidBody.isKinematic = false;
             rigidBody.velocity = localCharacterMovementController.networkMovementController.Velocity;
+            rigidBody.angularVelocity = new Vector3(10, 0, 10);
             localCharacterMovementController.networkMovementController.Controller.enabled = false;
             localCharacterMovementController.networkMovementController.enabled = false;
             localCharacterMovementController.Controller.enabled = false;
@@ -63,6 +64,7 @@ public class PlayerController : NetworkRigidbody, IPlayerLeft {
         if(!knockedOut) {
             capsuleCollider.enabled = false;
             rigidBody.velocity = new Vector3();
+            rigidBody.angularVelocity = new Vector3();
             rigidBody.isKinematic = true;
             localCharacterMovementController.networkMovementController.Controller.enabled = true;
             localCharacterMovementController.networkMovementController.enabled = true;

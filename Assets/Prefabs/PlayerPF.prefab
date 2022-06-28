@@ -617,7 +617,6 @@ MonoBehaviour:
   shieldThickness: 0.8
   shieldWidth: 2
   shieldAngle: 100
-  shieldWaitTime: 0.2
   shieldPushBack: 3
   shieldMinGrabSpeed: 10
   shieldHeightPosition: 0
@@ -627,11 +626,11 @@ MonoBehaviour:
   playerController: {fileID: 5165869480873457305}
   ballAnchor: {fileID: 3469899950231842776}
   ballModel: {fileID: 4133029749192927420}
+  shielding: 0
   ball: {fileID: 0}
   _isCarrying: 0
   _kickReceived: 0
   _suckReceived: 0
-  _shieldOpen: 0
   _attracting: 0
 --- !u!1 &3846429301406989187
 GameObject:
@@ -1415,7 +1414,7 @@ MonoBehaviour:
     RotBlendStart: 0.1
     RotBlendEnd: 0.5
     RotTeleportRadians: 1.5
-  knockoutTime: 5
+  knockoutTime: 3
   playerModel: {fileID: 7052363114125867258}
   glassesModel: {fileID: 7350339520314214961}
   ballModel: {fileID: 4133029749192927420}

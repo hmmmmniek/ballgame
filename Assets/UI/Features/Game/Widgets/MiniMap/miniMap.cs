@@ -157,7 +157,7 @@ public class MiniMapController : Widget {
                 if(player.playerController != null && PlayerController.Local != null) {
 
                     if(player.playerController.IsLocal()) {
-                        container.style.rotate = new StyleRotate(new Rotate(new Angle(-player.playerController.transform.rotation.eulerAngles.y, AngleUnit.Degree)));
+                        container.style.rotate = new StyleRotate(new Rotate(new Angle(player.playerController.knockedOut ? 0 : -player.playerController.transform.rotation.eulerAngles.y, AngleUnit.Degree)));
                     }
 
                     float playerOffsetFromCenterY = player.playerController.transform.position.z * pixelsPerMeter;
