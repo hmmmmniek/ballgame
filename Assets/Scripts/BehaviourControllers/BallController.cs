@@ -184,7 +184,7 @@ public class BallController : NetworkRigidbody {
             }
             
         }
-    Debug.Log($"{spinCapacityLeft / spinForceCapacity * 100}%");
+
         MeasureVelocity();
 
     }

@@ -86,8 +86,11 @@ public class BallGunController : NetworkBehaviour {
             return _localBallSpin;
         }
         set {
-            GameState.Dispatch<bool>(GameState.SetInputtingSpin, value, () => {});
-            _localBallSpin = value;
+            if(value != _localBallSpin) {
+                GameState.Dispatch<bool>(GameState.SetInputtingSpin, value, () => {});
+                _localBallSpin = value;
+            }
+            
         }
     } 
     private bool _localBallRoll;
@@ -96,8 +99,10 @@ public class BallGunController : NetworkBehaviour {
             return _localBallRoll;
         }
         set {
-            GameState.Dispatch<bool>(GameState.SetInputtingRoll, value, () => {});
-            _localBallRoll = value;
+            if(value != _localBallRoll) {
+                GameState.Dispatch<bool>(GameState.SetInputtingRoll, value, () => {});
+                _localBallRoll = value;
+            }
         }
     } 
     private Vector2 _localSpinRotationInputStart;
@@ -148,7 +153,9 @@ public class BallGunController : NetworkBehaviour {
         changed.Behaviour.OnShieldOpenChanged();
     }
     private void OnShieldOpenChanged() {
-        GameState.Dispatch<bool>(GameState.SetShielding, shieldOpen, () => {});
+        if(Object.HasInputAuthority) {
+            GameState.Dispatch<bool>(GameState.SetShielding, shieldOpen, () => {});
+        }
     }
 
     [HideInInspector][Networked(OnChanged = nameof(OnAttractingChanged))] public bool attracting { get; set; }
@@ -156,7 +163,9 @@ public class BallGunController : NetworkBehaviour {
         changed.Behaviour.OnAttractingChanged();
     }
     private void OnAttractingChanged() {
-        GameState.Dispatch<bool>(GameState.SetAttracting, attracting, () => {});
+        if(Object.HasInputAuthority) {
+            GameState.Dispatch<bool>(GameState.SetAttracting, attracting, () => {});
+        }
     }
 
 

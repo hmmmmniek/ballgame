@@ -40,6 +40,13 @@ public class InputHandler : MonoBehaviour {
         Cursor.lockState = CursorLockMode.None;
         Cursor.visible = true;
         playerInput.onActionTriggered -= HandleAction;
+
+        localInputDataCache.primaryPressed = false;
+        localInputDataCache.secondaryPressed = false;
+        localInputDataCache.jumpPressed = false;
+        localInputDataCache.sprintPressed = false;
+        localInputDataCache.ballSpinPressed = false;
+        localInputDataCache.ballRollPressed = false;
     }
 
     private void HandleAction(InputAction.CallbackContext context) {
