@@ -32,7 +32,6 @@ public class BallGunController : NetworkBehaviour {
     public float shieldThickness = 2;
     public float shieldWidth = 5;
     public float shieldAngle = 90;
-    public float shieldWaitTime = 0.5f;
     public float shieldPushBack = 2f;
     public float shieldMinGrabSpeed = 2f;
     public float shieldHeightPosition = 0.5f;
@@ -46,7 +45,7 @@ public class BallGunController : NetworkBehaviour {
     public PlayerController playerController;
     public NetworkTransform ballAnchor;
     public Transform ballModel;
-
+    public bool shielding;
     [HideInInspector]
     public BallController ball;
 
@@ -54,7 +53,6 @@ public class BallGunController : NetworkBehaviour {
     [Networked] private TickTimer suckTimer { get; set; }
     [Networked] private TickTimer attractTimer { get; set; }
     [Networked] private TickTimer kickTimer { get; set; }
-    [Networked] private TickTimer shieldTimer { get; set; }
 
     private float _localChargeTime;
     public float localChargeTime {
@@ -80,6 +78,19 @@ public class BallGunController : NetworkBehaviour {
     public bool localPass { get { return _localPass; } set { _localPass = value; } } 
     private bool _localSuck;
     public bool localSuck { get { return _localSuck; } set { _localSuck = value; } } 
+    private bool _localShield;
+    public bool localShield {
+        get {
+            return _localShield;
+        }
+        set {
+            if(value != _localShield) {
+                GameState.Dispatch<bool>(GameState.SetShielding, value, () => {});
+                _localShield = value;
+            }
+            
+        }
+    } 
     private bool _localBallSpin;
     public bool localBallSpin {
         get {
@@ -148,16 +159,6 @@ public class BallGunController : NetworkBehaviour {
         }
     }
 
-    [HideInInspector][Networked(OnChanged = nameof(OnShieldOpenChanged))] public bool shieldOpen { get; set; }
-    public static void OnShieldOpenChanged(Changed<BallGunController> changed) {
-        changed.Behaviour.OnShieldOpenChanged();
-    }
-    private void OnShieldOpenChanged() {
-        if(Object.HasInputAuthority) {
-            GameState.Dispatch<bool>(GameState.SetShielding, shieldOpen, () => {});
-        }
-    }
-
     [HideInInspector][Networked(OnChanged = nameof(OnAttractingChanged))] public bool attracting { get; set; }
     public static void OnAttractingChanged(Changed<BallGunController> changed) {
         changed.Behaviour.OnAttractingChanged();
@@ -175,6 +176,7 @@ public class BallGunController : NetworkBehaviour {
     private bool clientKick;
     private bool clientPass;
     private bool clientSuck;
+    private bool clientShield;
     private bool clientBallRoll;
     private bool clientBallSpin;
     private Vector2 clientBallSpinRotationStart;
@@ -323,6 +325,29 @@ public class BallGunController : NetworkBehaviour {
                 localSuck = false;
             }
 
+            /*
+            * Start shield
+            */
+            if (
+                InputHandler.instance.localInputDataCache.shieldPressed &&
+                localShield == false && 
+                !isCarrying
+            ) {   
+                localShield = true;
+            }
+
+            /*
+            * Stop shield
+            */
+            if (
+                (
+                    !InputHandler.instance.localInputDataCache.shieldPressed &&
+                    localShield == true
+                ) || 
+                isCarrying
+            ) {   
+                localShield = false;
+            }
 
             /*
             * Charge
@@ -366,6 +391,7 @@ public class BallGunController : NetworkBehaviour {
                 clientKick = networkInputData.clientKick;
                 clientPass = networkInputData.clientPass;
                 clientSuck = networkInputData.clientSuck;
+                clientShield = networkInputData.clientShield;
                 clientBallRoll = networkInputData.clientBallRoll;
                 clientBallSpin = networkInputData.clientBallSpin;
                 clientBallSpinRotationStart = networkInputData.clientBallSpinRotationStart;
@@ -385,9 +411,6 @@ public class BallGunController : NetworkBehaviour {
                 Pass();
             }
 
-
-
-
             /*
             * Execute kick
             */
@@ -397,7 +420,6 @@ public class BallGunController : NetworkBehaviour {
                 kickTimer.Expired(Runner)
             ) {   
                 kickTimer = TickTimer.None;
-                shieldTimer = TickTimer.CreateFromSeconds(Runner, shieldWaitTime);
                 Kick();
                 kickReceived = true;
             }
@@ -411,24 +433,24 @@ public class BallGunController : NetworkBehaviour {
             ) {   
                 kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
                 kickReceived = false;
-                shieldOpen = false;
             }
 
             /*
             * Shield
             */
             if(
-                clientKick &&
-                !isCarrying &&
-                shieldTimer.Expired(Runner)
+                clientShield &&
+                !isCarrying
             ) {
-                shieldOpen = true;
-                shieldTimer = TickTimer.None;
-            }
-            if(shieldOpen) {
+                if(!shielding) {
+                    shielding = true;
+                }
                 Reflect();
+            } else {
+                if(shielding) {
+                    shielding = false;
+                }
             }
-            
 
             /*
             * Execute suck

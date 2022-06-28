@@ -66,6 +66,14 @@ public class InputHandler : MonoBehaviour {
             }
         }
 
+        if (context.action.name == "Shield") {
+            if(context.ReadValueAsButton()) {
+                localInputDataCache.shieldPressed = true;
+            } else {
+                localInputDataCache.shieldPressed = false;
+            }
+        }
+
         if (context.action.name == "Ball spin") {
             if(context.ReadValueAsButton()) {
                 localInputDataCache.ballSpinPressed = true;

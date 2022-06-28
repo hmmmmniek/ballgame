@@ -107,7 +107,7 @@ public class BallController : NetworkRigidbody {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
-                    if(player != null && !player.temporarilyIgnored && !player.ballGunController.shieldOpen && !player.knockedOut) {
+                    if(player != null && !player.temporarilyIgnored && !player.ballGunController.shielding && !player.knockedOut) {
                         float speed = getVelocity();
                         player.GetComponent<CharacterMovementController>().Push(rigidBody.velocity.normalized * (maxPickupForce * (speed / maxSpeed)));
                         Attach(player.ballGunController.ballAnchor);
