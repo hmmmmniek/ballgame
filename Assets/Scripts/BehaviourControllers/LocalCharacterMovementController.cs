@@ -65,6 +65,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Accept/refuse server state
         */
+            Synchronize();
 
         if( 
             !localDash && !localHitGround && (

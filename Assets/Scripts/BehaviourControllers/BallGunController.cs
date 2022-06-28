@@ -619,8 +619,10 @@ public class BallGunController : NetworkBehaviour {
                 Shoot(kickBallDropSpeed);
                 justDroppedBall = true;
             }
-
-            player.playerController.GetComponent<CharacterMovementController>().Push(transform.forward.normalized * kickPushForce);
+            CharacterMovementController otherCharacterController = player.playerController.GetComponent<CharacterMovementController>();
+            float againstFraction = Math.Clamp(-Vector3.Dot(transform.forward, otherCharacterController.Velocity.normalized), 0, 1);
+            Vector3 pushDirection = (transform.forward + otherCharacterController.transform.up).normalized;
+            otherCharacterController.Push((pushDirection * kickPushForce) + (-otherCharacterController.Velocity * againstFraction));
             playerController.localCharacterMovementController.networkMovementController.Push(-(transform.forward.normalized) * kickPushForce);
 
         }
