@@ -85,7 +85,7 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
                     state.currentSession = result;
                 });
 
-                ViewManager.instance.Open<GameController>();
+                ViewManager.instance.Open<TeamSelectController>();
             }
         }
     }
@@ -99,7 +99,7 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
                     state.joined = true;
                     state.currentSession = args;
                 });
-                ViewManager.instance.Open<GameController>();
+                ViewManager.instance.Open<TeamSelectController>();
             }
         }
     }

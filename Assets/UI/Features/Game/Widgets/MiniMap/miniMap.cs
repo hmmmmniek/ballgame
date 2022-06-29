@@ -90,7 +90,7 @@ public class MiniMapController : Widget {
             SetMiniMap();
         });
 
-        GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
+        GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             SetPlayers(players);
         });
 
@@ -124,7 +124,7 @@ public class MiniMapController : Widget {
   
     }
 
-    private void SetPlayers((BallGunController ballGunController, PlayerController playerController)[] players) {
+    private void SetPlayers(Player[] players) {
         (BallGunController ballGunController, PlayerController playerController, VisualElement element)[] output = new (BallGunController ballGunController, PlayerController playerController, VisualElement element)[players.Length];
         int i = 0;
         if(this.players != null) {

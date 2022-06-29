@@ -15,9 +15,7 @@ public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
     public void OnShutdown(NetworkRunner runner, ShutdownReason shutdownReason) {
 		InputHandler.instance.networkInputDataCache = new NetworkInputData();
 
-        if(shutdownReason != ShutdownReason.HostMigration) {         
-            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
-        }
+
         GameState.Dispatch<object>(GameState.ClearPlayers, null, () => {});
 		
 		MapController map = FindObjectOfType<MapController>();

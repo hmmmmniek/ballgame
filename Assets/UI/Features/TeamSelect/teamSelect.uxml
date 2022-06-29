@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/TeamSelect/teamSelect.uss" />
+
+
+    <engine:VisualElement class="main">
+
+        <engine:VisualElement class="wrapper">
+            <engine:VisualElement class="team-selector">
+            
+                <engine:Button name="team-selector__blue" text="Blue" />
+                <engine:Button name="team-selector__red" text="Red" />
+            </engine:VisualElement>
+
+            <engine:VisualElement class="join">
+                <engine:Button name="join__button" text="Join"/>
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

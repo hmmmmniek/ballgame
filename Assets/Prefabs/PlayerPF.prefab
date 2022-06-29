@@ -1420,10 +1420,13 @@ MonoBehaviour:
   ballModel: {fileID: 4133029749192927420}
   capsuleCollider: {fileID: 8411364181394582157}
   rigidBody: {fileID: 4287011096316221152}
+  teamBlueMaterial: {fileID: 2100000, guid: ce258e77fbfe7e1f08d69253c3af759e, type: 2}
+  teamRedMaterial: {fileID: 2100000, guid: 86b41f121b294b9f988a8a95135e86d5, type: 2}
   ballGunController: {fileID: 5538467927710914934}
   networkCharacterMovementController: {fileID: 6839332496305766221}
   localCharacterMovementController: {fileID: 8180254042653263233}
   bodyTrackingController: {fileID: 4106313812982400560}
+  _team: 0
   _temporarilyIgnored:
     _value: 0
   _lastReceivedLocalTime: 0
@@ -1758,7 +1761,7 @@ MeshRenderer:
   m_RenderingLayerMask: 1
   m_RendererPriority: 0
   m_Materials:
-  - {fileID: 2100000, guid: ce258e77fbfe7e1f08d69253c3af759e, type: 2}
+  - {fileID: 2100000, guid: e481d18f69c09a62d896010185a87dfd, type: 2}
   m_StaticBatchInfo:
     firstSubMesh: 0
     subMeshCount: 0

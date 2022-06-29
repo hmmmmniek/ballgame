@@ -6,6 +6,30 @@ using Fusion;
 using UnityEngine;
 using UnityEngine.UIElements;
 
+public struct Player {
+    public PlayerRef playerRef;
+    public BallGunController ballGunController;
+    public PlayerController playerController;
+    public Team? team;
+    public bool isLocal;
+
+    public Player(
+        PlayerRef playerRef,
+        BallGunController ballGunController,
+        PlayerController playerController,
+        Team? team,
+        bool isLocal
+    ) {
+        this.playerRef = playerRef;
+        this.ballGunController = ballGunController;
+        this.playerController = playerController;
+        this.team = team;
+        this.isLocal = isLocal;
+    }
+
+}
+
+
 public class GameStateData: StateData {
     public float remainingBoostPercentage;
     public float chargeTime;
@@ -20,7 +44,7 @@ public class GameStateData: StateData {
     public float rollInput;
     public Vector2 spinInput;
 
-    public (BallGunController ballGunController, PlayerController playerController)[] players = {};
+    public Player[] players = {};
     public BallController ball;
 
 }
@@ -84,7 +108,7 @@ public class GameState: BaseState<GameStateData, GameState> {
         return state.spinInput;
     }
 
-    public static (BallGunController ballGunController, PlayerController playerController)[] GetPlayers(GameStateData state) {
+    public static Player[] GetPlayers(GameStateData state) {
         return state.players;
     }
     
@@ -111,25 +135,34 @@ public class GameState: BaseState<GameStateData, GameState> {
         });
     }
 
-    public static void AddPlayer(BaseState<GameStateData, GameState> s, (BallGunController ballGunController, PlayerController playerController) args, Action c) { (s as GameState).AP(c, args); }
-    private void AP(Action complete, (BallGunController ballGunController, PlayerController playerController) args) {
+    public static void AddPlayer(BaseState<GameStateData, GameState> s, Player args, Action c) { (s as GameState).AP(c, args); }
+    private void AP(Action complete, Player args) {
         StateChange((GameStateData state) => {
-            (BallGunController ballGunController, PlayerController playerController)[] newPlayers = {args};
+            Player[] newPlayers = {args};
             state.players = newPlayers.Concat(state.players).ToArray();
         });
     }
 
-    public static void RemovePlayer(BaseState<GameStateData, GameState> s, (BallGunController ballGunController, PlayerController playerController) args, Action c) { (s as GameState).RP(c, args); }
-    private void RP(Action complete, (BallGunController ballGunController, PlayerController playerController) args) {
+    public static void RemovePlayer(BaseState<GameStateData, GameState> s, PlayerRef args, Action c) { (s as GameState).RP(c, args); }
+    private void RP(Action complete, PlayerRef args) {
         StateChange((GameStateData state) => {
-            state.players = state.players.Where((item) => item.playerController.Id != args.playerController.Id).ToArray();
+            state.players = state.players.Where((item) => item.playerRef.PlayerId != args.PlayerId).ToArray();
         });
     }
+
+    public static void UpdatePlayer(BaseState<GameStateData, GameState> s, Player args, Action c) { (s as GameState).UP(c, args); }
+    private void UP(Action complete, Player args) {
+        StateChange((GameStateData state) => {
+            Player[] newPlayers = {args};
+            state.players = newPlayers.Concat(state.players.Where((item) => item.playerRef.PlayerId != args.playerRef.PlayerId).ToArray()).ToArray();
+        });
+    }
+
 
     public static void ClearPlayers(BaseState<GameStateData, GameState> s, object args, Action c) { (s as GameState).CP(c); }
     private void CP(Action complete) {
         StateChange((GameStateData state) => {
-            (BallGunController ballGunController, PlayerController playerController)[] newPlayers = {};
+            Player[] newPlayers = {};
             state.players = newPlayers;
         });
     }

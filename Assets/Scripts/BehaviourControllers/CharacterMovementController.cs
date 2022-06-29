@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Fusion;
 using UnityEngine;
 
@@ -104,7 +105,7 @@ public class CharacterMovementController : NetworkBehaviour {
     public CharacterController Controller { get; private set; }
 
     private Action unsubscribePlayers;
-    private (BallGunController ballGunController, PlayerController playerController)[] players;
+    private Player[] players;
 
 
 
@@ -116,9 +117,9 @@ public class CharacterMovementController : NetworkBehaviour {
         base.Spawned();
         Controller = GetComponent<CharacterController>();
 
-        unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
+        unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
-                this.players = players;
+                this.players = players.Where((p) => p.playerController != null).ToArray();
             }
         });
        

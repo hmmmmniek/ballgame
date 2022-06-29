@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem;
@@ -182,7 +183,7 @@ public class BallGunController : NetworkBehaviour {
     private Vector2 clientBallSpinRotationStart;
     private Vector2 clientBallSpinRotationEnd;
     private Action unsubscribePlayers;
-    private (BallGunController ballGunController, PlayerController playerController)[] players;
+    private Player[] players;
 
     protected void Awake() {
     }
@@ -201,9 +202,9 @@ public class BallGunController : NetworkBehaviour {
         LocalDetach();
 
 
-        unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
+        unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
-                this.players = players;
+                this.players = players.Where((p) => p.playerController != null).ToArray();
             }
         });
     }

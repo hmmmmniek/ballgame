@@ -5,7 +5,7 @@ using Fusion;
 using System;
 using System.Linq;
 
-public class PlayerController : NetworkRigidbody, IPlayerLeft {
+public class PlayerController : NetworkRigidbody {
     public static PlayerController Local { get; set; }
 
     public float knockoutTime = 5f;
@@ -14,6 +14,8 @@ public class PlayerController : NetworkRigidbody, IPlayerLeft {
     public Transform ballModel;
     public CapsuleCollider capsuleCollider;
     public Rigidbody rigidBody;
+    public Material teamBlueMaterial;
+    public Material teamRedMaterial;
 
     public BallGunController ballGunController;
     public CharacterMovementController networkCharacterMovementController;
@@ -21,7 +23,7 @@ public class PlayerController : NetworkRigidbody, IPlayerLeft {
     public BodyTrackingController bodyTrackingController;
 
     private Queue<float> RttMeasurements = new Queue<float>();
-
+    [HideInInspector][Networked] public Team team {get; set;}
     [HideInInspector][Networked] public NetworkBool temporarilyIgnored {get; set;}
     [HideInInspector][Networked(OnChanged = nameof(OnLastReceivedInputTimeChanged))] public float lastReceivedLocalTime {get; set;}
     public static void OnLastReceivedInputTimeChanged(Changed<PlayerController> changed) {
@@ -108,7 +110,6 @@ public class PlayerController : NetworkRigidbody, IPlayerLeft {
             Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("LocalPlayerModel"));
 
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
-
             bodyTrackingController.Init(true);
         } else {
             Camera localCamera = GetComponentInChildren<Camera>();
@@ -124,28 +125,30 @@ public class PlayerController : NetworkRigidbody, IPlayerLeft {
 
         }
 
+        MeshRenderer renderer = playerModel.GetComponentInChildren<MeshRenderer>();
+        switch(team) {
+            case Team.Blue: {
+                renderer.sharedMaterial = teamBlueMaterial;
+                break;
+            }
+            case Team.Red: {
+                renderer.sharedMaterial = teamRedMaterial;
+                break;
+            }
+        }
         transform.name = $"Player {Object.Id}";
-
-        GameState.Dispatch(GameState.AddPlayer, (
-            ballGunController: ballGunController,
-            playerController: this
-        ), () => {});
+        Player player = new Player(Object.InputAuthority, ballGunController, this, team, Object.HasInputAuthority);
+        GameState.Dispatch<Player>(GameState.UpdatePlayer, player, () => {});
 
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
-        GameState.Dispatch(GameState.RemovePlayer, (
-            ballGunController: GetComponentInChildren<BallGunController>(),
-            playerController: GetComponent<PlayerController>()
-        ), () => {});
-    }
-
-    public void PlayerLeft(PlayerRef player) {
-        if (player == Object.InputAuthority) {
-            Runner.Despawn(Object);
+        //GameState.Dispatch(GameState.RemovePlayer, Object.InputAuthority, () => {});
+        if (Object.HasInputAuthority) {
+            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
         }
-
     }
+
 
 
 

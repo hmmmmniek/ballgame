@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using UnityEngine;
 using UnityEngine.UIElements;
 
@@ -8,6 +9,9 @@ public class MainMenuController : Module {
         ""
     };
     
+    private Player localPlayer;
+
+
     public MainMenuController(VisualElement element) {
 
 
@@ -35,6 +39,13 @@ public class MainMenuController : Module {
             }
         }));
         
+        Watch(GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
+            foreach (var player in players) {
+                if(player.isLocal) {
+                    localPlayer = player;
+                }
+            }
+        }));
 
     }
 
@@ -47,7 +58,11 @@ public class MainMenuController : Module {
         ViewManager.instance.Open<LobbyController>();
     }
     private void ReturnToMatch() {
-        ViewManager.instance.Open<GameController>();
+        if(localPlayer.team.HasValue) {
+            ViewManager.instance.Open<GameController>();
+        } else {
+            ViewManager.instance.Open<TeamSelectController>();
+        }
     }
     private void LeaveMatch() {
         NetworkState.Dispatch<object>(NetworkState.Leave, null, () => {});

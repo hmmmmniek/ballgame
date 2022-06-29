@@ -33,7 +33,6 @@ public class BallController : NetworkRigidbody {
     [Networked] private float spinCapacityLeft { get; set; }
 
     private Action unsubscribePlayers;
-    private (BallGunController ballGunController, PlayerController playerController)[] players;
     private bool isColliding;
     private float collidingSpeed;
     private float circumference;
@@ -67,10 +66,10 @@ public class BallController : NetworkRigidbody {
 
         circumference = (float)Math.PI * 2f * GetComponent<SphereCollider>().radius;
 
-        unsubscribePlayers = GameState.Select<(BallGunController ballGunController, PlayerController playerController)[]>(GameState.GetPlayers, (players) => {
+        unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
-                this.players = players;
-                foreach (var player in players) {
+                Player[] activePlayers = players.Where((p) => p.playerController != null).ToArray();
+                foreach (var player in activePlayers) {
                     player.ballGunController.ball = this;
                     player.playerController.ball = this;
                     Physics.IgnoreCollision(GetComponent<SphereCollider>(), player.playerController.GetComponent<CharacterController>());
@@ -80,7 +79,7 @@ public class BallController : NetworkRigidbody {
                 }
                 if(Object.HasStateAuthority) {
 
-                    bool hasCarryingPlayer = Array.Exists(players, item => {
+                    bool hasCarryingPlayer = Array.Exists(activePlayers, item => {
                         return item.ballGunController.isCarrying;
                     });
                     if(!hasCarryingPlayer && isAttached) {

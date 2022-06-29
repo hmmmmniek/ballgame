@@ -9,7 +9,6 @@ using System;
 using System.Linq;
 
 public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
-    public PlayerController playerPrefab;
     public MatchController matchManagerPrefab;
     private MatchController matchManager;
 
@@ -39,11 +38,14 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
             matchManager = runner.Spawn(matchManagerPrefab, new Vector3(0, 0, 0));
         }
         if (runner.IsServer) {
-            runner.Spawn(playerPrefab, Utils.GetRandomSpawnPoint(), Quaternion.identity, player);
+            matchManager.PlayerJoined(player);
         }
     }
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
+        if (runner.IsServer) {
+            matchManager.PlayerDisconnected(player);
+        }
     }
 
 

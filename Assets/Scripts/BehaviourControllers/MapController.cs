@@ -264,6 +264,18 @@ public class MapController : NetworkBehaviour {
         CheckLights(southWestLightPos, northWestLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, 90, 0), lightIntensity, lightSpotAngle);
         CheckLights(southEastLightPos, northEastLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, -90, 0), lightIntensity, lightSpotAngle);
 
+
+
+
+
+        Vector3 cameraPos = new Vector3(0, mapHeight, 0);
+        GameObject camera = new GameObject("Main Camera");
+        Camera cameraComponent = camera.AddComponent<Camera>();
+        camera.transform.position = cameraPos;
+        camera.transform.rotation = Quaternion.Euler(90, -90, 0);
+        camera.transform.parent = transform;
+        cameraComponent.fieldOfView = 90;
+        cameraComponent.farClipPlane = mapHeight + 1;
     }
 
     private Light CreateLight(Vector3 position, Quaternion rotation, float range, Transform parent, float intensity, float spotAngle) {
