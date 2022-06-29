@@ -119,7 +119,7 @@ public class CharacterMovementController : NetworkBehaviour {
 
         unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
-                this.players = players.Where((p) => p.playerController != null).ToArray();
+                this.players = players.Where((p) => p.playerController != null && p.team.HasValue).ToArray();
             }
         });
        
@@ -147,8 +147,7 @@ public class CharacterMovementController : NetworkBehaviour {
     private bool previousClientHitGround = false;
     private float previousClientBoostRemaining = 0;
 
-    private float a = 0;
-    private float dir = 1;
+
     public override void FixedUpdateNetwork() {
 
         if(Object.HasStateAuthority) {
@@ -165,13 +164,7 @@ public class CharacterMovementController : NetworkBehaviour {
                 clientDash = networkInputData.clientDash;
                 clientHitGround = networkInputData.clientHitGround;
                 receivedInput = true;
-                if(Object.Id.Raw == 7) {
-                    if(Time.time - a  > 4) {
-                        dir = -dir;
-                        a = Time.time;
-                    }
-                    movement = new Vector2(0, dir);
-                }
+               
                 if(networkInputData.pushedReceived) {
                     pushed = false;
                 }
@@ -333,7 +326,6 @@ public class CharacterMovementController : NetworkBehaviour {
             * Accept/refuse client state
             */
             if(
-                Object.Id.Raw != 7 &&
                 receivedInput && 
                 Vector3.Distance(clientPosition, transform.position) < maxAllowedClientPositionError &&
                 (Vector3.Distance(clientVelocity, Velocity) < maxAllowedClientVelocityError) &&
@@ -404,7 +396,6 @@ public class CharacterMovementController : NetworkBehaviour {
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
         base.Despawned(runner, hasState);
-
         unsubscribePlayers();
     }
 

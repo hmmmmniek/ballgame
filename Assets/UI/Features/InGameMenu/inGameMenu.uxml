@@ -5,11 +5,13 @@
     xmlns:editor="UnityEditor.UIElements"
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
-    <Style src="project://database/Assets/UI/Features/MainMenu/mainMenu.uss" />
+    <Style src="project://database/Assets/UI/Features/InGameMenu/inGameMenu.uss" />
 
  
     <engine:VisualElement class="main">
-        <engine:Button name="LobbyButton" text="Lobby" />
+        <engine:Button name="ReturnToMatchButton" text="Return to match" />
+        <engine:Button name="LeaveMatchButton" text="Leave match" />
+        <engine:Button name="SwitchTeamButton" text="Spectate/Switch team" />
         <engine:Button name="SettingsButton" text="Settings" />
     </engine:VisualElement>
 

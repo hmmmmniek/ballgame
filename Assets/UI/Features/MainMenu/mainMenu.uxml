@@ -10,8 +10,6 @@
  
     <engine:VisualElement class="main">
         <engine:Button name="LobbyButton" text="Lobby" />
-        <engine:Button name="ReturnToMatchButton" text="Return to match" />
-        <engine:Button name="LeaveMatchButton" text="Leave match" />
         <engine:Button name="SettingsButton" text="Settings" />
     </engine:VisualElement>
 

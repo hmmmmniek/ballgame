@@ -147,6 +147,12 @@ public class PlayerController : NetworkRigidbody {
         if (Object.HasInputAuthority) {
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
         }
+        GameObject.Destroy(localCharacterMovementController.networkMovementController.cameraController.gameObject);
+        GameObject.Destroy(localCharacterMovementController.networkMovementController.gameObject);
+        GameObject.Destroy(localCharacterMovementController.gameObject);
+        GameObject.Destroy(localCharacterMovementController.networkMovementController);
+        GameObject.Destroy(localCharacterMovementController);
+        GameObject.Destroy(bodyTrackingController);
     }
 
 
@@ -192,10 +198,7 @@ public class PlayerController : NetworkRigidbody {
         }
     }
 
-    public void OnDestroy (){
-        GameObject.Destroy(localCharacterMovementController.networkMovementController.cameraController.gameObject);
-        GameObject.Destroy(localCharacterMovementController.networkMovementController.gameObject);
-        GameObject.Destroy(localCharacterMovementController.gameObject);
-    }
+
+
 
 }

@@ -65,8 +65,6 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Accept/refuse server state
         */
-            Synchronize();
-
         if( 
             !localDash && !localHitGround && (
                 Vector3.Distance(transform.position, networkMovementController.transform.position) > networkMovementController.maxAllowedClientPositionError ||

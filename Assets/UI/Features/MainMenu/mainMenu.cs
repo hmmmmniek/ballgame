@@ -20,24 +20,6 @@ public class MainMenuController : Module {
 
         Button lobbyButton = element.Q<Button>("LobbyButton");
         lobbyButton.clicked += GoToLobby;
-
-        Button leaveMatchButton = element.Q<Button>("LeaveMatchButton");
-        leaveMatchButton.clicked += LeaveMatch;
-
-        Button returnToMatchButton = element.Q<Button>("ReturnToMatchButton");
-        returnToMatchButton.clicked += ReturnToMatch;
-
-        Watch(NetworkState.Select<bool>(NetworkState.GetJoined, (joined) => {
-            if(joined) {
-                leaveMatchButton.RemoveFromClassList("hidden");
-                returnToMatchButton.RemoveFromClassList("hidden");
-                lobbyButton.AddToClassList("hidden");
-            } else {
-                leaveMatchButton.AddToClassList("hidden");
-                returnToMatchButton.AddToClassList("hidden");
-                lobbyButton.RemoveFromClassList("hidden");
-            }
-        }));
         
         Watch(GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             foreach (var player in players) {
@@ -52,20 +34,14 @@ public class MainMenuController : Module {
     private void GoToSettings() {
         NotificationState.Dispatch(NotificationState.Notify, (NotificationUrgency.Info, "its working!"), () => { });
 
-        ViewManager.instance.Open<SettingsController>();
+        SettingsController controller = ViewManager.instance.Open<SettingsController>();
+        controller.backAction = () => {
+            ViewManager.instance.Open<MainMenuController>();
+        };
     }
     private void GoToLobby() {
         ViewManager.instance.Open<LobbyController>();
     }
-    private void ReturnToMatch() {
-        if(localPlayer.team.HasValue) {
-            ViewManager.instance.Open<GameController>();
-        } else {
-            ViewManager.instance.Open<TeamSelectController>();
-        }
-    }
-    private void LeaveMatch() {
-        NetworkState.Dispatch<object>(NetworkState.Leave, null, () => {});
-    }
+
     
 }

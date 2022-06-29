@@ -68,7 +68,7 @@ public class BallController : NetworkRigidbody {
 
         unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
-                Player[] activePlayers = players.Where((p) => p.playerController != null).ToArray();
+                Player[] activePlayers = players.Where((p) => p.playerController != null && p.team.HasValue).ToArray();
                 foreach (var player in activePlayers) {
                     player.ballGunController.ball = this;
                     player.playerController.ball = this;

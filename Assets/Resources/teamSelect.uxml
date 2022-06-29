@@ -21,5 +21,11 @@
                 <engine:Button name="join__button" text="Join"/>
             </engine:VisualElement>
         </engine:VisualElement>
+        <engine:VisualElement class="other">
+            <engine:Button name="leave__button" text="Leave" />
+            <engine:Button name="spectate__button" text="Spectate" />
+            <engine:Button name="settings__button" text="Settings" />
+        </engine:VisualElement>
+
     </engine:VisualElement>
 </engine:UXML>

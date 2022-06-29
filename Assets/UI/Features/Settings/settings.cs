@@ -9,14 +9,15 @@ public class SettingsController : Module {
         BackButtonController.ELEMENT_NAME
     };
     private VisualElement element;
-    
+    private Player? localPlayer;
+    public Action backAction;
 
     public SettingsController(VisualElement element) {
 
         this.element = element;
 
         Button backButton = element.Q<Button>("BackButton");
-        backButton.clicked += GoToMainMenu;
+        backButton.clicked += GoBack;
 
         Button jumpButton = element.Q<Button>("input-rebinding_jump-button");
         jumpButton.clicked += StartRebindJump;
@@ -27,12 +28,19 @@ public class SettingsController : Module {
         Watch(InputState.Select<Func<string, string>>(InputState.GetBindingLabelFn, (GetBindingLabel) => {
             jumpButton.text = GetBindingLabel("Jump");
         }));
-        
+        Watch(GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
+            localPlayer = null;
+            foreach (var player in players) {
+                if(player.isLocal) {
+                    localPlayer = player;
+                }
+            }
+        }));
     }
 
 
-    private void GoToMainMenu() {
-        ViewManager.instance.Open<MainMenuController>();
+    private void GoBack() {
+        backAction();
     }
 
     private void StartRebindJump() {

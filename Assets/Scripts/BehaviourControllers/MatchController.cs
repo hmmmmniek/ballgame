@@ -77,6 +77,14 @@ public class MatchController : NetworkBehaviour {
 
                 foreach (var leftPlayer in leftPlayers) {
                     Runner.Despawn(leftPlayer.playerController.GetComponent<NetworkObject>());
+                    Player updatedPlayer = new Player(
+                        leftPlayer.playerRef,
+                        null,
+                        null,
+                        null,
+                        leftPlayer.isLocal
+                    );
+                    GameState.Dispatch<Player>(GameState.UpdatePlayer, updatedPlayer, () => {});
                 }
 
             });

@@ -9,7 +9,10 @@
     justify-content: center;
     background-color: rgba(215, 37, 38, 0.4);
 }
-
+.other {
+    align-items: center;
+    justify-content: center;
+}
 .wrapper {
     flex-direction: column;
     width: 350px;

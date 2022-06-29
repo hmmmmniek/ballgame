@@ -5,13 +5,10 @@
     xmlns:editor="UnityEditor.UIElements"
     xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
 >
-    <Style src="project://database/Assets/UI/Features/MainMenu/mainMenu.uss" />
+    <Style src="project://database/Assets/UI/Features/Spectate/spectate.uss" />
 
- 
+
     <engine:VisualElement class="main">
-        <engine:Button name="LobbyButton" text="Lobby" />
-        <engine:Button name="SettingsButton" text="Settings" />
+        <engine:Button name="stop-spectate__button" text="Stop spectating" />
     </engine:VisualElement>
-
 </engine:UXML>
-

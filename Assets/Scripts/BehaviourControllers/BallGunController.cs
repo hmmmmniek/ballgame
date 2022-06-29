@@ -204,7 +204,7 @@ public class BallGunController : NetworkBehaviour {
 
         unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
-                this.players = players.Where((p) => p.playerController != null).ToArray();
+                this.players = players.Where((p) => p.playerController != null && p.team.HasValue).ToArray();
             }
         });
     }

@@ -64,6 +64,17 @@ public class TeamSelectController : Module {
         Button joinButton = element.Q<Button>("join__button");
         joinButton.clicked += JoinSession;
 
+        Button leaveButton = element.Q<Button>("leave__button");
+        leaveButton.clicked += LeaveSession;
+
+        Button spectateButton = element.Q<Button>("spectate__button");
+        spectateButton.clicked += StartSpectate;
+        
+        Button settingsButton = element.Q<Button>("settings__button");
+        settingsButton.clicked += GoToSettings;
+        
+
+
         Watch(GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             foreach (var player in players) {
                 if(player.isLocal) {
@@ -81,4 +92,20 @@ public class TeamSelectController : Module {
 
     }
  
+    private void GoToSettings() {
+        SettingsController controller = ViewManager.instance.Open<SettingsController>();
+        controller.backAction = () => {
+            ViewManager.instance.Open<TeamSelectController>();
+        };
+    }
+
+    private void LeaveSession() {
+        NetworkState.Dispatch<object>(NetworkState.Leave, null, () => {});
+        ViewManager.instance.Open<MainMenuController>();
+
+    }
+    private void StartSpectate() {
+        ViewManager.instance.Open<SpectateController>();
+
+    }
 }
