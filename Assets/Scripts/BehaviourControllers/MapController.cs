@@ -17,6 +17,8 @@ public class MapController : NetworkBehaviour {
 
     public bool testSmallGeneration;
 
+    [HideInInspector][Networked] public MapSize size {get; set;}
+
 
     public void OnValidate() {
         if (generateMeshes) {
@@ -34,14 +36,24 @@ public class MapController : NetworkBehaviour {
 
     public override void Spawned() {
         base.Spawned();
-        SessionProperty mapSize;
-        if (Runner.SessionInfo.Properties.TryGetValue("mapSize", out mapSize)) {
-            CreateMap((MapSize)(int)mapSize);
+
+        if(size != MapSize._) {
+            CreateMap(size);
         } else {
-            Debug.LogError("Corrupt session state");
-            NetworkState.Dispatch<object>(NetworkState.Leave, null, () => { });
-            return;
+            SessionProperty mapSize;
+            if (Runner.SessionInfo.Properties.TryGetValue("mapSize", out mapSize)) {
+                CreateMap((MapSize)(int)mapSize);
+                if(Object.HasStateAuthority) {
+                    size = (MapSize)(int)mapSize;
+                }
+            } else {
+                Debug.LogError("Corrupt session state");
+                NetworkState.Dispatch<object>(NetworkState.Leave, null, () => { });
+                return;
+            }
         }
+
+       
     }
 
     private IEnumerator DestroyObject (GameObject go) {

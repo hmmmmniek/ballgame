@@ -7,19 +7,22 @@ using UnityEngine;
 using UnityEngine.UIElements;
 
 public struct Player {
-    public PlayerRef playerRef;
+    public PlayerRef? playerRef;
     public BallGunController ballGunController;
     public PlayerController playerController;
     public Team? team;
     public bool isLocal;
+    public string hwid;
 
     public Player(
-        PlayerRef playerRef,
+        string hwid,
+        PlayerRef? playerRef,
         BallGunController ballGunController,
         PlayerController playerController,
         Team? team,
         bool isLocal
     ) {
+        this.hwid = hwid;
         this.playerRef = playerRef;
         this.ballGunController = ballGunController;
         this.playerController = playerController;
@@ -140,22 +143,39 @@ public class GameState: BaseState<GameStateData, GameState> {
         StateChange((GameStateData state) => {
             Player[] newPlayers = {args};
             state.players = newPlayers.Concat(state.players).ToArray();
+            PrintPlayers(state.players);
         });
     }
 
-    public static void RemovePlayer(BaseState<GameStateData, GameState> s, PlayerRef args, Action c) { (s as GameState).RP(c, args); }
-    private void RP(Action complete, PlayerRef args) {
+    public static void RemovePlayer(BaseState<GameStateData, GameState> s, string args, Action c) { (s as GameState).RP(c, args); }
+    private void RP(Action complete, string args) {
         StateChange((GameStateData state) => {
-            state.players = state.players.Where((item) => item.playerRef.PlayerId != args.PlayerId).ToArray();
+            state.players = state.players.Where((item) => item.hwid != args).ToArray();
+            PrintPlayers(state.players);
         });
     }
 
-    public static void UpdatePlayer(BaseState<GameStateData, GameState> s, Player args, Action c) { (s as GameState).UP(c, args); }
-    private void UP(Action complete, Player args) {
+    public static void UpdatePlayer(BaseState<GameStateData, GameState> s, (Player player, bool usePlayerRef) args, Action c) { (s as GameState).UP(c, args); }
+    private void UP(Action complete, (Player player, bool usePlayerRef) args) {
         StateChange((GameStateData state) => {
-            Player[] newPlayers = {args};
-            state.players = newPlayers.Concat(state.players.Where((item) => item.playerRef.PlayerId != args.playerRef.PlayerId).ToArray()).ToArray();
+            Player[] newPlayers = {args.player};
+            state.players = args.usePlayerRef ? 
+                newPlayers.Concat(state.players.Where((item) =>
+                    (item.playerRef.HasValue && item.playerRef.Value.PlayerId != args.player.playerRef.Value.PlayerId)
+                ).ToArray()).ToArray() :
+                newPlayers.Concat(state.players.Where((item) =>
+                    (item.hwid != args.player.hwid)
+                ).ToArray()).ToArray();
+            PrintPlayers(state.players);
         });
+    }
+
+    private void PrintPlayers(Player[] players) {
+        
+        //Debug.Log("-----");
+        //foreach (var player in players) {
+        //    Debug.Log($"PlayerID: {(player.playerRef.HasValue ? player.playerRef.Value.PlayerId : "?")} Team: {(player.team == Team.Blue ? "Blue" : (player.team == Team.Red ? "Red" : "None"))} Is local: {(player.isLocal ? "true" : "false") } Has playercontroller: {(player.playerController == null ? "false" : "true")} HWID: {player.hwid}");
+        //}
     }
 
 

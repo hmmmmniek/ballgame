@@ -1,5 +1,6 @@
 using System.Collections;
 using System.Collections.Generic;
+using System.Diagnostics;
 using UnityEngine;
 
 public static class Utils {
@@ -147,5 +148,11 @@ public static class Utils {
             }
         }
         return boostRemainingPercentage;
+    }
+
+    public static string GetCurrentProcessId() {
+        Process currentProcess = Process.GetCurrentProcess();
+        string pid = currentProcess.Id.ToString();
+        return SystemInfo.deviceUniqueIdentifier + pid;
     }
 }

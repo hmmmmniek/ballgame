@@ -389,10 +389,7 @@ public class NetworkDebugStart : Fusion.Behaviour {
   }
 
   public void ShutdownAll() {
-
-    var runners = NetworkRunner.GetInstancesEnumerator();
-    while (runners.MoveNext()) {
-      var runner = runners.Current;
+    foreach (var runner in NetworkRunner.Instances.ToList()) {
       if (runner != null && runner.IsRunning) {
         runner.Shutdown();
       }
@@ -577,10 +574,10 @@ public class NetworkDebugStart : Fusion.Behaviour {
 
   protected virtual Task InitializeNetworkRunner(NetworkRunner runner, GameMode gameMode, NetAddress address, SceneRef scene, Action<NetworkRunner> initialized) {
     
-    var sceneObjectProvider = runner.GetComponents(typeof(MonoBehaviour)).OfType<INetworkSceneObjectProvider>().FirstOrDefault();
-    if (sceneObjectProvider == null) {
-      Debug.Log($"NetworkRunner does not have any component implementing {nameof(INetworkSceneObjectProvider)} interface, adding {nameof(NetworkSceneManagerDefault)}.", runner);
-      sceneObjectProvider = runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
+    var sceneManager = runner.GetComponents(typeof(MonoBehaviour)).OfType<INetworkSceneManager>().FirstOrDefault();
+    if (sceneManager == null) {
+      Debug.Log($"NetworkRunner does not have any component implementing {nameof(INetworkSceneManager)} interface, adding {nameof(NetworkSceneManagerDefault)}.", runner);
+      sceneManager = runner.gameObject.AddComponent<NetworkSceneManagerDefault>();
     }
 
     return runner.StartGame(new StartGameArgs {
@@ -589,7 +586,7 @@ public class NetworkDebugStart : Fusion.Behaviour {
       Scene = scene,
       SessionName = DefaultRoomName,
       Initialized = initialized,
-      SceneObjectProvider = sceneObjectProvider
+      SceneManager = sceneManager
     });
   }
 

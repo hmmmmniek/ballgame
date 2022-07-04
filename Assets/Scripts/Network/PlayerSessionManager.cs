@@ -10,7 +10,7 @@ using System.Linq;
 
 public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public MatchController matchManagerPrefab;
-    private MatchController matchManager;
+    [HideInInspector]public MatchController matchManager;
 
     private float lastRtt = -1;
 
@@ -33,21 +33,28 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     }
 
 
-    public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
-        if (runner.LocalPlayer == player && runner.IsServer) {
+    public async void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
+
+        if (runner.LocalPlayer == player && runner.IsServer && matchManager == null) {
             matchManager = runner.Spawn(matchManagerPrefab, new Vector3(0, 0, 0));
         }
-        if (runner.IsServer) {
-            matchManager.PlayerJoined(player);
+
+        if(runner.LocalPlayer == player) {
+            string hwid = Utils.GetCurrentProcessId();
+            await MatchController.PlayerJoined(player, hwid);
         }
+        
     }
+
+
+
+
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
         if (runner.IsServer) {
-            matchManager.PlayerDisconnected(player);
+            matchManager.HandlePlayerDisconnected(player);
         }
     }
-
 
     public void OnInput(NetworkRunner runner, NetworkInput input) {
         if(PlayerController.Local != null) {

@@ -34,14 +34,74 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
         await networkManager.JoinHostMigration(hostMigrationToken, HostMigrationResume);
     }
     void HostMigrationResume(NetworkRunner runner) {
+        PlayerSessionManager playerSessionManager = runner.GetComponent<PlayerSessionManager>();
+        IEnumerable<NetworkObject> networkObjects = runner.GetResumeSnapshotNetworkObjects();
 
-       /* foreach (var resumeNO in runner.GetResumeSnapshotNetworkObjects()) {
-
-            if (resumeNO.TryGetBehaviour<NetworkPositionRotation>(out var posRot)) {
-                runner.Spawn(resumeNO, position: posRot.ReadPosition(), rotation: posRot.ReadRotation(), onBeforeSpawned: (runner, newNO) => {
-                    newNO.CopyStateFrom(resumeNO);
-                });
+        MapController mapController = null;
+        foreach (var resumeNO in networkObjects) {
+            if(resumeNO.TryGetBehaviour<MapController>(out var m)) {
+                mapController = runner.Spawn(
+                    prefab: resumeNO,
+                    position: new Vector3(0, 0, 0),
+                    rotation: Quaternion.LookRotation(new Vector3(0, 0, 0)),
+                    onBeforeSpawned: (runner, newNO) => {
+                        newNO.CopyStateFrom(resumeNO);
+                    }
+                ).GetComponent<MapController>();                
             }
-        }*/
+        }
+
+        BallController ballController = null;
+        foreach (var resumeNO in networkObjects) {
+            if(resumeNO.TryGetBehaviour<BallController>(out var b)) {
+                ballController = runner.Spawn(
+                    prefab: resumeNO,
+                    position: b.ReadPosition(),
+                    rotation: b.ReadRotation(),
+                    onBeforeSpawned: (runner, newNO) => {
+                        newNO.CopyStateFrom(resumeNO);
+                    }
+                ).GetComponent<BallController>();                
+            }
+        }
+
+        foreach (var resumeNO in networkObjects) {
+            if(resumeNO.TryGetBehaviour<MatchController>(out var m)) {
+                MatchController matchController = runner.Spawn(
+                    prefab: resumeNO,
+                    position: new Vector3(0, 0, 0),
+                    onBeforeSpawned: (runner, newNO) => {
+                        newNO.CopyStateFrom(resumeNO);
+                        newNO.GetComponent<MatchController>().players = new PlayerRefSet();
+                        newNO.GetComponent<MatchController>().ball = ballController;
+                        newNO.GetComponent<MatchController>().map = mapController;
+                    }
+                ).GetComponent<MatchController>();
+                playerSessionManager.matchManager = matchController;
+                
+            }
+
+        }
+        foreach (var resumeNO in networkObjects) {
+            if(resumeNO.TryGetBehaviour<PlayerController>(out var p)) {
+                if(!p.isHost) {
+                    PlayerController playerController = runner.Spawn(
+                        prefab: resumeNO,
+                        position: p.ReadPosition(),
+                        rotation: p.ReadRotation(),
+                        onBeforeSpawned: (runner, newNO) => {
+                            newNO.CopyStateFrom(resumeNO);
+                            newNO.GetComponent<PlayerController>().inputAuthority = PlayerRef.None;
+                            newNO.GetComponent<PlayerController>().isHost = false;
+                        }
+                    ).GetComponent<PlayerController>();
+
+                    GameState.Dispatch(GameState.AddPlayer, new Player(playerController.hwid, null, playerController.ballGunController, playerController, playerController.team, false), () => {});
+
+                }
+            }
+            
+        }
+
     }
 }

@@ -1,5 +1,6 @@
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
 
@@ -126,12 +127,14 @@ public class CharacterMovementController : NetworkBehaviour {
         boostRemainingPercentage = 100f;
 
         Physics.IgnoreCollision(localCharacterMovementController.GetComponent<CharacterController>(), GetComponent<CharacterController>());
-
-        localCharacterMovementController.Init(Object.HasInputAuthority);
-        localCharacterMovementController.Synchronize();
-
+        InitLocalController();
     }
 
+    public async void InitLocalController() {
+        await Task.Delay(100);
+        localCharacterMovementController.Init(Object.HasInputAuthority);
+        localCharacterMovementController.Synchronize();
+    }
 
     private Vector2 movement;
     private bool clientJump;
@@ -343,7 +346,7 @@ public class CharacterMovementController : NetworkBehaviour {
                 Velocity.magnitude > bashPlayerMinimumSpeed
             ) {
                 foreach (var player in players) {
-                    if(player.playerController == ballGunController.playerController) {
+                    if(player.playerController == ballGunController.playerController || player.team == ballGunController.playerController.team) {
                         continue;
                     }
                     Vector3 otherPlayerPosition = player.playerController.transform.position;

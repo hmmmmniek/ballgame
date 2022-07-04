@@ -59,8 +59,7 @@ public class InGameMenuController : Module {
 
     }
     private void SwitchTeam() {
-        localPlayer.team = null;
-        GameState.Dispatch(GameState.UpdatePlayer, localPlayer, () => {});
+        MatchController.instance.ChangeTeam(localPlayer.playerRef.Value, null);
         ViewManager.instance.Open<TeamSelectController>();
 
     }

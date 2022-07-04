@@ -86,8 +86,7 @@ public class TeamSelectController : Module {
 
 
     private void JoinSession() {
-        localPlayer.team = selectedTeam;
-        GameState.Dispatch(GameState.UpdatePlayer, localPlayer, () => {});
+        MatchController.instance.ChangeTeam(localPlayer.playerRef.Value, selectedTeam);
         ViewManager.instance.Open<GameController>();
 
     }

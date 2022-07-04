@@ -6,8 +6,10 @@ public class BodyTrackingController: MonoBehaviour {
     public PlayerController playerController;
     public Transform bodyAnchorPoint;
     private bool hasInputAuthority;
-    public void Init(bool hasInputAuthority) {
+    public void Init(bool hasInputAuthority, PlayerRef inputAuthority) {
         this.hasInputAuthority = hasInputAuthority;
+        
+        transform.name = $"#{inputAuthority.PlayerId} Body";
     }
 
     public void Update() {

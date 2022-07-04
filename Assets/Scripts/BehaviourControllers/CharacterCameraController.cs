@@ -7,18 +7,30 @@ public class CharacterCameraController : NetworkTransform {
     public Transform cameraAnchorPoint;
     public Transform bodyAnchorPoint;
     public PlayerController playerController;
+    public Camera cam;
+    public AudioListener audioListener;
+
     private bool isLocal = false;
 
 
     public override void Spawned() {    
         base.Spawned();
         transform.parent = null;
+
+    }
+
+    public void Init(PlayerRef inputAuthority) {
         isLocal = playerController.IsLocal();
+        transform.name = $"#{inputAuthority.PlayerId} Camera";
+
     }
 
     public override void FixedUpdateNetwork() {
-        if (GetInput(out NetworkInputData networkInputData) && !isLocal) {
-            Rotate(networkInputData.rotationInput);
+        if (GetInput(out NetworkInputData networkInputData)) {
+            if(!isLocal) {
+                Rotate(networkInputData.rotationInput);
+            }
+
         }
     }
 

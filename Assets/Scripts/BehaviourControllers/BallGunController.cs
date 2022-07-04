@@ -184,15 +184,14 @@ public class BallGunController : NetworkBehaviour {
     private Vector2 clientBallSpinRotationEnd;
     private Action unsubscribePlayers;
     private Player[] players;
+    private bool spawned = false;
 
     protected void Awake() {
     }
 
  
     public override void Spawned() {
-        if (!Object.HasInputAuthority) {
-            localBallCamera.gameObject.SetActive(false);
-        } else {
+        if (Object.HasInputAuthority) {
             GameState.Dispatch<float>(GameState.SetChargeTime, chargeTimeAmount, () => {});
         }
         localChargeTime = -1;
@@ -207,11 +206,13 @@ public class BallGunController : NetworkBehaviour {
                 this.players = players.Where((p) => p.playerController != null && p.team.HasValue).ToArray();
             }
         });
+
+        spawned = true;
     }
 
     private bool previousPrimaryPressed = false;
     public void Update() {
-        if(Object.HasInputAuthority) {
+        if(spawned && Object.HasInputAuthority) {
 
             /*
             * Pull ball spin
@@ -613,7 +614,7 @@ public class BallGunController : NetworkBehaviour {
             if(angle > kickAngle) {
                 continue;
             }
-            if(player.ballGunController.isCarrying && distance <= kickBallDropDistance) {
+            if(player.ballGunController.isCarrying && distance <= kickBallDropDistance && playerController.team != player.team) {
                 if(Object.HasStateAuthority) {
                     player.ballGunController.isCarrying = false;
                 }

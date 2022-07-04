@@ -23,13 +23,13 @@ public class BallController : NetworkRigidbody {
     public float spinRollAirDepletionRate = 0.01f;
     public float rollingResistance = 0.01f;
     public Transform ballModel;
+    public Rigidbody rigidBody;
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
     [HideInInspector][Networked] public Vector2 spinInput {get; set;}
     [HideInInspector][Networked] public float rollInput {get; set;}
     [Networked] private Vector3 spinInitialForward { get; set; }
-    [HideInInspector] public Rigidbody rigidBody;
     [Networked] private float spinCapacityLeft { get; set; }
 
     private Action unsubscribePlayers;
@@ -61,7 +61,6 @@ public class BallController : NetworkRigidbody {
 
         GameState.Dispatch(GameState.SetBall, this, () => {});
 
-        rigidBody = GetComponent<Rigidbody>();
         rigidBody.maxAngularVelocity = spinMaxAngularVelocity * 10;
 
         circumference = (float)Math.PI * 2f * GetComponent<SphereCollider>().radius;
@@ -106,7 +105,7 @@ public class BallController : NetworkRigidbody {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
-                    if(player != null && !player.temporarilyIgnored && !player.ballGunController.shielding && !player.knockedOut) {
+                    if(player != null && !player.despawned && !player.temporarilyIgnored && !player.ballGunController.shielding && !player.knockedOut) {
                         float speed = getVelocity();
                         player.GetComponent<CharacterMovementController>().Push(rigidBody.velocity.normalized * (maxPickupForce * (speed / maxSpeed)));
                         Attach(player.ballGunController.ballAnchor);
@@ -119,7 +118,7 @@ public class BallController : NetworkRigidbody {
         }
 
 
-        if(isAttached) {
+        if(isAttached && anchor != null) {
             transform.position = anchor.ReadPosition();
         }
 
@@ -219,7 +218,7 @@ public class BallController : NetworkRigidbody {
             Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
             foreach (var item in area) {
                 PlayerController player = item.GetComponent<PlayerController>();
-                if(player != null) {
+                if(player != null && !player.despawned) {
                     player.temporarilyIgnored = true;
                 }            
             }

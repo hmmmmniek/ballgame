@@ -555,6 +555,8 @@ MonoBehaviour:
   cameraAnchorPoint: {fileID: 901065504550210975}
   bodyAnchorPoint: {fileID: 8624380541951960274}
   playerController: {fileID: 5165869480873457305}
+  cam: {fileID: 3453923932337470091}
+  audioListener: {fileID: 4602568349960798681}
 --- !u!114 &4006394330535716081
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1420,13 +1422,17 @@ MonoBehaviour:
   ballModel: {fileID: 4133029749192927420}
   capsuleCollider: {fileID: 8411364181394582157}
   rigidBody: {fileID: 4287011096316221152}
-  teamBlueMaterial: {fileID: 2100000, guid: ce258e77fbfe7e1f08d69253c3af759e, type: 2}
+  teamBlueMaterial: {fileID: 2100000, guid: e482b547d70c286ceab56cc05951082a, type: 2}
   teamRedMaterial: {fileID: 2100000, guid: 86b41f121b294b9f988a8a95135e86d5, type: 2}
   ballGunController: {fileID: 5538467927710914934}
   networkCharacterMovementController: {fileID: 6839332496305766221}
   localCharacterMovementController: {fileID: 8180254042653263233}
   bodyTrackingController: {fileID: 4106313812982400560}
+  cameraController: {fileID: 4587144850840075096}
+  despawned: 0
+  initialized: 0
   _team: 0
+  _hwid: 
   _temporarilyIgnored:
     _value: 0
   _lastReceivedLocalTime: 0

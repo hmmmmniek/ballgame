@@ -37,7 +37,7 @@
     "MaxNetworkedObjectCount": 8192,
     "NetworkIdIsObjectName": false,
     "EnableHostMigration": true,
-    "HostMigrationSnapshotInterval": 10,
+    "HostMigrationSnapshotInterval": 1,
     "Simulation": {
         "InputDataWordCount": 0,
         "TickRate": 128,

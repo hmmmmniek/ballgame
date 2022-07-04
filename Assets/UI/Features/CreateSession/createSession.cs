@@ -18,6 +18,7 @@ public class CreateSessionController : Module {
         _5v5
     }
     public enum MapSize {
+        _,
         Small,
         Medium,
         Large

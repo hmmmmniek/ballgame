@@ -16,7 +16,6 @@ public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
 		InputHandler.instance.networkInputDataCache = new NetworkInputData();
 
 
-        GameState.Dispatch<object>(GameState.ClearPlayers, null, () => {});
 		
 		MapController map = FindObjectOfType<MapController>();
 		if(map != null) {
@@ -36,6 +35,10 @@ public class ServerDisconnected : Fusion.Behaviour, INetworkRunnerCallbacks {
 		foreach (var cameraController in FindObjectsOfType<CharacterCameraController>()){
 			Destroy(cameraController.gameObject);
 		}
+
+		GameState.Dispatch<object>(GameState.ClearPlayers, null, () => {});
+
+
     }
     public void OnPlayerJoined(NetworkRunner runner, PlayerRef player) { }
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) { }

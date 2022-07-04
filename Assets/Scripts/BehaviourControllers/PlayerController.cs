@@ -4,6 +4,7 @@ using UnityEngine;
 using Fusion;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 public class PlayerController : NetworkRigidbody {
     public static PlayerController Local { get; set; }
@@ -21,9 +22,90 @@ public class PlayerController : NetworkRigidbody {
     public CharacterMovementController networkCharacterMovementController;
     public LocalCharacterMovementController localCharacterMovementController;
     public BodyTrackingController bodyTrackingController;
-
+    public CharacterCameraController cameraController;
+    public bool despawned = false;
+    public bool initialized = false;
     private Queue<float> RttMeasurements = new Queue<float>();
-    [HideInInspector][Networked] public Team team {get; set;}
+    [HideInInspector][Networked(OnChanged = nameof(OnTeamChanged))] public Team team {get; set;}
+    public static void OnTeamChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnTeamChanged();
+    }
+    private void OnTeamChanged() {
+        MeshRenderer renderer = playerModel.GetComponentInChildren<MeshRenderer>();
+        switch(team) {
+            case Team.Blue: {
+                renderer.sharedMaterial = teamBlueMaterial;
+                break;
+            }
+            case Team.Red: {
+                renderer.sharedMaterial = teamRedMaterial;
+                break;
+            }
+        }
+    }
+    [HideInInspector][Networked(OnChanged = nameof(OnInputAuthorityChanged))] public PlayerRef inputAuthority {get; set;}
+    public static void OnInputAuthorityChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnInputAuthorityChanged();
+    }
+    private void OnInputAuthorityChanged() {
+
+        if(Object.HasStateAuthority) {
+            Object.AssignInputAuthority(inputAuthority);
+            cameraController.Object.AssignInputAuthority(inputAuthority);
+            ballGunController.Object.AssignInputAuthority(inputAuthority);
+            networkCharacterMovementController.Object.AssignInputAuthority(inputAuthority);
+        }
+
+
+        transform.name = $"#{inputAuthority.PlayerId} Player";
+        Player player = new Player(hwid, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
+        GameState.Dispatch(GameState.UpdatePlayer, (player: player, usePlayerRef: true), () => {});
+
+        if (Runner.LocalPlayer == inputAuthority) {
+            Local = this;
+
+            Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("LocalPlayerModel"));
+            Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("LocalPlayerModel"));
+            Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("LocalPlayerModel"));
+
+            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
+            cameraController.cam.enabled = true;
+            cameraController.audioListener.enabled = true;
+            bodyTrackingController.Init(true, inputAuthority);
+            ballGunController.localBallCamera.gameObject.SetActive(true);
+
+            if(lastRotationInput.magnitude > 0) {
+                InputHandler.instance.networkInputDataCache.rotationInput = lastRotationInput;
+            }
+            if(Runner.IsServer) {
+                isHost = true;
+            }
+        }
+        if(Runner.LocalPlayer != inputAuthority) {
+            Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("Default"));
+            Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("Default"));
+            Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("Default"));
+
+            cameraController.cam.enabled = false;
+            cameraController.audioListener.enabled = false;
+            bodyTrackingController.Init(false, inputAuthority);
+            ballGunController.localBallCamera.gameObject.SetActive(false);
+
+        }
+
+        cameraController.Init(inputAuthority);
+
+
+    }
+    [HideInInspector][Networked] public bool isHost {get; set;}
+    [HideInInspector][Networked(OnChanged = nameof(OnHWIDChanged)), Capacity(64)] public string hwid {get; set;}
+    public static void OnHWIDChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnHWIDChanged();
+    }
+    private void OnHWIDChanged() {
+        Player player = new Player(hwid, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
+        GameState.Dispatch(GameState.UpdatePlayer, (player: player, usePlayerRef: true), () => {});
+    }
     [HideInInspector][Networked] public NetworkBool temporarilyIgnored {get; set;}
     [HideInInspector][Networked(OnChanged = nameof(OnLastReceivedInputTimeChanged))] public float lastReceivedLocalTime {get; set;}
     public static void OnLastReceivedInputTimeChanged(Changed<PlayerController> changed) {
@@ -77,6 +159,8 @@ public class PlayerController : NetworkRigidbody {
         }
     }
     
+    [HideInInspector][Networked]public Vector2 lastRotationInput { get; set; }
+
 
     [HideInInspector] public BallController ball;
     // Start is called before the first frame update
@@ -85,6 +169,8 @@ public class PlayerController : NetworkRigidbody {
     }
 
     protected override void CopyFromBufferToEngine() {
+        bool oldValue = rigidBody.isKinematic;
+        rigidBody.isKinematic = false;
         if(networkCharacterMovementController.Controller == null) {
             base.CopyFromBufferToEngine();
         } else {
@@ -92,69 +178,77 @@ public class PlayerController : NetworkRigidbody {
             networkCharacterMovementController.Controller.enabled = false;
             base.CopyFromBufferToEngine();
             networkCharacterMovementController.Controller.enabled = currentValue;
-        }
+        }  
+        rigidBody.isKinematic = oldValue;
+      
     }
 
     public override void Spawned() {
         base.Spawned();
-
         rigidBody.isKinematic = true;
         capsuleCollider.enabled = false;
+        cameraController.cam.enabled = false;
+        cameraController.audioListener.enabled = false;
+        transform.name = $"#? Player";
+        bodyTrackingController.transform.name = "#? Body";
+        cameraController.transform.name = "#? Camera";
 
-
-        if (Object.HasInputAuthority) {
-            Local = this;
-
-            Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("LocalPlayerModel"));
-            Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("LocalPlayerModel"));
-            Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("LocalPlayerModel"));
-
-            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
-            bodyTrackingController.Init(true);
-        } else {
-            Camera localCamera = GetComponentInChildren<Camera>();
-            if(localCamera) {
-                localCamera.enabled = false;
-            }
-
-            AudioListener audioListener = GetComponentInChildren<AudioListener>();
-            if(audioListener) {
-                audioListener.enabled = false;
-            }
-            bodyTrackingController.Init(false);
-
+        if(Object.HasInputAuthority) {
+            RPC_Joined(Runner.LocalPlayer, Utils.GetCurrentProcessId());
+        }
+        if(Object.InputAuthority == PlayerRef.None) {
+            AutoRemove();
         }
 
-        MeshRenderer renderer = playerModel.GetComponentInChildren<MeshRenderer>();
-        switch(team) {
-            case Team.Blue: {
-                renderer.sharedMaterial = teamBlueMaterial;
-                break;
-            }
-            case Team.Red: {
-                renderer.sharedMaterial = teamRedMaterial;
-                break;
-            }
-        }
-        transform.name = $"Player {Object.Id}";
-        Player player = new Player(Object.InputAuthority, ballGunController, this, team, Object.HasInputAuthority);
-        GameState.Dispatch<Player>(GameState.UpdatePlayer, player, () => {});
 
+    }
+    public async void AutoRemove() {
+        await Task.Delay(5000);
+        if(Object.InputAuthority == PlayerRef.None) {
+            MatchController.instance.HandlePlayerDisconnected(hwid);
+        }
+    }
+
+    [Rpc(sources: RpcSources.All, targets: RpcTargets.StateAuthority, InvokeLocal = true, HostMode = RpcHostMode.SourceIsHostPlayer)]
+    public void RPC_Joined(PlayerRef playerRef, string id, RpcInfo info = default){
+        if(info.Source == playerRef) {
+            this.hwid = id;
+        }
     }
 
     public override void Despawned(NetworkRunner runner, bool hasState) {
-        //GameState.Dispatch(GameState.RemovePlayer, Object.InputAuthority, () => {});
-        if (Object.HasInputAuthority) {
-            GameObject.Find("Main Camera").GetComponent<Camera>().enabled = true;
-        }
-        GameObject.Destroy(localCharacterMovementController.networkMovementController.cameraController.gameObject);
-        GameObject.Destroy(localCharacterMovementController.networkMovementController.gameObject);
-        GameObject.Destroy(localCharacterMovementController.gameObject);
-        GameObject.Destroy(localCharacterMovementController.networkMovementController);
-        GameObject.Destroy(localCharacterMovementController);
-        GameObject.Destroy(bodyTrackingController);
-    }
+        despawned = true;
+        if (IsLocal()) {
 
+            GameObject obj = GameObject.Find("Main Camera");
+            if(obj != null) {
+                Camera mainCamera = obj.GetComponent<Camera>();
+                if(mainCamera != null) {
+                    mainCamera.enabled = true;
+                }
+            }
+            
+        }
+        Player[] players = GameState.SelectOnce(GameState.GetPlayers);
+        if(players.Count() > 0) {
+            IEnumerable<Player> playersFiltered = players.Where(p => p.hwid == hwid);
+            if(playersFiltered.Count() > 0) {
+                Player localPlayer = playersFiltered.First();
+                localPlayer.ballGunController = null;
+                localPlayer.playerController = null;
+                localPlayer.team = null;
+
+                GameState.Dispatch(GameState.UpdatePlayer, (player: localPlayer, usePlayerRef: false), () => {});
+            }
+
+
+        }
+        
+
+        GameObject.Destroy(bodyTrackingController.gameObject);
+        GameObject.Destroy(cameraController.gameObject);
+        GameObject.Destroy(this);
+    }
 
 
 
@@ -163,10 +257,12 @@ public class PlayerController : NetworkRigidbody {
         if (GetInput(out NetworkInputData networkInputData)) {
             if(Object.HasStateAuthority) {
                 lastReceivedLocalTime = networkInputData.localTime;
+                lastRotationInput = networkInputData.rotationInput;
             }
+
         }
 
-        if(temporarilyIgnored && Object.HasStateAuthority) {
+        if(!despawned && temporarilyIgnored && Object.HasStateAuthority) {
             Collider[] area = Physics.OverlapSphere(transform.position, ball.pickupDistance + 0.5f);
             bool ballFound = false;
             foreach (var item in area) {

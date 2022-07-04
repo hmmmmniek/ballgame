@@ -19,19 +19,17 @@ public class NetworkManager : Fusion.Behaviour {
 
     public async Task<SessionInfo> StartSession(string name, int size, MapSize mapSize) {
         await ResetRunner();
-        
         var startGameArgs = new StartGameArgs {
             GameMode = GameMode.Host,
             SessionName = name,
             PlayerCount = size,
-            SceneObjectProvider = GetSceneObjectProvider(),
+            SceneManager = GetSceneManager(),
             DisableClientSessionCreation = true,
             SessionProperties = new Dictionary<string, SessionProperty>(new KeyValuePair<string, SessionProperty>[] {
                 new KeyValuePair<string, SessionProperty>("mapSize", (int)mapSize)
             })
         };
         var result = await runner.StartGame(startGameArgs);
-
         if(result.Ok) {
             return runner.SessionInfo;
         } else {
@@ -42,11 +40,10 @@ public class NetworkManager : Fusion.Behaviour {
 
     public async Task<bool> JoinSession(SessionInfo session) {
         await ResetRunner();
-
         var startGameArgs = new StartGameArgs {
             GameMode = GameMode.Client,
             SessionName = session.Name,
-            SceneObjectProvider = GetSceneObjectProvider(),
+            SceneManager = GetSceneManager(),
             DisableClientSessionCreation = true
         };
         
@@ -66,8 +63,9 @@ public class NetworkManager : Fusion.Behaviour {
         StartGameResult result = await runner.StartGame(new StartGameArgs() {
             HostMigrationToken = hostMigrationToken,
             HostMigrationResume = hostMigrationResume,
-            SceneObjectProvider = GetSceneObjectProvider()
+            SceneManager = GetSceneManager()
         });
+
 
         if (result.Ok) {
             return true;
@@ -81,7 +79,7 @@ public class NetworkManager : Fusion.Behaviour {
         return true;
     }
 
-    private INetworkSceneObjectProvider GetSceneObjectProvider() {
+    private INetworkSceneManager GetSceneManager() {
         var sceneObjectProvider = GetComponent<NetworkSceneManagerDefault>();
         if(sceneObjectProvider == null) {
             sceneObjectProvider = gameObject.AddComponent<NetworkSceneManagerDefault>();
@@ -96,6 +94,5 @@ public class NetworkManager : Fusion.Behaviour {
         runner = Instantiate(GetComponent<NetworkManager>().runnerPrefab);
         runner.ProvideInput = true;
         await runner.JoinSessionLobby(SessionLobby.ClientServer);
-
     }
 }
