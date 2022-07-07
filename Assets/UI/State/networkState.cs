@@ -71,7 +71,7 @@ public class NetworkState: BaseState<NetworkStateData, NetworkState> {
         StateChange((NetworkStateData state) => {
             state.region = args;
         });
-        await dependencies.networkManager.ResetRunner();
+        await dependencies.networkManager.ResetRunner(ShutdownReason.Ok);
     }
 
 

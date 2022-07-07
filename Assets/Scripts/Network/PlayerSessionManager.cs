@@ -12,7 +12,6 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public MatchController matchManagerPrefab;
     [HideInInspector]public MatchController matchManager;
 
-    private float lastRtt = -1;
 
     public void OnConnectedToServer(NetworkRunner runner) {}
     public void OnInputMissing(NetworkRunner runner, PlayerRef player, NetworkInput input) { }

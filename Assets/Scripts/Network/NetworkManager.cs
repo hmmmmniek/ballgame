@@ -14,23 +14,22 @@ public class NetworkManager : Fusion.Behaviour {
     public NetworkRunner runnerPrefab;
     private NetworkRunner runner;
     public async void Start() {
-        await ResetRunner();
+        await ResetRunner(ShutdownReason.Ok);
     }
 
-    public async Task<SessionInfo> StartSession(string name, int size, MapSize mapSize) {
-        await ResetRunner();
-        var startGameArgs = new StartGameArgs {
-            GameMode = GameMode.Host,
-            SessionName = name,
-            PlayerCount = size,
-            SceneManager = GetSceneManager(),
-            DisableClientSessionCreation = true,
-            SessionProperties = new Dictionary<string, SessionProperty>(new KeyValuePair<string, SessionProperty>[] {
+    public async Task<SessionInfo> StartSession(string sessionName, int size, MapSize mapSize) {
+        await ResetRunner(ShutdownReason.Ok);
+
+        var result = await this.StartSimulation(
+            runner: runner,
+            gameMode: GameMode.Host,
+            sessionName: sessionName,
+            playerCount: size,
+            customProps: new Dictionary<string, SessionProperty>(new KeyValuePair<string, SessionProperty>[] {
                 new KeyValuePair<string, SessionProperty>("mapSize", (int)mapSize)
             })
-        };
-        var result = await runner.StartGame(startGameArgs);
-        if(result.Ok) {
+        );
+        if (result.Ok) {
             return runner.SessionInfo;
         } else {
             Debug.Log(result.ShutdownReason);
@@ -39,17 +38,15 @@ public class NetworkManager : Fusion.Behaviour {
     }
 
     public async Task<bool> JoinSession(SessionInfo session) {
-        await ResetRunner();
-        var startGameArgs = new StartGameArgs {
-            GameMode = GameMode.Client,
-            SessionName = session.Name,
-            SceneManager = GetSceneManager(),
-            DisableClientSessionCreation = true
-        };
+        await ResetRunner(ShutdownReason.Ok);
         
-        var result = await runner.StartGame(startGameArgs);
+        var result = await this.StartSimulation(
+            runner: runner,
+            gameMode: GameMode.Client,
+            sessionName: session.Name
+        );
 
-        if(result.Ok) {
+        if (result.Ok) {
             return true;
         } else {
             Debug.Log(result.ShutdownReason);
@@ -58,13 +55,14 @@ public class NetworkManager : Fusion.Behaviour {
     }
 
     public async Task<bool> JoinHostMigration(HostMigrationToken hostMigrationToken, Action<NetworkRunner> hostMigrationResume) {
-        await ResetRunner();
+        await ResetRunner(ShutdownReason.HostMigration);
 
-        StartGameResult result = await runner.StartGame(new StartGameArgs() {
-            HostMigrationToken = hostMigrationToken,
-            HostMigrationResume = hostMigrationResume,
-            SceneManager = GetSceneManager()
-        });
+        var result = await StartSimulation(
+            runner: runner,
+            gameMode: hostMigrationToken.GameMode,
+            migrationToken: hostMigrationToken,
+            migrationResume: hostMigrationResume
+        );
 
 
         if (result.Ok) {
@@ -75,24 +73,59 @@ public class NetworkManager : Fusion.Behaviour {
         }
     }
     public async Task<bool> Leave() {
-        await ResetRunner();
+        await ResetRunner(ShutdownReason.Ok);
         return true;
     }
 
     private INetworkSceneManager GetSceneManager() {
         var sceneObjectProvider = GetComponent<NetworkSceneManagerDefault>();
-        if(sceneObjectProvider == null) {
+        if (sceneObjectProvider == null) {
             sceneObjectProvider = gameObject.AddComponent<NetworkSceneManagerDefault>();
         }
         return sceneObjectProvider;
     }
 
-    public async Task ResetRunner() {
-        if(runner != null) {
-            await runner.Shutdown(true, ShutdownReason.Ok);
+    public async Task ResetRunner(ShutdownReason reason) {
+        if (runner != null) {
+            await runner.Shutdown(true, reason);
         }
-        runner = Instantiate(GetComponent<NetworkManager>().runnerPrefab);
+        runner = Instantiate(runnerPrefab);
         runner.ProvideInput = true;
+        runner.name = "NetworkRunner";
         await runner.JoinSessionLobby(SessionLobby.ClientServer);
+    }
+
+    public Task<StartGameResult> StartSimulation(
+      NetworkRunner runner,
+      GameMode gameMode,
+      Dictionary<string, SessionProperty> customProps = null,
+      AuthenticationValues authentication = null,
+      ushort port = 0,
+      string customLobby = null,
+      HostMigrationToken migrationToken = null,
+      Action<NetworkRunner> migrationResume = null,
+      Action<NetworkRunner> init = null,
+      int? playerCount = null,
+      string sessionName = null,
+      bool disableClientSessionCreation = false
+    ) {
+        Debug.Log("startSimulation");
+        return runner.StartGame(new StartGameArgs() {
+
+            SessionName = sessionName,
+            GameMode = gameMode,
+            Scene = SceneManager.GetActiveScene().buildIndex,
+            SceneManager = GetSceneManager(),
+            SessionProperties = customProps,
+            AuthValues = authentication,
+            DisableNATPunchthrough = false,
+            Address = NetAddress.Any(port),
+            CustomLobbyName = customLobby,
+            DisableClientSessionCreation = disableClientSessionCreation,
+            HostMigrationToken = migrationToken,
+            HostMigrationResume = migrationResume,
+            Initialized = init,
+            PlayerCount = playerCount
+        });
     }
 }
