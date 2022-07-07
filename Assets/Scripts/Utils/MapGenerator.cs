@@ -17,10 +17,11 @@ public class MapGenerator {
     public float mapSmallGoalPostRadius = 0.4f;
     public int mapSmallGoalPostSegments = 12;
     public float mapSmallLightMaxDistanceBetween = 60f;
-    public float mapSmallLightSpotAngle = 90f;
-    public float mapSmallLightIntensity = 2.2f;
+    public float mapSmallLightSpotAngle = 100f;
+    public float mapSmallLightInnerSpotAngle = 90f;
+    public float mapSmallLightIntensity = 250f;
     public float mapSmallLightRotation = 50f;
-    public float mapSmallLightRange = 55f;
+    public float mapSmallLightRange = 90f;
 
     public float mapMediumWidth = 55f;
     public float mapMediumLength = 90f;
@@ -32,9 +33,10 @@ public class MapGenerator {
     public int mapMediumGoalPostSegments = 12;
     public float mapMediumLightMaxDistanceBetween = 50f;
     public float mapMediumLightSpotAngle = 110f;
-    public float mapMediumLightIntensity = 3f;
+    public float mapMediumLightInnerSpotAngle = 100f;
+    public float mapMediumLightIntensity = 300f;
     public float mapMediumLightRotation = 70f;
-    public float mapMediumLightRange = 55f;
+    public float mapMediumLightRange = 90f;
 
     public float mapLargeWidth = 80f;
     public float mapLargeLength = 135f;
@@ -46,9 +48,10 @@ public class MapGenerator {
     public int mapLargeGoalPostSegments = 12;
     public float mapLargeLightMaxDistanceBetween = 40f;
     public float mapLargeLightSpotAngle = 110f;
-    public float mapLargeLightIntensity = 1.7f;
+    public float mapLargeLightInnerSpotAngle = 100f;
+    public float mapLargeLightIntensity = 200f;
     public float mapLargeLightRotation = 70f;
-    public float mapLargeLightRange = 80f;
+    public float mapLargeLightRange = 100f;
 
     public Material material;
 
@@ -250,6 +253,19 @@ public class MapGenerator {
 
             //North wall goal net bottom additional 2
             new Vector3(mapWidth - ((mapWidth - mapGoalWidth) / 2), 0, mapLength + mapGoalDepth),//27 79
+
+            //South wall goal line
+            new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight, 0), //80
+            new Vector3(mapWidth - ((mapWidth - mapGoalWidth) / 2), mapGoalHeight, 0),//81
+            new Vector3((mapWidth - mapGoalWidth) / 2, 0, 0), //82
+            new Vector3(mapWidth - ((mapWidth - mapGoalWidth) / 2), 0, 0),//83
+
+            //North wall goal line
+            new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight, mapLength), //84
+            new Vector3(mapWidth - ((mapWidth - mapGoalWidth) / 2), mapGoalHeight, mapLength),//85
+            new Vector3((mapWidth - mapGoalWidth) / 2, 0, mapLength), //86
+            new Vector3(mapWidth - ((mapWidth - mapGoalWidth) / 2), 0, mapLength),//87
+
         };
 
         //South wall goal post west bottom
@@ -470,7 +486,13 @@ public class MapGenerator {
             74, 75, 76,
             76, 75, 77,
 
+            //South wall goal line
+            82, 81, 80,
+            83, 81, 82,
 
+            //North wall goal line
+            84, 85, 86,
+            86, 85, 87
         };
 
         tris.AddRange(GetGoalPostTris(mapGoalPostSegments, southWallGoalPostWestBottomFirstVertexIndex, southWallGoalPostWestTopFirstVertexIndex));

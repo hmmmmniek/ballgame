@@ -76,6 +76,7 @@ public class MapController : NetworkBehaviour {
         int mapGoalPostSegments = 0;
         float lightMaxDistanceBetween = 0;
         float lightSpotAngle = 0;
+        float lightInnerSpotAngle = 0;
         float lightIntensity = 0;
         float lightRotation = 0;
         float lightRange = 0;
@@ -95,6 +96,7 @@ public class MapController : NetworkBehaviour {
                     mapGoalPostSegments = gen.mapSmallGoalPostSegments;
                     lightMaxDistanceBetween = gen.mapSmallLightMaxDistanceBetween;
                     lightSpotAngle = gen.mapSmallLightSpotAngle;
+                    lightInnerSpotAngle = gen.mapSmallLightInnerSpotAngle;
                     lightIntensity = gen.mapSmallLightIntensity;
                     lightRotation = gen.mapSmallLightRotation;
                     lightRange = gen.mapSmallLightRange;
@@ -112,6 +114,7 @@ public class MapController : NetworkBehaviour {
                     mapGoalPostSegments = gen.mapMediumGoalPostSegments;
                     lightMaxDistanceBetween = gen.mapMediumLightMaxDistanceBetween;
                     lightSpotAngle = gen.mapMediumLightSpotAngle;
+                    lightInnerSpotAngle = gen.mapMediumLightInnerSpotAngle;
                     lightIntensity = gen.mapMediumLightIntensity;
                     lightRotation = gen.mapMediumLightRotation;
                     lightRange = gen.mapMediumLightRange;
@@ -129,6 +132,7 @@ public class MapController : NetworkBehaviour {
                     mapGoalPostSegments = gen.mapLargeGoalPostSegments;
                     lightMaxDistanceBetween = gen.mapLargeLightMaxDistanceBetween;
                     lightSpotAngle = gen.mapLargeLightSpotAngle;
+                    lightInnerSpotAngle = gen.mapLargeLightInnerSpotAngle;
                     lightIntensity = gen.mapLargeLightIntensity;
                     lightRotation = gen.mapLargeLightRotation;
                     lightRange = gen.mapLargeLightRange;
@@ -232,14 +236,15 @@ public class MapController : NetworkBehaviour {
         northTopGoalPost.center = new Vector3(mapWidth / 2, mapGoalHeight, mapLength);
 
 
-        Vector3 southWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
+      /*  Vector3 southWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
         Light southWestLight = CreateLight(
             southWestLightPos,
             Quaternion.Euler(lightRotation, 45, 0),
             lightRange,
             transform,
             lightIntensity,
-            lightSpotAngle
+            lightSpotAngle,
+            lightInnerSpotAngle
         );
 
         Vector3 northWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, +mapLength / 2 - 0.5f);
@@ -249,7 +254,8 @@ public class MapController : NetworkBehaviour {
             lightRange,
             transform,
             lightIntensity,
-            lightSpotAngle
+            lightSpotAngle,
+            lightInnerSpotAngle
         );
 
         Vector3 southEastLightPos = new Vector3(mapWidth / 2 - 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
@@ -259,7 +265,8 @@ public class MapController : NetworkBehaviour {
             lightRange,
             transform,
             lightIntensity,
-            lightSpotAngle
+            lightSpotAngle,
+            lightInnerSpotAngle
         );
 
         Vector3 northEastLightPos = new Vector3(mapWidth / 2 - 0.5f, mapHeight - 0.5f, +mapLength / 2 - 0.5f);
@@ -269,14 +276,15 @@ public class MapController : NetworkBehaviour {
             lightRange,
             transform,
             lightIntensity,
-            lightSpotAngle
+            lightSpotAngle,
+            lightInnerSpotAngle
         );
 
 
-        CheckLights(southWestLightPos, northWestLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, 90, 0), lightIntensity, lightSpotAngle);
-        CheckLights(southEastLightPos, northEastLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, -90, 0), lightIntensity, lightSpotAngle);
+        CheckLights(southWestLightPos, northWestLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, 90, 0), lightIntensity, lightSpotAngle, lightInnerSpotAngle);
+        CheckLights(southEastLightPos, northEastLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, -90, 0), lightIntensity, lightSpotAngle, lightInnerSpotAngle);
 
-
+*/
 
 
 
@@ -290,7 +298,7 @@ public class MapController : NetworkBehaviour {
         cameraComponent.farClipPlane = mapHeight + 1;
     }
 
-    private Light CreateLight(Vector3 position, Quaternion rotation, float range, Transform parent, float intensity, float spotAngle) {
+    private Light CreateLight(Vector3 position, Quaternion rotation, float range, Transform parent, float intensity, float spotAngle, float innerSpotAngle) {
 
         GameObject light = new GameObject("Light");
         light.transform.parent = transform;
@@ -301,13 +309,14 @@ public class MapController : NetworkBehaviour {
         lightComponent.range = range;
         lightComponent.intensity = intensity;
         lightComponent.spotAngle = spotAngle;
+        lightComponent.innerSpotAngle = innerSpotAngle;
         lightComponent.shadows = LightShadows.Soft;
 
         return lightComponent;
     }
 
 
-    private void CheckLights(Vector3 pos1, Vector3 pos2, float lightMaxDistanceBetween, float range, Quaternion rotation, float intensity, float spotAngle) {
+    private void CheckLights(Vector3 pos1, Vector3 pos2, float lightMaxDistanceBetween, float range, Quaternion rotation, float intensity, float spotAngle, float innerSpotAngle) {
 
         if ((pos1 - pos2).magnitude > lightMaxDistanceBetween) {
             Vector3 newLightPos = pos2 + (pos1 - pos2).normalized * ((pos1 - pos2).magnitude / 2);
@@ -317,10 +326,11 @@ public class MapController : NetworkBehaviour {
                 range,
                 transform,
                 intensity,
-                spotAngle
+                spotAngle,
+                innerSpotAngle
             );
-            CheckLights(pos1, newLightPos, lightMaxDistanceBetween, range, rotation, intensity, spotAngle);
-            CheckLights(newLightPos, pos2, lightMaxDistanceBetween, range, rotation, intensity, spotAngle);
+            CheckLights(pos1, newLightPos, lightMaxDistanceBetween, range, rotation, intensity, spotAngle, innerSpotAngle);
+            CheckLights(newLightPos, pos2, lightMaxDistanceBetween, range, rotation, intensity, spotAngle, innerSpotAngle);
         }
     }
 
