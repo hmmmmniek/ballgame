@@ -64,10 +64,10 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
                 ).GetComponent<BallController>();                
             }
         }
-
+        MatchController matchController = null;
         foreach (var resumeNO in networkObjects) {
             if(resumeNO.TryGetBehaviour<MatchController>(out var m)) {
-                MatchController matchController = runner.Spawn(
+                matchController = runner.Spawn(
                     prefab: resumeNO,
                     position: new Vector3(0, 0, 0),
                     onBeforeSpawned: (runner, newNO) => {
@@ -93,6 +93,7 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
                             newNO.CopyStateFrom(resumeNO);
                             newNO.GetComponent<PlayerController>().inputAuthority = PlayerRef.None;
                             newNO.GetComponent<PlayerController>().isHost = false;
+                            newNO.GetComponent<PlayerController>().matchController = matchController;
                         }
                     ).GetComponent<PlayerController>();
 

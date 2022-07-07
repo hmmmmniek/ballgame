@@ -4,11 +4,19 @@ using System.Collections.Generic;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using static CreateSessionController;
 
 public enum Team {
     _, // Fusion doesnt seem to network first values of enums.. ?
     Blue,
     Red
+}
+
+public enum State {
+    _, // Fusion doesnt seem to network first values of enums.. ?
+    Started,
+    ScoredReset,
+    ScoredCountDown
 }
 public class MatchController : NetworkBehaviour {
     public static MatchController instance;
@@ -27,10 +35,17 @@ public class MatchController : NetworkBehaviour {
     public BallController ballPrefab;
     public MapController mapPrefab;
     public PlayerController playerPrefab;
+    public float resetPlayerVelocity = 3f;
+    public float scoreCountDownTime = 5f;
+    public float resetBallPlayerPushRadius = 5f;
+    public float matchDurationSeconds = 600f;
     private Action unsubscribePlayers;
+
 
     [HideInInspector]public BallController ball;
     [HideInInspector]public MapController map;
+    [HideInInspector]public MapInfo? mapInfo;
+    private Player[] activePlayers;
 
     [HideInInspector][Networked(OnChanged = nameof(OnPlayersChanged))]
     public PlayerRefSet players { get; set; }
@@ -53,83 +68,205 @@ public class MatchController : NetworkBehaviour {
             GameState.Dispatch(GameState.RemovePlayer, player.hwid, () => {});
         }
     }
-    
+
+    [HideInInspector][Networked(OnChanged = nameof(OnStateChanged))]
+    public State state { get; set; }
+    public static void OnStateChanged(Changed<MatchController> changed) {
+        changed.Behaviour.OnStateChanged();
+    }
+    private void OnStateChanged() {
+       // GameState.Dispatch(GameState.SetState, state, () => {});
+    }
+
+    [HideInInspector][Networked(OnChanged = nameof(OnTeamBlueScoreChanged))]
+    public int teamBlueScore { get; set; }
+    public static void OnTeamBlueScoreChanged(Changed<MatchController> changed) {
+        GameState.Dispatch(GameState.SetScore, (team: Team.Blue, score: changed.Behaviour.teamBlueScore), () => {});
+    }
+    [HideInInspector][Networked(OnChanged = nameof(OnTeamRedScoreChanged))]
+    public int teamRedScore { get; set; }
+    public static void OnTeamRedScoreChanged(Changed<MatchController> changed) {
+        GameState.Dispatch(GameState.SetScore, (team: Team.Red, score: changed.Behaviour.teamRedScore), () => {});
+    }
+
+    [HideInInspector][Networked(OnChanged = nameof(OnCountDownStartChanged))]
+    public float scoreCountDownStart { get; set; }
+    public static void OnCountDownStartChanged(Changed<MatchController> changed) {
+        GameState.Dispatch(GameState.SetScoredCountDownEnd, Time.time + changed.Behaviour.scoreCountDownTime, () => {});
+    }
+
+    [HideInInspector][Networked(OnChanged = nameof(OnMatchEndChanged))]
+    public float matchEnd { get; set; }
+    public static void OnMatchEndChanged(Changed<MatchController> changed) {
+        changed.Behaviour.OnMatchEndChanged();
+    }
+    private void OnMatchEndChanged() {
+        float duration = matchEnd - Runner.SimulationTime;
+        GameState.Dispatch(GameState.SetMatchEnd, Time.time + duration, () => {});
+    }
+
+    [HideInInspector][Networked] public Team lastScored { get; set; }
+    [HideInInspector][Networked] public float lastScoredTime { get; set; }
+
 
     public override void FixedUpdateNetwork() {
+        if(Object.HasStateAuthority && state == State.Started && mapInfo.HasValue) {
+            Vector3 ballPos = ball.transform.position;
+            
+            if(
+                (ballPos.z > ((mapInfo.Value.mapLength / 2) + ball.radius)) &&
+                (ballPos.y > 0) &&
+                (ballPos.y < (mapInfo.Value.mapGoalHeight)) &&
+                (ballPos.x < (mapInfo.Value.mapGoalWidth / 2)) &&
+                (ballPos.x > -(mapInfo.Value.mapGoalWidth / 2))
+            ) {
+                Scored(Team.Blue);
+            }
+            if(
+                (ballPos.z < -((mapInfo.Value.mapLength / 2) + ball.radius)) &&
+                (ballPos.y > 0) &&
+                (ballPos.y < (mapInfo.Value.mapGoalHeight)) &&
+                (ballPos.x < (mapInfo.Value.mapGoalWidth / 2)) &&
+                (ballPos.x > -(mapInfo.Value.mapGoalWidth / 2))
+            ) {
+                Scored(Team.Red);
+            }
+        }
+        if(Object.HasStateAuthority && (state == State.ScoredReset || state == State.ScoredCountDown)) {
+            bool playerPushed = false;
+            foreach (var player in activePlayers) {
+                bool thisPlayerPushed = false;
+                Vector3 playerPosition = player.playerController.transform.position;
+                Vector3 playerVelocity = player.playerController.networkCharacterMovementController.Velocity; 
 
+                if(
+                    (player.team == Team.Blue && playerPosition.z > 0) ||
+                    (player.team == Team.Red && playerPosition.z < 0)
+                ) {
+                    Vector3 newPlayerPos = playerPosition + (new Vector3(0, 0, player.team == Team.Blue ? -resetPlayerVelocity : resetPlayerVelocity) * Runner.DeltaTime);
+                    player.playerController.networkCharacterMovementController.Teleport(newPlayerPos);
+                    player.playerController.networkCharacterMovementController.Velocity = new Vector3(0, playerVelocity.y, 0);
+                    playerPushed = true;
+                    thisPlayerPushed = true;
+                }
+                if(thisPlayerPushed == false && (lastScored == player.team || lastScored == Team._)) {
+                    Vector3 ballToPlayer = new Vector3(playerPosition.x, 0, playerPosition.z) - new Vector3(ball.transform.position.x, 0, ball.transform.position.z);
+                    if(ballToPlayer.magnitude < resetBallPlayerPushRadius) {
+                        Vector3 newPlayerPos = playerPosition + (ballToPlayer.normalized * resetPlayerVelocity * Runner.DeltaTime);
+                        player.playerController.networkCharacterMovementController.Teleport(newPlayerPos);
+                        player.playerController.networkCharacterMovementController.Velocity = new Vector3(0, playerVelocity.y, 0);
+                        playerPushed = true;
+                    }
+                }
+            }
+          
+            if(state != State.ScoredCountDown && !playerPushed) {
+                state = State.ScoredCountDown;
+                scoreCountDownStart = Runner.SimulationTime;
+            }
+        }
+        if(state == State.ScoredCountDown && Runner.SimulationTime - scoreCountDownStart > scoreCountDownTime) {
+            ball.EnablePhysics();
+            state = State.Started;
+            matchEnd = matchEnd + (Runner.SimulationTime - lastScoredTime);
+        }
+
+    }
+
+    public void Scored(Team team) {
+        switch(team) {
+            case Team.Blue: {
+                teamBlueScore = teamBlueScore + 1;
+                break;
+            }
+            case Team.Red: {
+                teamRedScore = teamRedScore + 1;
+                break;
+            }
+        }
+        ball.Reset();
+        state = State.ScoredReset;
+        lastScored = team;
+        lastScoredTime = Runner.SimulationTime;
     }
 
     public override void Spawned() {
         base.Spawned();
         instance = this;
+
         if(map == null) {
             map = Runner.Spawn(mapPrefab, new Vector3(0, 0, 0), Quaternion.LookRotation(new Vector3(0, 0, 0)));
         }
         if(ball == null) {
             ball = Runner.Spawn(ballPrefab, new Vector3(0, 4, 0), Quaternion.LookRotation(new Vector3(0, 0, 0)));
         }
+        ball.matchController = this;
+
+        if(Runner.SessionInfo.Properties.TryGetValue("mapSize", out var mapSize)) {
+            mapInfo = map.GetMapInfo((MapSize)(int)mapSize);
+        }
 
         if(Object.HasStateAuthority) {
-
             unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (statePlayers) => {
-                Player[] joinedPlayers = statePlayers.Where((p) =>
-                    p.playerController == null &&
-                    p.team.HasValue
-                ).ToArray();
-                
-                Player[] switchedTeamPlayers = statePlayers.Where((p) =>
-                    p.playerController != null &&
-                    p.team.HasValue &&
-                    p.playerController.team != p.team.Value    
-                ).ToArray();
-        
-                Player[] leftPlayers = statePlayers.Where((p) =>
-                    p.playerController != null &&
-                    !p.team.HasValue
-                ).ToArray();
-                
-                Player[] migratedPlayers = statePlayers.Where((p) =>
-                    p.playerController != null &&
-                    p.team.HasValue &&
-                    p.hwid != null &&
-                    p.playerRef.HasValue &&
-                    p.playerController.inputAuthority == PlayerRef.None
-                ).ToArray();
-
-                foreach (var joinedPlayer in joinedPlayers) {
-
-                    PlayerController player = Runner.Spawn(
-                        prefab: playerPrefab,
-                        position: new Vector3(),
-                        rotation: Quaternion.identity,
-                        inputAuthority: joinedPlayer.playerRef.Value
-                    );
-                    player.inputAuthority = joinedPlayer.playerRef.Value;
-                    player.team = joinedPlayer.team.Value;
-
-
-                }
-
-
-
-                foreach (var switchedTeamPlayer in switchedTeamPlayers) {
-                    switchedTeamPlayer.playerController.team = switchedTeamPlayer.team.Value; 
-                }
-                foreach (var leftPlayer in leftPlayers) {
-                    Runner.Despawn(leftPlayer.playerController.GetComponent<NetworkObject>());
-                    
-
-                }
-
-                foreach (var migratedPlayer in migratedPlayers) {
-                    migratedPlayer.playerController.inputAuthority = migratedPlayer.playerRef.Value;        
-                }
-
-
+                HandlePlayersState(statePlayers);
+                activePlayers = statePlayers.Where((p) => p.playerController != null && p.team.HasValue).ToArray();
             });
         }
-        
 
+        matchEnd = Runner.SimulationTime + matchDurationSeconds;
+        
+        Scored(Team._);
+    }
+
+    public void HandlePlayersState(Player[] statePlayers) {
+        Player[] joinedPlayers = statePlayers.Where((p) =>
+            p.playerController == null &&
+            p.team.HasValue
+        ).ToArray();
+        
+        Player[] switchedTeamPlayers = statePlayers.Where((p) =>
+            p.playerController != null &&
+            p.team.HasValue &&
+            p.playerController.team != p.team.Value    
+        ).ToArray();
+
+        Player[] leftPlayers = statePlayers.Where((p) =>
+            p.playerController != null &&
+            !p.team.HasValue
+        ).ToArray();
+        
+        Player[] migratedPlayers = statePlayers.Where((p) =>
+            p.playerController != null &&
+            p.team.HasValue &&
+            p.hwid != null &&
+            p.playerRef.HasValue &&
+            p.playerController.inputAuthority == PlayerRef.None
+        ).ToArray();
+
+        foreach (var joinedPlayer in joinedPlayers) {
+
+            PlayerController player = Runner.Spawn(
+                prefab: playerPrefab,
+                position: new Vector3(),
+                rotation: Quaternion.identity,
+                inputAuthority: joinedPlayer.playerRef.Value
+            );
+            player.inputAuthority = joinedPlayer.playerRef.Value;
+            player.team = joinedPlayer.team.Value;
+            player.matchController = this;
+
+        }
+
+        foreach (var switchedTeamPlayer in switchedTeamPlayers) {
+            switchedTeamPlayer.playerController.team = switchedTeamPlayer.team.Value; 
+        }
+        foreach (var leftPlayer in leftPlayers) {
+            Runner.Despawn(leftPlayer.playerController.GetComponent<NetworkObject>());
+        }
+
+        foreach (var migratedPlayer in migratedPlayers) {
+            migratedPlayer.playerController.inputAuthority = migratedPlayer.playerRef.Value;        
+        }
     }
 
     public void HandlePlayerJoined(PlayerRef playerRef, string hwid) {

@@ -39,7 +39,6 @@ public class CharacterMovementController : NetworkBehaviour {
     public BallGunController ballGunController;
 
 
-
     [HideInInspector][Networked]public Vector3 Velocity { get; set; }
     [HideInInspector][Networked(OnChanged = nameof(OnBoostChanged))]
     public float boostRemainingPercentage { get; set; }
@@ -335,11 +334,9 @@ public class CharacterMovementController : NetworkBehaviour {
                 Math.Abs(boostRemainingPercentage - clientBoostRemaining) < maxAllowedClientBoostError
             
             ) {
+                Teleport(clientPosition);
                 Velocity = clientVelocity;
                 boostRemainingPercentage = clientBoostRemaining;
-                Controller.enabled = false;
-                transform.position = clientPosition;
-                Controller.enabled = true;
             }
 
             if(
@@ -390,6 +387,12 @@ public class CharacterMovementController : NetworkBehaviour {
     public void Push(Vector3 force) {
         Velocity += force;
         pushed = true;
+    }
+
+    public void Teleport(Vector3 position) {
+        Controller.enabled = false;
+        transform.position = position;
+        Controller.enabled = true;
     }
 
     public void Update() {

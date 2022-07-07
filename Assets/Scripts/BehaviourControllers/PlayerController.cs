@@ -23,6 +23,7 @@ public class PlayerController : NetworkRigidbody {
     public LocalCharacterMovementController localCharacterMovementController;
     public BodyTrackingController bodyTrackingController;
     public CharacterCameraController cameraController;
+    [HideInInspector] public MatchController matchController;
     public bool despawned = false;
     public bool initialized = false;
     private Queue<float> RttMeasurements = new Queue<float>();

@@ -81,6 +81,10 @@ public class ViewManager {
                     widgets.AddRange(InitializeWidgetsOfType<MiniMapController>());
                     break;
                 }
+                case ScoreAndTimeController.ELEMENT_NAME: {
+                    widgets.AddRange(InitializeWidgetsOfType<ScoreAndTimeController>());
+                    break;
+                }
             }
         }
         return widgets;

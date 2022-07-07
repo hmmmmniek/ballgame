@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/Game/Widgets/ScoreAndTime/scoreAndTime.uss" />
+
+    <engine:VisualElement class="scoreAndTime" name="ScoreAndTime">
+        <engine:VisualElement class="scoreAndTime__container" name="scoreAndTime__container">
+            <engine:VisualElement class="scoreAndTime__blue-score" name="scoreAndTime__blue-score">
+                <engine:Label name="scoreAndTime__blue-score__team-label" text="Blue" />
+                <engine:Label name="scoreAndTime__blue-score__score-label" text="0" />
+            </engine:VisualElement>
+            <engine:VisualElement class="scoreAndTime__time" name="scoreAndTime__time">
+                <engine:Label name="scoreAndTime__time__minutes-label" text="00" />
+                <engine:Label text=":" />
+                <engine:Label name="scoreAndTime__time__seconds-label" text="00" />
+            </engine:VisualElement>
+            <engine:VisualElement class="scoreAndTime__red-score" name="scoreAndTime__red-score">
+                <engine:Label name="scoreAndTime__red-score__team-label" text="Red" />
+                <engine:Label name="scoreAndTime__red-score__score-label" text="0" />
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>
+

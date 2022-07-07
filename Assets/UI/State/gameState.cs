@@ -50,6 +50,11 @@ public class GameStateData: StateData {
     public Player[] players = {};
     public BallController ball;
 
+    public int teamBlueScore;
+    public int teamRedScore;
+    public float scoredCountDownEnd;
+    public float matchEnd;
+
 }
 
 public class GameState: BaseState<GameStateData, GameState> {
@@ -106,6 +111,18 @@ public class GameState: BaseState<GameStateData, GameState> {
         return state.rollInput;
     }
 
+    public static float GetScoredCountDownEnd(GameStateData state) {
+        return state.scoredCountDownEnd;
+    }
+
+    public static int GetRedTeamScore(GameStateData state) {
+        return state.teamRedScore;
+    }
+
+    public static int GetBlueTeamScore(GameStateData state) {
+        return state.teamBlueScore;
+    }
+
 
     public static Vector2 GetSpinInput(GameStateData state) {
         return state.spinInput;
@@ -117,6 +134,10 @@ public class GameState: BaseState<GameStateData, GameState> {
     
     public static BallController GetBall(GameStateData state) {
         return state.ball;
+    }
+    
+    public static float GetMatchEnd(GameStateData state) {
+        return state.matchEnd;
     }
 
     public static void SetIsCharging(BaseState<GameStateData, GameState> s, bool args, Action c) { (s as GameState).SICH(c, args); }
@@ -177,6 +198,38 @@ public class GameState: BaseState<GameStateData, GameState> {
         //    Debug.Log($"PlayerID: {(player.playerRef.HasValue ? player.playerRef.Value.PlayerId : "?")} Team: {(player.team == Team.Blue ? "Blue" : (player.team == Team.Red ? "Red" : "None"))} Is local: {(player.isLocal ? "true" : "false") } Has playercontroller: {(player.playerController == null ? "false" : "true")} HWID: {player.hwid}");
         //}
     }
+
+
+    public static void SetScore(BaseState<GameStateData, GameState> s, (Team team, int score) args, Action c) { (s as GameState).SS(c, args); }
+    private void SS(Action complete, (Team team, int score) args) {
+        StateChange((GameStateData state) => {
+            switch(args.team) {
+                case Team.Blue: {
+                    state.teamBlueScore = args.score;
+                    break;
+                }
+                case Team.Red: {
+                    state.teamRedScore = args.score;
+                    break;
+                }
+            }
+        });
+    }
+
+    public static void SetScoredCountDownEnd(BaseState<GameStateData, GameState> s, float args, Action c) { (s as GameState).SSCDE(c, args); }
+    private void SSCDE(Action complete, float args) {
+        StateChange((GameStateData state) => {
+            state.scoredCountDownEnd = args;
+        });
+    }
+
+    public static void SetMatchEnd(BaseState<GameStateData, GameState> s, float args, Action c) { (s as GameState).SME(c, args); }
+    private void SME(Action complete, float args) {
+        StateChange((GameStateData state) => {
+            state.matchEnd = args;
+        });
+    }
+
 
 
     public static void ClearPlayers(BaseState<GameStateData, GameState> s, object args, Action c) { (s as GameState).CP(c); }

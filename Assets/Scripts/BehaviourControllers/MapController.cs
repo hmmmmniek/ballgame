@@ -1,11 +1,57 @@
-using System;
 using System.Collections;
-using System.Collections.Generic;
 using Fusion;
-using UnityEditor;
 using UnityEngine;
 using static CreateSessionController;
-
+public struct MapInfo {
+    public float mapWidth;
+    public float mapLength;
+    public float mapHeight;
+    public float mapGoalWidth;
+    public float mapGoalHeight;
+    public float mapGoalDepth;
+    public float mapGoalPostRadius;
+    public int mapGoalPostSegments;
+    public float lightMaxDistanceBetween;
+    public float lightSpotAngle;
+    public float lightInnerSpotAngle;
+    public float lightIntensity;
+    public float lightRotation;
+    public float lightRange;
+    public Mesh mesh;
+    public MapInfo(
+        float mapWidth,
+        float mapLength,
+        float mapHeight,
+        float mapGoalWidth,
+        float mapGoalHeight,
+        float mapGoalDepth,
+        float mapGoalPostRadius,
+        int mapGoalPostSegments,
+        float lightMaxDistanceBetween,
+        float lightSpotAngle,
+        float lightInnerSpotAngle,
+        float lightIntensity,
+        float lightRotation,
+        float lightRange,
+        Mesh mesh
+    ) {
+        this.mapWidth = mapWidth;
+        this.mapLength = mapLength;
+        this.mapHeight = mapHeight;
+        this.mapGoalWidth = mapGoalWidth;
+        this.mapGoalHeight = mapGoalHeight;
+        this.mapGoalDepth = mapGoalDepth;
+        this.mapGoalPostRadius = mapGoalPostRadius;
+        this.mapGoalPostSegments = mapGoalPostSegments;
+        this.lightMaxDistanceBetween = lightMaxDistanceBetween;
+        this.lightSpotAngle = lightSpotAngle;
+        this.lightInnerSpotAngle = lightInnerSpotAngle;
+        this.lightIntensity = lightIntensity;
+        this.lightRotation = lightRotation;
+        this.lightRange = lightRange;
+        this.mesh = mesh;
+    }
+}
 public class MapController : NetworkBehaviour {
 
     public bool generateMeshes = false;
@@ -61,89 +107,82 @@ public class MapController : NetworkBehaviour {
         DestroyImmediate(go);
     }
 
-    private void CreateMap(MapSize mapSize) {
-        foreach (Transform child in transform) {
-           StartCoroutine(DestroyObject(child.gameObject));
-        }
-
-        float mapWidth = 0;
-        float mapLength = 0;
-        float mapHeight = 0;
-        float mapGoalWidth = 0;
-        float mapGoalHeight = 0;
-        float mapGoalDepth = 0;
-        float mapGoalPostRadius = 0;
-        int mapGoalPostSegments = 0;
-        float lightMaxDistanceBetween = 0;
-        float lightSpotAngle = 0;
-        float lightInnerSpotAngle = 0;
-        float lightIntensity = 0;
-        float lightRotation = 0;
-        float lightRange = 0;
-        Mesh mesh = null;
-
+    public MapInfo GetMapInfo(MapSize mapSize) {
         MapGenerator gen = new MapGenerator();
 
         switch (mapSize) {
             case MapSize.Small: {
-                    mapWidth = gen.mapSmallWidth;
-                    mapLength = gen.mapSmallLength;
-                    mapHeight = gen.mapSmallHeight;
-                    mapGoalWidth = gen.mapSmallGoalWidth;
-                    mapGoalHeight = gen.mapSmallGoalHeight;
-                    mapGoalDepth = gen.mapSmallGoalDepth;
-                    mapGoalPostRadius = gen.mapSmallGoalPostRadius;
-                    mapGoalPostSegments = gen.mapSmallGoalPostSegments;
-                    lightMaxDistanceBetween = gen.mapSmallLightMaxDistanceBetween;
-                    lightSpotAngle = gen.mapSmallLightSpotAngle;
-                    lightInnerSpotAngle = gen.mapSmallLightInnerSpotAngle;
-                    lightIntensity = gen.mapSmallLightIntensity;
-                    lightRotation = gen.mapSmallLightRotation;
-                    lightRange = gen.mapSmallLightRange;
-                    mesh = smallMesh;
-                    break;
-                }
+                return new MapInfo(
+                    mapWidth: gen.mapSmallWidth,
+                    mapLength: gen.mapSmallLength,
+                    mapHeight: gen.mapSmallHeight,
+                    mapGoalWidth: gen.mapSmallGoalWidth,
+                    mapGoalHeight: gen.mapSmallGoalHeight,
+                    mapGoalDepth: gen.mapSmallGoalDepth,
+                    mapGoalPostRadius: gen.mapSmallGoalPostRadius,
+                    mapGoalPostSegments: gen.mapSmallGoalPostSegments,
+                    lightMaxDistanceBetween: gen.mapSmallLightMaxDistanceBetween,
+                    lightSpotAngle: gen.mapSmallLightSpotAngle,
+                    lightInnerSpotAngle: gen.mapSmallLightInnerSpotAngle,
+                    lightIntensity: gen.mapSmallLightIntensity,
+                    lightRotation: gen.mapSmallLightRotation,
+                    lightRange: gen.mapSmallLightRange,
+                    mesh: smallMesh
+                );
+            }
             case MapSize.Medium: {
-                    mapWidth = gen.mapMediumWidth;
-                    mapLength = gen.mapMediumLength;
-                    mapHeight = gen.mapMediumHeight;
-                    mapGoalWidth = gen.mapMediumGoalWidth;
-                    mapGoalHeight = gen.mapMediumGoalHeight;
-                    mapGoalDepth = gen.mapMediumGoalDepth;
-                    mapGoalPostRadius = gen.mapMediumGoalPostRadius;
-                    mapGoalPostSegments = gen.mapMediumGoalPostSegments;
-                    lightMaxDistanceBetween = gen.mapMediumLightMaxDistanceBetween;
-                    lightSpotAngle = gen.mapMediumLightSpotAngle;
-                    lightInnerSpotAngle = gen.mapMediumLightInnerSpotAngle;
-                    lightIntensity = gen.mapMediumLightIntensity;
-                    lightRotation = gen.mapMediumLightRotation;
-                    lightRange = gen.mapMediumLightRange;
-                    mesh = mediumMesh;
-                    break;
-                }
+                return new MapInfo(
+                    mapWidth: gen.mapMediumWidth,
+                    mapLength: gen.mapMediumLength,
+                    mapHeight: gen.mapMediumHeight,
+                    mapGoalWidth: gen.mapMediumGoalWidth,
+                    mapGoalHeight: gen.mapMediumGoalHeight,
+                    mapGoalDepth: gen.mapMediumGoalDepth,
+                    mapGoalPostRadius: gen.mapMediumGoalPostRadius,
+                    mapGoalPostSegments: gen.mapMediumGoalPostSegments,
+                    lightMaxDistanceBetween: gen.mapMediumLightMaxDistanceBetween,
+                    lightSpotAngle: gen.mapMediumLightSpotAngle,
+                    lightInnerSpotAngle: gen.mapMediumLightInnerSpotAngle,
+                    lightIntensity: gen.mapMediumLightIntensity,
+                    lightRotation: gen.mapMediumLightRotation,
+                    lightRange: gen.mapMediumLightRange,
+                    mesh: mediumMesh
+                );
+            }
             case MapSize.Large: {
-                    mapWidth = gen.mapLargeWidth;
-                    mapLength = gen.mapLargeLength;
-                    mapHeight = gen.mapLargeHeight;
-                    mapGoalWidth = gen.mapLargeGoalWidth;
-                    mapGoalHeight = gen.mapLargeGoalHeight;
-                    mapGoalDepth = gen.mapLargeGoalDepth;
-                    mapGoalPostRadius = gen.mapLargeGoalPostRadius;
-                    mapGoalPostSegments = gen.mapLargeGoalPostSegments;
-                    lightMaxDistanceBetween = gen.mapLargeLightMaxDistanceBetween;
-                    lightSpotAngle = gen.mapLargeLightSpotAngle;
-                    lightInnerSpotAngle = gen.mapLargeLightInnerSpotAngle;
-                    lightIntensity = gen.mapLargeLightIntensity;
-                    lightRotation = gen.mapLargeLightRotation;
-                    lightRange = gen.mapLargeLightRange;
-                    mesh = largeMesh;
-                    break;
-                }
+                return new MapInfo(
+                    mapWidth: gen.mapLargeWidth,
+                    mapLength: gen.mapLargeLength,
+                    mapHeight: gen.mapLargeHeight,
+                    mapGoalWidth: gen.mapLargeGoalWidth,
+                    mapGoalHeight: gen.mapLargeGoalHeight,
+                    mapGoalDepth: gen.mapLargeGoalDepth,
+                    mapGoalPostRadius: gen.mapLargeGoalPostRadius,
+                    mapGoalPostSegments: gen.mapLargeGoalPostSegments,
+                    lightMaxDistanceBetween: gen.mapLargeLightMaxDistanceBetween,
+                    lightSpotAngle: gen.mapLargeLightSpotAngle,
+                    lightInnerSpotAngle: gen.mapLargeLightInnerSpotAngle,
+                    lightIntensity: gen.mapLargeLightIntensity,
+                    lightRotation: gen.mapLargeLightRotation,
+                    lightRange: gen.mapLargeLightRange,
+                    mesh: largeMesh
+                );
+            }
         }
+        return new MapInfo();
 
+    }
+
+    private void CreateMap(MapSize mapSize) {
+        foreach (Transform child in transform) {
+           StartCoroutine(DestroyObject(child.gameObject));
+        }
+        MapInfo mapInfo = GetMapInfo(mapSize);
+
+        MapGenerator gen = new MapGenerator();
 
         GameObject map = new GameObject("Map");
-        map.transform.position = new Vector3(-mapWidth / 2, 0, -mapLength / 2);
+        map.transform.position = new Vector3(-mapInfo.mapWidth / 2, 0, -mapInfo.mapLength / 2);
         transform.position = new Vector3();
         map.transform.parent = transform;
 
@@ -152,88 +191,88 @@ public class MapController : NetworkBehaviour {
 
         MeshFilter meshFilter = map.AddComponent<MeshFilter>();
 
-        meshFilter.mesh = mesh;
+        meshFilter.mesh = mapInfo.mesh;
 
         BoxCollider floor = map.AddComponent<BoxCollider>();
-        float floorLength = mapLength + mapGoalDepth * 2 + 20;
-        floor.size = new Vector3(mapWidth + 20, 10, floorLength);
-        floor.center = new Vector3(mapWidth / 2, -5, mapLength / 2);
+        float floorLength = mapInfo.mapLength + mapInfo.mapGoalDepth * 2 + 20;
+        floor.size = new Vector3(mapInfo.mapWidth + 20, 10, floorLength);
+        floor.center = new Vector3(mapInfo.mapWidth / 2, -5, mapInfo.mapLength / 2);
 
         BoxCollider ceiling = map.AddComponent<BoxCollider>();
-        ceiling.size = new Vector3(mapWidth + 20, 10, floorLength);
-        ceiling.center = new Vector3(mapWidth / 2, mapHeight + 5, mapLength / 2);
+        ceiling.size = new Vector3(mapInfo.mapWidth + 20, 10, floorLength);
+        ceiling.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapHeight + 5, mapInfo.mapLength / 2);
 
         BoxCollider southTop = map.AddComponent<BoxCollider>();
-        southTop.size = new Vector3(mapWidth + 20, mapHeight - mapGoalHeight + 10, 10 + mapGoalDepth);
-        southTop.center = new Vector3(mapWidth / 2, mapGoalHeight + (mapHeight - mapGoalHeight) / 2 + 5, -(10f + mapGoalDepth) / 2);
+        southTop.size = new Vector3(mapInfo.mapWidth + 20, mapInfo.mapHeight - mapInfo.mapGoalHeight + 10, 10 + mapInfo.mapGoalDepth);
+        southTop.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight + (mapInfo.mapHeight - mapInfo.mapGoalHeight) / 2 + 5, -(10f + mapInfo.mapGoalDepth) / 2);
 
         BoxCollider northTop = map.AddComponent<BoxCollider>();
-        northTop.size = new Vector3(mapWidth + 20, mapHeight - mapGoalHeight + 10, 10 + mapGoalDepth);
-        northTop.center = new Vector3(mapWidth / 2, mapGoalHeight + (mapHeight - mapGoalHeight) / 2 + 5, (10f + mapGoalDepth) / 2 + mapLength);
+        northTop.size = new Vector3(mapInfo.mapWidth + 20, mapInfo.mapHeight - mapInfo.mapGoalHeight + 10, 10 + mapInfo.mapGoalDepth);
+        northTop.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight + (mapInfo.mapHeight - mapInfo.mapGoalHeight) / 2 + 5, (10f + mapInfo.mapGoalDepth) / 2 + mapInfo.mapLength);
 
         BoxCollider southGoalBack = map.AddComponent<BoxCollider>();
-        southGoalBack.size = new Vector3(mapGoalWidth + 10, mapGoalHeight + 10, 10);
-        southGoalBack.center = new Vector3(mapWidth / 2, mapGoalHeight / 2, -mapGoalDepth - 5);
+        southGoalBack.size = new Vector3(mapInfo.mapGoalWidth + 10, mapInfo.mapGoalHeight + 10, 10);
+        southGoalBack.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight / 2, -mapInfo.mapGoalDepth - 5);
 
         BoxCollider northGoalBack = map.AddComponent<BoxCollider>();
-        northGoalBack.size = new Vector3(mapGoalWidth + 10, mapGoalHeight + 10, 10);
-        northGoalBack.center = new Vector3(mapWidth / 2, mapGoalHeight / 2, mapLength + mapGoalDepth + 5);
+        northGoalBack.size = new Vector3(mapInfo.mapGoalWidth + 10, mapInfo.mapGoalHeight + 10, 10);
+        northGoalBack.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight / 2, mapInfo.mapLength + mapInfo.mapGoalDepth + 5);
 
         BoxCollider southGoalWest = map.AddComponent<BoxCollider>();
-        southGoalWest.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
-        southGoalWest.center = new Vector3((mapWidth - mapGoalWidth) / 4 - 5, mapGoalHeight / 2, -(10 + mapGoalDepth) / 2);
+        southGoalWest.size = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2 + 10, mapInfo.mapGoalHeight + 10, 10 + mapInfo.mapGoalDepth);
+        southGoalWest.center = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 4 - 5, mapInfo.mapGoalHeight / 2, -(10 + mapInfo.mapGoalDepth) / 2);
 
         BoxCollider southGoalEast = map.AddComponent<BoxCollider>();
-        southGoalEast.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
-        southGoalEast.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 4 + 5, mapGoalHeight / 2, -(10 + mapGoalDepth) / 2);
+        southGoalEast.size = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2 + 10, mapInfo.mapGoalHeight + 10, 10 + mapInfo.mapGoalDepth);
+        southGoalEast.center = new Vector3(mapInfo.mapWidth - (mapInfo.mapWidth - mapInfo.mapGoalWidth) / 4 + 5, mapInfo.mapGoalHeight / 2, -(10 + mapInfo.mapGoalDepth) / 2);
 
         BoxCollider northGoalWest = map.AddComponent<BoxCollider>();
-        northGoalWest.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
-        northGoalWest.center = new Vector3((mapWidth - mapGoalWidth) / 4 - 5, mapGoalHeight / 2, mapLength + (10 + mapGoalDepth) / 2);
+        northGoalWest.size = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2 + 10, mapInfo.mapGoalHeight + 10, 10 + mapInfo.mapGoalDepth);
+        northGoalWest.center = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 4 - 5, mapInfo.mapGoalHeight / 2, mapInfo.mapLength + (10 + mapInfo.mapGoalDepth) / 2);
 
         BoxCollider northGoalEast = map.AddComponent<BoxCollider>();
-        northGoalEast.size = new Vector3((mapWidth - mapGoalWidth) / 2 + 10, mapGoalHeight + 10, 10 + mapGoalDepth);
-        northGoalEast.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 4 + 5, mapGoalHeight / 2, mapLength + (10 + mapGoalDepth) / 2);
+        northGoalEast.size = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2 + 10, mapInfo.mapGoalHeight + 10, 10 + mapInfo.mapGoalDepth);
+        northGoalEast.center = new Vector3(mapInfo.mapWidth - (mapInfo.mapWidth - mapInfo.mapGoalWidth) / 4 + 5, mapInfo.mapGoalHeight / 2, mapInfo.mapLength + (10 + mapInfo.mapGoalDepth) / 2);
 
         BoxCollider wallWest = map.AddComponent<BoxCollider>();
-        wallWest.size = new Vector3(10, mapHeight + 20, mapLength + mapGoalDepth * 2 + 20);
-        wallWest.center = new Vector3(-5, mapHeight / 2, mapLength / 2);
+        wallWest.size = new Vector3(10, mapInfo.mapHeight + 20, mapInfo.mapLength + mapInfo.mapGoalDepth * 2 + 20);
+        wallWest.center = new Vector3(-5, mapInfo.mapHeight / 2, mapInfo.mapLength / 2);
 
         BoxCollider wallEast = map.AddComponent<BoxCollider>();
-        wallEast.size = new Vector3(10, mapHeight + 20, mapLength + mapGoalDepth * 2 + 20);
-        wallEast.center = new Vector3(mapWidth + 5, mapHeight / 2, mapLength / 2);
+        wallEast.size = new Vector3(10, mapInfo.mapHeight + 20, mapInfo.mapLength + mapInfo.mapGoalDepth * 2 + 20);
+        wallEast.center = new Vector3(mapInfo.mapWidth + 5, mapInfo.mapHeight / 2, mapInfo.mapLength / 2);
 
         CapsuleCollider southWestGoalPost = map.AddComponent<CapsuleCollider>();
-        southWestGoalPost.radius = mapGoalPostRadius;
-        southWestGoalPost.height = mapGoalHeight + mapGoalPostRadius * 2;
-        southWestGoalPost.center = new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight / 2, 0);
+        southWestGoalPost.radius = mapInfo.mapGoalPostRadius;
+        southWestGoalPost.height = mapInfo.mapGoalHeight + mapInfo.mapGoalPostRadius * 2;
+        southWestGoalPost.center = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2, mapInfo.mapGoalHeight / 2, 0);
 
         CapsuleCollider southEastGoalPost = map.AddComponent<CapsuleCollider>();
-        southEastGoalPost.radius = mapGoalPostRadius;
-        southEastGoalPost.height = mapGoalHeight + mapGoalPostRadius * 2;
-        southEastGoalPost.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 2, mapGoalHeight / 2, 0);
+        southEastGoalPost.radius = mapInfo.mapGoalPostRadius;
+        southEastGoalPost.height = mapInfo.mapGoalHeight + mapInfo.mapGoalPostRadius * 2;
+        southEastGoalPost.center = new Vector3(mapInfo.mapWidth - (mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2, mapInfo.mapGoalHeight / 2, 0);
 
         CapsuleCollider southTopGoalPost = map.AddComponent<CapsuleCollider>();
         southTopGoalPost.direction = 0;
-        southTopGoalPost.radius = mapGoalPostRadius;
-        southTopGoalPost.height = mapGoalWidth + mapGoalPostRadius * 2;
-        southTopGoalPost.center = new Vector3(mapWidth / 2, mapGoalHeight, 0);
+        southTopGoalPost.radius = mapInfo.mapGoalPostRadius;
+        southTopGoalPost.height = mapInfo.mapGoalWidth + mapInfo.mapGoalPostRadius * 2;
+        southTopGoalPost.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight, 0);
 
         CapsuleCollider northWestGoalPost = map.AddComponent<CapsuleCollider>();
-        northWestGoalPost.radius = mapGoalPostRadius;
-        northWestGoalPost.height = mapGoalHeight + mapGoalPostRadius * 2;
-        northWestGoalPost.center = new Vector3((mapWidth - mapGoalWidth) / 2, mapGoalHeight / 2, mapLength);
+        northWestGoalPost.radius = mapInfo.mapGoalPostRadius;
+        northWestGoalPost.height = mapInfo.mapGoalHeight + mapInfo.mapGoalPostRadius * 2;
+        northWestGoalPost.center = new Vector3((mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2, mapInfo.mapGoalHeight / 2, mapInfo.mapLength);
 
         CapsuleCollider northEastGoalPost = map.AddComponent<CapsuleCollider>();
-        northEastGoalPost.radius = mapGoalPostRadius;
-        northEastGoalPost.height = mapGoalHeight + mapGoalPostRadius * 2;
-        northEastGoalPost.center = new Vector3(mapWidth - (mapWidth - mapGoalWidth) / 2, mapGoalHeight / 2, mapLength);
+        northEastGoalPost.radius = mapInfo.mapGoalPostRadius;
+        northEastGoalPost.height = mapInfo.mapGoalHeight + mapInfo.mapGoalPostRadius * 2;
+        northEastGoalPost.center = new Vector3(mapInfo.mapWidth - (mapInfo.mapWidth - mapInfo.mapGoalWidth) / 2, mapInfo.mapGoalHeight / 2, mapInfo.mapLength);
 
         CapsuleCollider northTopGoalPost = map.AddComponent<CapsuleCollider>();
         northTopGoalPost.direction = 0;
-        northTopGoalPost.radius = mapGoalPostRadius;
-        northTopGoalPost.height = mapGoalWidth + mapGoalPostRadius * 2;
-        northTopGoalPost.center = new Vector3(mapWidth / 2, mapGoalHeight, mapLength);
+        northTopGoalPost.radius = mapInfo.mapGoalPostRadius;
+        northTopGoalPost.height = mapInfo.mapGoalWidth + mapInfo.mapGoalPostRadius * 2;
+        northTopGoalPost.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight, mapInfo.mapLength);
 
 
       /*  Vector3 southWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
@@ -288,14 +327,14 @@ public class MapController : NetworkBehaviour {
 
 
 
-        Vector3 cameraPos = new Vector3(0, mapHeight, 0);
+        Vector3 cameraPos = new Vector3(0, mapInfo.mapHeight, 0);
         GameObject camera = new GameObject("Main Camera");
         Camera cameraComponent = camera.AddComponent<Camera>();
         camera.transform.position = cameraPos;
         camera.transform.rotation = Quaternion.Euler(90, -90, 0);
         camera.transform.parent = transform;
         cameraComponent.fieldOfView = 90;
-        cameraComponent.farClipPlane = mapHeight + 1;
+        cameraComponent.farClipPlane = mapInfo.mapHeight + 1;
     }
 
     private Light CreateLight(Vector3 position, Quaternion rotation, float range, Transform parent, float intensity, float spotAngle, float innerSpotAngle) {

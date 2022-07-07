@@ -65,12 +65,15 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Accept/refuse server state
         */
+        State matchState = networkMovementController.ballGunController.playerController.matchController.state;
         if( 
-            !localDash && !localHitGround && (
+            matchState == State.ScoredCountDown ||
+            matchState == State.ScoredReset ||
+            (!localDash && !localHitGround && (
                 Vector3.Distance(transform.position, networkMovementController.transform.position) > networkMovementController.maxAllowedClientPositionError ||
                 Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
                 Math.Abs(boostRemainingPercentage - networkMovementController.boostRemainingPercentage) > networkMovementController.maxAllowedClientBoostError
-            )
+            ))
         ) {
             Synchronize();
         }

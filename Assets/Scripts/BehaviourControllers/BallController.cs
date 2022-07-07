@@ -24,6 +24,7 @@ public class BallController : NetworkRigidbody {
     public float rollingResistance = 0.01f;
     public Transform ballModel;
     public Rigidbody rigidBody;
+    [HideInInspector] public MatchController matchController;
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
@@ -36,6 +37,7 @@ public class BallController : NetworkRigidbody {
     private bool isColliding;
     private float collidingSpeed;
     private float circumference;
+    public float radius;
 
     private Queue<float> VelocityMeasurements = new Queue<float>();
 
@@ -62,8 +64,8 @@ public class BallController : NetworkRigidbody {
         GameState.Dispatch(GameState.SetBall, this, () => {});
 
         rigidBody.maxAngularVelocity = spinMaxAngularVelocity * 10;
-
-        circumference = (float)Math.PI * 2f * GetComponent<SphereCollider>().radius;
+        radius = GetComponent<SphereCollider>().radius;
+        circumference = (float)Math.PI * 2f * radius;
 
         unsubscribePlayers = GameState.Select<Player[]>(GameState.GetPlayers, (players) => {
             if (players != null) {
@@ -101,7 +103,7 @@ public class BallController : NetworkRigidbody {
         base.FixedUpdateNetwork();
         if(Object.HasStateAuthority) {
             
-            if(!isAttached) {
+            if(!isAttached && matchController != null && matchController.state == State.Started) {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
@@ -127,7 +129,7 @@ public class BallController : NetworkRigidbody {
             isColliding = nearestSurfaceNormal.magnitude > 0;
         }
 
-        if((spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && spinCapacityLeft > 0) {
+        if(matchController.state == State.Started && (spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && spinCapacityLeft > 0) {
             (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) = GetSpinEffect();
 
             rigidBody.AddForce(Vector3.ClampMagnitude(airForce, spinCapacityLeft), ForceMode.Impulse);
@@ -197,12 +199,15 @@ public class BallController : NetworkRigidbody {
 
     }
 
-     static Vector3 RotateVectorAroundAxis(Vector3 vector, Vector3 axis, float degrees)
-         {
-             return Quaternion.AngleAxis(degrees, axis) * vector;
-         }
- 
-
+         
+    public void Reset() {
+        if(Object.HasStateAuthority) {
+            Detach();
+            DisablePhysics();
+            transform.position = new Vector3(0, 4, 0);
+        }
+    }
+    
 
     public void Attach(NetworkTransform ballAnchor) {
         if(Object.HasStateAuthority) {
@@ -240,6 +245,9 @@ public class BallController : NetworkRigidbody {
     }
 
     public void Shoot(Vector3 forward, Vector2 spinInput, float rollInput) {
+        if(matchController.state != State.Started) {
+            return;
+        }
         if(isAttached) {
             Detach();
         }
@@ -257,6 +265,9 @@ public class BallController : NetworkRigidbody {
     }
 
     public void ApplyForce(Vector3 forward) {
+        if(matchController.state != State.Started) {
+            return;
+        }
         rigidBody.AddForce(forward, ForceMode.Impulse);
     }
 

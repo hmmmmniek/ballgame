@@ -49,6 +49,18 @@ MonoBehaviour:
   ballPrefab: {fileID: 1728854556392403748, guid: 8595f93511d7fa72fab4958b67eea968, type: 3}
   mapPrefab: {fileID: 6252119335805703764, guid: ba7fb832c73dd2eedab5403aedd4da69, type: 3}
   playerPrefab: {fileID: 5165869480873457305, guid: 60dbd70d9fbce6267960e75ea5bdca05, type: 3}
+  resetPlayerVelocity: 14
+  scoreCountDownTime: 5
+  resetBallPlayerPushRadius: 9
+  ball: {fileID: 0}
+  map: {fileID: 0}
+  _players:
+    Bits: 0000000000000000000000000000000000000000000000000000000000000000
+  _state: 0
+  _teamBlueScore: 0
+  _teamRedScore: 0
+  _scoreCountDownStart: 0
+  _lastScored: 0
 --- !u!114 &6051919901979969472
 MonoBehaviour:
   m_ObjectHideFlags: 0

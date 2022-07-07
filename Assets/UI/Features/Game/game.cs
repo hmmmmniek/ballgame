@@ -8,7 +8,8 @@ public class GameController: Module {
     public new const string TEMPLATE_SELECTOR = "game.uxml";
     public new readonly static IEnumerable<string> WIDGET_ELEMENT_NAMES = new string[] {
         CursorController.ELEMENT_NAME,
-        MiniMapController.ELEMENT_NAME
+        MiniMapController.ELEMENT_NAME,
+        ScoreAndTimeController.ELEMENT_NAME
     };
     VisualElement boostIndicator;
     VisualElement chargeIndicator;
