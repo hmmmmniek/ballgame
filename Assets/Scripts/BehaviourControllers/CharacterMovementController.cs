@@ -301,6 +301,23 @@ public class CharacterMovementController : NetworkBehaviour {
             Velocity = v2;
             boostRemainingPercentage = b2;
             
+            if(
+                (MatchController.instance.state == State.ScoredCountDown || MatchController.instance.state == State.ScoredReset) &&
+                !MatchController.instance.IsPlayerOnOwnHalf(transform.position, ballGunController.playerController.team) &&
+                ballGunController.ball != null
+            ) {
+                Velocity = Utils.PushToOwnHalf(
+                    transform,
+                    delta,
+                    ballGunController.playerController.team,
+                    Velocity,
+                    ballGunController.ball.transform.position,
+                    Controller,
+                    maxBallWalkingSpeed,
+                    MatchController.instance.mapInfo.Value.middleCircleRadius
+                );
+
+            }
 
             /*
             * Hit ground

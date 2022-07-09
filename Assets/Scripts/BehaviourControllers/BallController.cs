@@ -24,7 +24,6 @@ public class BallController : NetworkRigidbody {
     public float rollingResistance = 0.01f;
     public Transform ballModel;
     public Rigidbody rigidBody;
-    [HideInInspector] public MatchController matchController;
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
@@ -103,7 +102,7 @@ public class BallController : NetworkRigidbody {
         base.FixedUpdateNetwork();
         if(Object.HasStateAuthority) {
             
-            if(!isAttached && matchController != null && matchController.state == State.Started) {
+            if(!isAttached && MatchController.instance != null && MatchController.instance.state == State.Started) {
                 Collider[] area = Physics.OverlapSphere(transform.position, pickupDistance);
                 foreach (var item in area) {
                     PlayerController player = item.GetComponent<PlayerController>();
@@ -129,7 +128,7 @@ public class BallController : NetworkRigidbody {
             isColliding = nearestSurfaceNormal.magnitude > 0;
         }
 
-        if(matchController.state == State.Started && (spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && spinCapacityLeft > 0) {
+        if(MatchController.instance.state == State.Started && (spinInput.magnitude > 0.05 || Math.Abs(rollInput) > 0.05) && spinCapacityLeft > 0) {
             (Vector3 airForce, Vector3 groundForce, Vector3 angularVelocity) = GetSpinEffect();
 
             rigidBody.AddForce(Vector3.ClampMagnitude(airForce, spinCapacityLeft), ForceMode.Impulse);
@@ -205,6 +204,7 @@ public class BallController : NetworkRigidbody {
             Detach();
             DisablePhysics();
             transform.position = new Vector3(0, 4, 0);
+            spinCapacityLeft = 0;
         }
     }
     
@@ -225,6 +225,9 @@ public class BallController : NetworkRigidbody {
                 PlayerController player = item.GetComponent<PlayerController>();
                 if(player != null && !player.despawned) {
                     player.temporarilyIgnored = true;
+                    if(player.ballGunController.isCarrying) {
+                        player.ballGunController.isCarrying = false;
+                    }
                 }            
             }
             isAttached = false;
@@ -245,7 +248,7 @@ public class BallController : NetworkRigidbody {
     }
 
     public void Shoot(Vector3 forward, Vector2 spinInput, float rollInput) {
-        if(matchController.state != State.Started) {
+        if(MatchController.instance.state != State.Started) {
             return;
         }
         if(isAttached) {
@@ -265,7 +268,7 @@ public class BallController : NetworkRigidbody {
     }
 
     public void ApplyForce(Vector3 forward) {
-        if(matchController.state != State.Started) {
+        if(MatchController.instance.state != State.Started) {
             return;
         }
         rigidBody.AddForce(forward, ForceMode.Impulse);

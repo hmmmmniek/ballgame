@@ -77,10 +77,7 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
                         newNO.GetComponent<MatchController>().map = mapController;
                     }
                 ).GetComponent<MatchController>();
-                playerSessionManager.matchManager = matchController;
-                
             }
-
         }
         foreach (var resumeNO in networkObjects) {
             if(resumeNO.TryGetBehaviour<PlayerController>(out var p)) {
@@ -93,7 +90,6 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
                             newNO.CopyStateFrom(resumeNO);
                             newNO.GetComponent<PlayerController>().inputAuthority = PlayerRef.None;
                             newNO.GetComponent<PlayerController>().isHost = false;
-                            newNO.GetComponent<PlayerController>().matchController = matchController;
                         }
                     ).GetComponent<PlayerController>();
 

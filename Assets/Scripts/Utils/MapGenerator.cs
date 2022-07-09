@@ -5,58 +5,141 @@ using UnityEditor;
 using UnityEngine;
 using static CreateSessionController;
 
+public struct MapInfo {
+    public float mapWidth;
+    public float mapLength;
+    public float mapHeight;
+    public float mapGoalWidth;
+    public float mapGoalHeight;
+    public float mapGoalDepth;
+    public float mapGoalPostRadius;
+    public int mapGoalPostSegments;
+    public float lightMaxDistanceBetween;
+    public float lightSpotAngle;
+    public float lightInnerSpotAngle;
+    public float lightIntensity;
+    public float lightRotation;
+    public float lightRange;
+    public float middleCircleRadius;
+    public Mesh mesh;
+    public MapInfo(
+        float mapWidth,
+        float mapLength,
+        float mapHeight,
+        float mapGoalWidth,
+        float mapGoalHeight,
+        float mapGoalDepth,
+        float mapGoalPostRadius,
+        int mapGoalPostSegments,
+        float lightMaxDistanceBetween,
+        float lightSpotAngle,
+        float lightInnerSpotAngle,
+        float lightIntensity,
+        float lightRotation,
+        float lightRange,
+        float middleCircleRadius,
+        Mesh mesh
+    ) {
+        this.mapWidth = mapWidth;
+        this.mapLength = mapLength;
+        this.mapHeight = mapHeight;
+        this.mapGoalWidth = mapGoalWidth;
+        this.mapGoalHeight = mapGoalHeight;
+        this.mapGoalDepth = mapGoalDepth;
+        this.mapGoalPostRadius = mapGoalPostRadius;
+        this.mapGoalPostSegments = mapGoalPostSegments;
+        this.lightMaxDistanceBetween = lightMaxDistanceBetween;
+        this.lightSpotAngle = lightSpotAngle;
+        this.lightInnerSpotAngle = lightInnerSpotAngle;
+        this.lightIntensity = lightIntensity;
+        this.lightRotation = lightRotation;
+        this.lightRange = lightRange;
+        this.middleCircleRadius = middleCircleRadius;
+        this.mesh = mesh;
+    }
+}
+
 public class MapGenerator {
 
+    public MapInfo smallMap = new MapInfo(
+        mapWidth: 45f,
+        mapLength: 60f,
+        mapHeight: 25f,
+        mapGoalWidth: 15f,
+        mapGoalHeight: 6f,
+        mapGoalDepth: 6f,
+        mapGoalPostRadius: 0.4f,
+        mapGoalPostSegments: 12,
+        lightMaxDistanceBetween: 60f,
+        lightSpotAngle: 100f,
+        lightInnerSpotAngle: 90f,
+        lightIntensity: 250f,
+        lightRotation: 50f,
+        lightRange: 90f,
+        middleCircleRadius: 8.3f,
+        null
+    );
 
-    public float mapSmallWidth = 45f;
-    public float mapSmallLength = 60f;
-    public float mapSmallHeight = 25f;
-    public float mapSmallGoalWidth = 15f;
-    public float mapSmallGoalHeight = 6f;
-    public float mapSmallGoalDepth = 6f;
-    public float mapSmallGoalPostRadius = 0.4f;
-    public int mapSmallGoalPostSegments = 12;
-    public float mapSmallLightMaxDistanceBetween = 60f;
-    public float mapSmallLightSpotAngle = 100f;
-    public float mapSmallLightInnerSpotAngle = 90f;
-    public float mapSmallLightIntensity = 250f;
-    public float mapSmallLightRotation = 50f;
-    public float mapSmallLightRange = 90f;
+    public MapInfo mediumMap = new MapInfo(
+        mapWidth: 55f,
+        mapLength: 90f,
+        mapHeight: 35f,
+        mapGoalWidth: 15f,
+        mapGoalHeight: 6f,
+        mapGoalDepth: 6f,
+        mapGoalPostRadius: 0.4f,
+        mapGoalPostSegments: 12,
+        lightMaxDistanceBetween: 50f,
+        lightSpotAngle: 110f,
+        lightInnerSpotAngle: 100f,
+        lightIntensity: 300f,
+        lightRotation: 70f,
+        lightRange: 90f,
+        middleCircleRadius: 8.3f,
+        null
+    );
 
-    public float mapMediumWidth = 55f;
-    public float mapMediumLength = 90f;
-    public float mapMediumHeight = 35f;
-    public float mapMediumGoalWidth = 15f;
-    public float mapMediumGoalHeight = 6f;
-    public float mapMediumGoalDepth = 6f;
-    public float mapMediumGoalPostRadius = 0.4f;
-    public int mapMediumGoalPostSegments = 12;
-    public float mapMediumLightMaxDistanceBetween = 50f;
-    public float mapMediumLightSpotAngle = 110f;
-    public float mapMediumLightInnerSpotAngle = 100f;
-    public float mapMediumLightIntensity = 300f;
-    public float mapMediumLightRotation = 70f;
-    public float mapMediumLightRange = 90f;
-
-    public float mapLargeWidth = 80f;
-    public float mapLargeLength = 135f;
-    public float mapLargeHeight = 45f;
-    public float mapLargeGoalWidth = 15f;
-    public float mapLargeGoalHeight = 6f;
-    public float mapLargeGoalDepth = 6f;
-    public float mapLargeGoalPostRadius = 0.4f;
-    public int mapLargeGoalPostSegments = 12;
-    public float mapLargeLightMaxDistanceBetween = 40f;
-    public float mapLargeLightSpotAngle = 110f;
-    public float mapLargeLightInnerSpotAngle = 100f;
-    public float mapLargeLightIntensity = 200f;
-    public float mapLargeLightRotation = 70f;
-    public float mapLargeLightRange = 100f;
+    public MapInfo largeMap = new MapInfo(
+        mapWidth: 80f,
+        mapLength: 135f,
+        mapHeight: 45f,
+        mapGoalWidth: 15f,
+        mapGoalHeight: 6f,
+        mapGoalDepth: 6f,
+        mapGoalPostRadius: 0.4f,
+        mapGoalPostSegments: 12,
+        lightMaxDistanceBetween: 40f,
+        lightSpotAngle: 110f,
+        lightInnerSpotAngle: 100f,
+        lightIntensity: 200f,
+        lightRotation: 70f,
+        lightRange: 100f,
+        middleCircleRadius: 8.3f,
+        null
+    );
 
     public Material material;
 
 
     public MapGenerator() {
+
+    }
+
+    public MapInfo GetMapInfo(MapSize mapSize) {
+        MapGenerator gen = new MapGenerator();
+
+        switch (mapSize) {
+            case MapSize.Small: {
+                return smallMap;
+            }
+            case MapSize.Medium: {
+                return mediumMap;
+            }
+            case MapSize.Large: {
+                return largeMap;
+            }
+        }
+        return new MapInfo();
 
     }
 
@@ -74,41 +157,41 @@ public class MapGenerator {
         string meshName = "";
         switch ((int)size) {
             case (int)MapSize.Small: {
-                    mapWidth = mapSmallWidth;
-                    mapLength = mapSmallLength;
-                    mapHeight = mapSmallHeight;
-                    mapGoalWidth = mapSmallGoalWidth;
-                    mapGoalHeight = mapSmallGoalHeight;
-                    mapGoalDepth = mapSmallGoalDepth;
-                    mapGoalPostRadius = mapSmallGoalPostRadius;
-                    mapGoalPostSegments = mapSmallGoalPostSegments;
-                    meshName = "Small";
-                    break;
-                }
+                mapWidth = smallMap.mapWidth;
+                mapLength = smallMap.mapLength;
+                mapHeight = smallMap.mapHeight;
+                mapGoalWidth = smallMap.mapGoalWidth;
+                mapGoalHeight = smallMap.mapGoalHeight;
+                mapGoalDepth = smallMap.mapGoalDepth;
+                mapGoalPostRadius = smallMap.mapGoalPostRadius;
+                mapGoalPostSegments = smallMap.mapGoalPostSegments;
+                meshName = "Small";
+                break;
+            }
             case (int)MapSize.Medium: {
-                    mapWidth = mapMediumWidth;
-                    mapLength = mapMediumLength;
-                    mapHeight = mapMediumHeight;
-                    mapGoalWidth = mapMediumGoalWidth;
-                    mapGoalHeight = mapMediumGoalHeight;
-                    mapGoalDepth = mapMediumGoalDepth;
-                    mapGoalPostRadius = mapMediumGoalPostRadius;
-                    mapGoalPostSegments = mapMediumGoalPostSegments;
-                    meshName = "Medium";
-                    break;
-                }
+                mapWidth = mediumMap.mapWidth;
+                mapLength = mediumMap.mapLength;
+                mapHeight = mediumMap.mapHeight;
+                mapGoalWidth = mediumMap.mapGoalWidth;
+                mapGoalHeight = mediumMap.mapGoalHeight;
+                mapGoalDepth = mediumMap.mapGoalDepth;
+                mapGoalPostRadius = mediumMap.mapGoalPostRadius;
+                mapGoalPostSegments = mediumMap.mapGoalPostSegments;
+                meshName = "Medium";
+                break;
+            }
             case (int)MapSize.Large: {
-                    mapWidth = mapLargeWidth;
-                    mapLength = mapLargeLength;
-                    mapHeight = mapLargeHeight;
-                    mapGoalWidth = mapLargeGoalWidth;
-                    mapGoalHeight = mapLargeGoalHeight;
-                    mapGoalDepth = mapLargeGoalDepth;
-                    mapGoalPostRadius = mapLargeGoalPostRadius;
-                    mapGoalPostSegments = mapLargeGoalPostSegments;
-                    meshName = "Large";
-                    break;
-                }
+                mapWidth = largeMap.mapWidth;
+                mapLength = largeMap.mapLength;
+                mapHeight = largeMap.mapHeight;
+                mapGoalWidth = largeMap.mapGoalWidth;
+                mapGoalHeight = largeMap.mapGoalHeight;
+                mapGoalDepth = largeMap.mapGoalDepth;
+                mapGoalPostRadius = largeMap.mapGoalPostRadius;
+                mapGoalPostSegments = largeMap.mapGoalPostSegments;
+                meshName = "Large";
+                break;
+            }
         }
 
         Mesh mesh = new Mesh();

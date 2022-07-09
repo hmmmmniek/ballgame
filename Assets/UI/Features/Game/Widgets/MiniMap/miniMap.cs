@@ -10,13 +10,7 @@ public class MiniMapController : Widget {
     public new const string TEMPLATE_SELECTOR = "miniMap.uxml";
     private VisualElement element;
 
-    float mapWidth = 0;
-    float mapLength = 0;
-    float mapHeight = 0;
-    float mapGoalWidth = 0;
-    float mapGoalHeight = 0;
-    float mapGoalDepth = 0;
-    float mapGoalPostRadius = 0;
+    MapInfo mapInfo;
 
     float pixelsPerMeter;
     float centerY;
@@ -47,43 +41,11 @@ public class MiniMapController : Widget {
             if(!mapSize.HasValue) {
                 return;
             }
+            mapInfo = gen.GetMapInfo(mapSize.Value);
 
-            switch (mapSize.Value) {
-                case MapSize.Small: {
-                    mapWidth = gen.mapSmallWidth;
-                    mapLength = gen.mapSmallLength;
-                    mapHeight = gen.mapSmallHeight;
-                    mapGoalWidth = gen.mapSmallGoalWidth;
-                    mapGoalHeight = gen.mapSmallGoalHeight;
-                    mapGoalDepth = gen.mapSmallGoalDepth;
-                    mapGoalPostRadius = gen.mapSmallGoalPostRadius;
-                    break;
-                }
-                case MapSize.Medium: {
-                    mapWidth = gen.mapMediumWidth;
-                    mapLength = gen.mapMediumLength;
-                    mapHeight = gen.mapMediumHeight;
-                    mapGoalWidth = gen.mapMediumGoalWidth;
-                    mapGoalHeight = gen.mapMediumGoalHeight;
-                    mapGoalDepth = gen.mapMediumGoalDepth;
-                    mapGoalPostRadius = gen.mapMediumGoalPostRadius;
-                    break;
-                }
-                case MapSize.Large: {
-                    mapWidth = gen.mapLargeWidth;
-                    mapLength = gen.mapLargeLength;
-                    mapHeight = gen.mapLargeHeight;
-                    mapGoalWidth = gen.mapLargeGoalWidth;
-                    mapGoalHeight = gen.mapLargeGoalHeight;
-                    mapGoalDepth = gen.mapLargeGoalDepth;
-                    mapGoalPostRadius = gen.mapLargeGoalPostRadius;
-                    break;
-                }
-            }
+            miniMapHeight = miniMapWidth / (mapInfo.mapWidth / mapInfo.mapLength);
 
-            miniMapHeight = miniMapWidth / (mapWidth / mapLength);
-
-            pixelsPerMeter = miniMapHeight / mapLength;
+            pixelsPerMeter = miniMapHeight / mapInfo.mapLength;
             centerY = miniMapHeight / 2;
             centerX = miniMapWidth / 2;
 
@@ -109,8 +71,8 @@ public class MiniMapController : Widget {
         container.style.right = new StyleLength(new Length((diagonal / 2) - (miniMapWidth / 2), LengthUnit.Pixel));
         container.style.bottom = new StyleLength(new Length((diagonal / 2) - (miniMapHeight / 2), LengthUnit.Pixel));
 
-        float goalLengthPx = mapGoalDepth * pixelsPerMeter;
-        float goalWidthPx = mapGoalWidth * pixelsPerMeter;
+        float goalLengthPx = mapInfo.mapGoalDepth * pixelsPerMeter;
+        float goalWidthPx = mapInfo.mapGoalWidth * pixelsPerMeter;
         goalSouth.style.bottom = new StyleLength(new Length(-goalLengthPx, LengthUnit.Pixel));
         goalSouth.style.left = new StyleLength(new Length(centerX - goalWidthPx/2, LengthUnit.Pixel));
         goalSouth.style.height = new StyleLength(new Length(goalLengthPx, LengthUnit.Pixel));

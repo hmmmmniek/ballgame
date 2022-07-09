@@ -35,7 +35,7 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
     public async void OnPlayerJoined(NetworkRunner runner, PlayerRef player) {
 
         if (runner.LocalPlayer == player && runner.IsServer && matchManager == null) {
-            matchManager = runner.Spawn(matchManagerPrefab, new Vector3(0, 0, 0));
+            runner.Spawn(matchManagerPrefab, new Vector3(0, 0, 0));
         }
 
         if(runner.LocalPlayer == player) {
@@ -51,7 +51,7 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
 
     public void OnPlayerLeft(NetworkRunner runner, PlayerRef player) {
         if (runner.IsServer) {
-            matchManager.HandlePlayerDisconnected(player);
+            MatchController.instance.HandlePlayerDisconnected(player);
         }
     }
 

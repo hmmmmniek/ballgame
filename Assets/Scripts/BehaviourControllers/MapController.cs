@@ -2,56 +2,7 @@ using System.Collections;
 using Fusion;
 using UnityEngine;
 using static CreateSessionController;
-public struct MapInfo {
-    public float mapWidth;
-    public float mapLength;
-    public float mapHeight;
-    public float mapGoalWidth;
-    public float mapGoalHeight;
-    public float mapGoalDepth;
-    public float mapGoalPostRadius;
-    public int mapGoalPostSegments;
-    public float lightMaxDistanceBetween;
-    public float lightSpotAngle;
-    public float lightInnerSpotAngle;
-    public float lightIntensity;
-    public float lightRotation;
-    public float lightRange;
-    public Mesh mesh;
-    public MapInfo(
-        float mapWidth,
-        float mapLength,
-        float mapHeight,
-        float mapGoalWidth,
-        float mapGoalHeight,
-        float mapGoalDepth,
-        float mapGoalPostRadius,
-        int mapGoalPostSegments,
-        float lightMaxDistanceBetween,
-        float lightSpotAngle,
-        float lightInnerSpotAngle,
-        float lightIntensity,
-        float lightRotation,
-        float lightRange,
-        Mesh mesh
-    ) {
-        this.mapWidth = mapWidth;
-        this.mapLength = mapLength;
-        this.mapHeight = mapHeight;
-        this.mapGoalWidth = mapGoalWidth;
-        this.mapGoalHeight = mapGoalHeight;
-        this.mapGoalDepth = mapGoalDepth;
-        this.mapGoalPostRadius = mapGoalPostRadius;
-        this.mapGoalPostSegments = mapGoalPostSegments;
-        this.lightMaxDistanceBetween = lightMaxDistanceBetween;
-        this.lightSpotAngle = lightSpotAngle;
-        this.lightInnerSpotAngle = lightInnerSpotAngle;
-        this.lightIntensity = lightIntensity;
-        this.lightRotation = lightRotation;
-        this.lightRange = lightRange;
-        this.mesh = mesh;
-    }
-}
+
 public class MapController : NetworkBehaviour {
 
     public bool generateMeshes = false;
@@ -107,79 +58,17 @@ public class MapController : NetworkBehaviour {
         DestroyImmediate(go);
     }
 
-    public MapInfo GetMapInfo(MapSize mapSize) {
-        MapGenerator gen = new MapGenerator();
 
-        switch (mapSize) {
-            case MapSize.Small: {
-                return new MapInfo(
-                    mapWidth: gen.mapSmallWidth,
-                    mapLength: gen.mapSmallLength,
-                    mapHeight: gen.mapSmallHeight,
-                    mapGoalWidth: gen.mapSmallGoalWidth,
-                    mapGoalHeight: gen.mapSmallGoalHeight,
-                    mapGoalDepth: gen.mapSmallGoalDepth,
-                    mapGoalPostRadius: gen.mapSmallGoalPostRadius,
-                    mapGoalPostSegments: gen.mapSmallGoalPostSegments,
-                    lightMaxDistanceBetween: gen.mapSmallLightMaxDistanceBetween,
-                    lightSpotAngle: gen.mapSmallLightSpotAngle,
-                    lightInnerSpotAngle: gen.mapSmallLightInnerSpotAngle,
-                    lightIntensity: gen.mapSmallLightIntensity,
-                    lightRotation: gen.mapSmallLightRotation,
-                    lightRange: gen.mapSmallLightRange,
-                    mesh: smallMesh
-                );
-            }
-            case MapSize.Medium: {
-                return new MapInfo(
-                    mapWidth: gen.mapMediumWidth,
-                    mapLength: gen.mapMediumLength,
-                    mapHeight: gen.mapMediumHeight,
-                    mapGoalWidth: gen.mapMediumGoalWidth,
-                    mapGoalHeight: gen.mapMediumGoalHeight,
-                    mapGoalDepth: gen.mapMediumGoalDepth,
-                    mapGoalPostRadius: gen.mapMediumGoalPostRadius,
-                    mapGoalPostSegments: gen.mapMediumGoalPostSegments,
-                    lightMaxDistanceBetween: gen.mapMediumLightMaxDistanceBetween,
-                    lightSpotAngle: gen.mapMediumLightSpotAngle,
-                    lightInnerSpotAngle: gen.mapMediumLightInnerSpotAngle,
-                    lightIntensity: gen.mapMediumLightIntensity,
-                    lightRotation: gen.mapMediumLightRotation,
-                    lightRange: gen.mapMediumLightRange,
-                    mesh: mediumMesh
-                );
-            }
-            case MapSize.Large: {
-                return new MapInfo(
-                    mapWidth: gen.mapLargeWidth,
-                    mapLength: gen.mapLargeLength,
-                    mapHeight: gen.mapLargeHeight,
-                    mapGoalWidth: gen.mapLargeGoalWidth,
-                    mapGoalHeight: gen.mapLargeGoalHeight,
-                    mapGoalDepth: gen.mapLargeGoalDepth,
-                    mapGoalPostRadius: gen.mapLargeGoalPostRadius,
-                    mapGoalPostSegments: gen.mapLargeGoalPostSegments,
-                    lightMaxDistanceBetween: gen.mapLargeLightMaxDistanceBetween,
-                    lightSpotAngle: gen.mapLargeLightSpotAngle,
-                    lightInnerSpotAngle: gen.mapLargeLightInnerSpotAngle,
-                    lightIntensity: gen.mapLargeLightIntensity,
-                    lightRotation: gen.mapLargeLightRotation,
-                    lightRange: gen.mapLargeLightRange,
-                    mesh: largeMesh
-                );
-            }
-        }
-        return new MapInfo();
-
-    }
 
     private void CreateMap(MapSize mapSize) {
         foreach (Transform child in transform) {
            StartCoroutine(DestroyObject(child.gameObject));
         }
-        MapInfo mapInfo = GetMapInfo(mapSize);
-
         MapGenerator gen = new MapGenerator();
+
+        MapInfo mapInfo = gen.GetMapInfo(mapSize);
+        mapInfo.mesh = mapSize == MapSize.Small ? smallMesh : (mapSize == MapSize.Medium ? mediumMesh : largeMesh);
+
 
         GameObject map = new GameObject("Map");
         map.transform.position = new Vector3(-mapInfo.mapWidth / 2, 0, -mapInfo.mapLength / 2);

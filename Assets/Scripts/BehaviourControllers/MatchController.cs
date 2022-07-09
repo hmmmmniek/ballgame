@@ -108,8 +108,17 @@ public class MatchController : NetworkBehaviour {
     [HideInInspector][Networked] public Team lastScored { get; set; }
     [HideInInspector][Networked] public float lastScoredTime { get; set; }
 
-
     public override void FixedUpdateNetwork() {
+        if(!Object.HasStateAuthority) {
+            
+            if(ball == null) {
+                ball = FindObjectOfType<BallController>();
+            }
+
+            if(map == null) {
+                map = FindObjectOfType<MapController>();
+            }
+        }
         if(Object.HasStateAuthority && state == State.Started && mapInfo.HasValue) {
             Vector3 ballPos = ball.transform.position;
             
@@ -132,32 +141,13 @@ public class MatchController : NetworkBehaviour {
                 Scored(Team.Red);
             }
         }
-        if(Object.HasStateAuthority && (state == State.ScoredReset || state == State.ScoredCountDown)) {
+        if(Object.HasStateAuthority && (state == State.ScoredReset || state == State.ScoredCountDown) && mapInfo.HasValue) {
             bool playerPushed = false;
             foreach (var player in activePlayers) {
-                bool thisPlayerPushed = false;
-                Vector3 playerPosition = player.playerController.transform.position;
-                Vector3 playerVelocity = player.playerController.networkCharacterMovementController.Velocity; 
-
-                if(
-                    (player.team == Team.Blue && playerPosition.z > 0) ||
-                    (player.team == Team.Red && playerPosition.z < 0)
-                ) {
-                    Vector3 newPlayerPos = playerPosition + (new Vector3(0, 0, player.team == Team.Blue ? -resetPlayerVelocity : resetPlayerVelocity) * Runner.DeltaTime);
-                    player.playerController.networkCharacterMovementController.Teleport(newPlayerPos);
-                    player.playerController.networkCharacterMovementController.Velocity = new Vector3(0, playerVelocity.y, 0);
-                    playerPushed = true;
-                    thisPlayerPushed = true;
+                if(playerPushed) {
+                    continue;
                 }
-                if(thisPlayerPushed == false && (lastScored == player.team || lastScored == Team._)) {
-                    Vector3 ballToPlayer = new Vector3(playerPosition.x, 0, playerPosition.z) - new Vector3(ball.transform.position.x, 0, ball.transform.position.z);
-                    if(ballToPlayer.magnitude < resetBallPlayerPushRadius) {
-                        Vector3 newPlayerPos = playerPosition + (ballToPlayer.normalized * resetPlayerVelocity * Runner.DeltaTime);
-                        player.playerController.networkCharacterMovementController.Teleport(newPlayerPos);
-                        player.playerController.networkCharacterMovementController.Velocity = new Vector3(0, playerVelocity.y, 0);
-                        playerPushed = true;
-                    }
-                }
+                playerPushed = !IsPlayerOnOwnHalf(player.playerController.transform.position, player.team.Value);
             }
           
             if(state != State.ScoredCountDown && !playerPushed) {
@@ -165,7 +155,7 @@ public class MatchController : NetworkBehaviour {
                 scoreCountDownStart = Runner.SimulationTime;
             }
         }
-        if(state == State.ScoredCountDown && Runner.SimulationTime - scoreCountDownStart > scoreCountDownTime) {
+        if(Object.HasStateAuthority && state == State.ScoredCountDown && Runner.SimulationTime - scoreCountDownStart > scoreCountDownTime) {
             ball.EnablePhysics();
             state = State.Started;
             matchEnd = matchEnd + (Runner.SimulationTime - lastScoredTime);
@@ -198,12 +188,16 @@ public class MatchController : NetworkBehaviour {
             map = Runner.Spawn(mapPrefab, new Vector3(0, 0, 0), Quaternion.LookRotation(new Vector3(0, 0, 0)));
         }
         if(ball == null) {
-            ball = Runner.Spawn(ballPrefab, new Vector3(0, 4, 0), Quaternion.LookRotation(new Vector3(0, 0, 0)));
+            ball = Runner.Spawn(
+                ballPrefab,
+                new Vector3(0, 4, 0),
+                Quaternion.LookRotation(new Vector3(0, 0, 0))
+            );
         }
-        ball.matchController = this;
 
         if(Runner.SessionInfo.Properties.TryGetValue("mapSize", out var mapSize)) {
-            mapInfo = map.GetMapInfo((MapSize)(int)mapSize);
+            MapGenerator gen = new MapGenerator();
+            mapInfo = gen.GetMapInfo((MapSize)(int)mapSize);
         }
 
         if(Object.HasStateAuthority) {
@@ -212,10 +206,12 @@ public class MatchController : NetworkBehaviour {
                 activePlayers = statePlayers.Where((p) => p.playerController != null && p.team.HasValue).ToArray();
             });
         }
+        if(matchEnd == 0 && Object.HasStateAuthority) {
+            matchEnd = Runner.SimulationTime + matchDurationSeconds;
+            
+            Scored(Team._);
+        }
 
-        matchEnd = Runner.SimulationTime + matchDurationSeconds;
-        
-        Scored(Team._);
     }
 
     public void HandlePlayersState(Player[] statePlayers) {
@@ -253,7 +249,6 @@ public class MatchController : NetworkBehaviour {
             );
             player.inputAuthority = joinedPlayer.playerRef.Value;
             player.team = joinedPlayer.team.Value;
-            player.matchController = this;
 
         }
 
@@ -331,5 +326,24 @@ public class MatchController : NetworkBehaviour {
             unsubscribePlayers();
 
         }
+    }
+
+    public bool IsPlayerOnOwnHalf(Vector3 position, Team team) {
+        Vector3 ballToPosition = new Vector3(position.x, 0, position.z) - new Vector3(ball.transform.position.x, 0, ball.transform.position.z);
+        if(
+            (
+                (team == Team.Blue && position.z > 0) ||
+                (team == Team.Red && position.z < 0)
+            ) &&
+            !(lastScored != team && ballToPosition.magnitude < mapInfo.Value.middleCircleRadius)
+        ) {
+            return false;
+        }
+        if(lastScored == team || lastScored == Team._) {
+            if(ballToPosition.magnitude < mapInfo.Value.middleCircleRadius) {
+                return false;
+            }
+        }
+        return true;
     }
 }

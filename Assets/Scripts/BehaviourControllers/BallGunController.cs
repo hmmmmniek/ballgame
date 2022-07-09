@@ -576,7 +576,7 @@ public class BallGunController : NetworkBehaviour {
 
         }
 
-        if(!ball.isAttached && ball.matchController.state == State.Started) {
+        if(!ball.isAttached && MatchController.instance.state == State.Started) {
             Vector3 playerToBall = (ball.transform.position - transform.position);
             float distance = playerToBall.magnitude;
 

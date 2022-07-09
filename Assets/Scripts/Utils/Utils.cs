@@ -135,6 +135,33 @@ public static class Utils {
 
         return (boost: boostRemainingPercentage, velocity: velocity);
     }
+    public static Vector3 PushToOwnHalf(Transform transform, float deltaTime, Team team, Vector3 velocity, Vector3 ballPos, CharacterController controller, float maxSprintGroundSpeed, float middleCircleRadius) {
+        var previousPos = transform.position;
+
+        Vector3 ballToPlayer = new Vector3(previousPos.x, 0, previousPos.z) - new Vector3(ballPos.x, 0, ballPos.z);
+        bool pushed = false;
+        switch(team) {
+            case Team.Blue: {
+                if(transform.position.z > 0) {
+                    controller.Move(new Vector3(0, 0, -1) * maxSprintGroundSpeed * deltaTime);
+                    pushed = true;
+                }
+                break;
+            }
+            case Team.Red: {
+                if(transform.position.z < 0) {
+                    controller.Move(new Vector3(0, 0, 1) * maxSprintGroundSpeed * deltaTime);
+                    pushed = true;
+                }
+                break;
+            }
+        }
+        if(!pushed && ballToPlayer.magnitude < middleCircleRadius) {
+            controller.Move(ballToPlayer.normalized * maxSprintGroundSpeed * deltaTime);
+        }
+        velocity = (transform.position - previousPos) / deltaTime;
+        return velocity;
+    }
 
     public static void Rotate(Transform transform, float eulerAngles) {
         transform.localRotation = Quaternion.Euler(0, eulerAngles, 0f);

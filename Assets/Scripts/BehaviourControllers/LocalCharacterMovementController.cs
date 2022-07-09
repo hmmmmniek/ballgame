@@ -35,9 +35,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
 
     public void Synchronize() {
         boostRemainingPercentage = networkMovementController.boostRemainingPercentage;
-        Controller.enabled = false;
-        transform.position = networkMovementController.transform.position;
-        Controller.enabled = true;
+        Teleport(networkMovementController.transform.position);
         Velocity = networkMovementController.Velocity;
 
     }
@@ -65,10 +63,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
         /*
         * Accept/refuse server state
         */
-        State matchState = networkMovementController.ballGunController.playerController.matchController.state;
         if( 
-            matchState == State.ScoredCountDown ||
-            matchState == State.ScoredReset ||
             (!localDash && !localHitGround && (
                 Vector3.Distance(transform.position, networkMovementController.transform.position) > networkMovementController.maxAllowedClientPositionError ||
                 Vector3.Distance(Velocity, networkMovementController.Velocity) > networkMovementController.maxAllowedClientVelocityError ||
@@ -203,6 +198,26 @@ public class LocalCharacterMovementController : MonoBehaviour {
         );
         Velocity = v2;
         boostRemainingPercentage = b2;
+
+        if(
+            (MatchController.instance.state == State.ScoredCountDown || MatchController.instance.state == State.ScoredReset) &&
+            !MatchController.instance.IsPlayerOnOwnHalf(transform.position, networkMovementController.ballGunController.playerController.team)
+        ) {
+            Velocity = Utils.PushToOwnHalf(
+                transform,
+                deltaTime,
+                networkMovementController.ballGunController.playerController.team,
+                Velocity,
+                networkMovementController.ballGunController.ball.transform.position,
+                Controller,
+                networkMovementController.maxBallWalkingSpeed,
+                MatchController.instance.mapInfo.Value.middleCircleRadius
+            );
+
+        }
+
+
+
         /*
         * Rotate
         */
@@ -234,5 +249,10 @@ public class LocalCharacterMovementController : MonoBehaviour {
         lastIsGrounded = Controller.isGrounded;
     }
 
+    public void Teleport(Vector3 position) {
+        Controller.enabled = false;
+        transform.position = position;
+        Controller.enabled = true;
+    }
 
 }
