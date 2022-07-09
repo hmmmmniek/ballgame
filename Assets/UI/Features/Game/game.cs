@@ -9,7 +9,8 @@ public class GameController: Module {
     public new readonly static IEnumerable<string> WIDGET_ELEMENT_NAMES = new string[] {
         CursorController.ELEMENT_NAME,
         MiniMapController.ELEMENT_NAME,
-        ScoreAndTimeController.ELEMENT_NAME
+        ScoreAndTimeController.ELEMENT_NAME,
+        BallReleaseCountDownController.ELEMENT_NAME
     };
     VisualElement boostIndicator;
     VisualElement chargeIndicator;

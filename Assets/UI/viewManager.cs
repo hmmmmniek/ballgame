@@ -85,6 +85,10 @@ public class ViewManager {
                     widgets.AddRange(InitializeWidgetsOfType<ScoreAndTimeController>());
                     break;
                 }
+                case BallReleaseCountDownController.ELEMENT_NAME: {
+                    widgets.AddRange(InitializeWidgetsOfType<BallReleaseCountDownController>());
+                    break;
+                }
             }
         }
         return widgets;

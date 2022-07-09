@@ -10,12 +10,14 @@
     <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/Cursor/cursor.uxml" name="CursorTemplate"/>
     <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/MiniMap/miniMap.uxml" name="MiniMapTemplate"/>
     <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/ScoreAndTime/scoreAndTime.uxml" name="ScoreAndTimeTemplate"/>
+    <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/BallReleaseCountDown/ballReleaseCountDown.uxml" name="BallReleaseCountDownTemplate"/>
 
 
     <engine:VisualElement class="game" name="Game" >
         <engine:Instance template="CursorTemplate"></engine:Instance>
         <engine:Instance template="ScoreAndTimeTemplate"></engine:Instance>
         <engine:Instance template="MiniMapTemplate"></engine:Instance>
+        <engine:Instance template="BallReleaseCountDownTemplate"></engine:Instance>
 
         <engine:VisualElement name="game__boost" class="game__boost" >
             <engine:VisualElement name="game__boost__indicator" class="game__boost__indicator" ></engine:VisualElement>    
