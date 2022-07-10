@@ -13,7 +13,7 @@ public class ScoreAndTimeController : Widget {
     private Label redScoreLabel;
     private Label minutesLabel;
     private Label secondsLabel;
-
+    private VisualElement scoreAndTimeContainer;
     private float matchEnd = Time.time;
 
     public ScoreAndTimeController(VisualElement element) {
@@ -23,6 +23,7 @@ public class ScoreAndTimeController : Widget {
         redScoreLabel = element.Q<Label>("scoreAndTime__red-score__score-label");
         minutesLabel = element.Q<Label>("scoreAndTime__time__minutes-label");
         secondsLabel = element.Q<Label>("scoreAndTime__time__seconds-label");
+        scoreAndTimeContainer = element.Q<VisualElement>("scoreAndTime__container");
         Watch(GameState.Select(GameState.GetBlueTeamScore, (score) => {
             blueScoreLabel.text = $"{score}";
         }));
@@ -32,7 +33,13 @@ public class ScoreAndTimeController : Widget {
         Watch(GameState.Select(GameState.GetMatchEnd, (matchEndTime) => {
             matchEnd = matchEndTime;
         }));
-       // GetScoredCountDownEnd
+        Watch(InputState.Select(InputState.GetShowScoreboard, (showScoreboard) => {
+            if(!showScoreboard) {
+                scoreAndTimeContainer.RemoveFromClassList("hidden");
+            } else if(!scoreAndTimeContainer.ClassListContains("hidden")) {
+                scoreAndTimeContainer.AddToClassList("hidden");
+            }
+        }));
         UpdateTime();
     }
 

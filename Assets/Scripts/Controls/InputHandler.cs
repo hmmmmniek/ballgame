@@ -111,9 +111,18 @@ public class InputHandler : MonoBehaviour {
                 localInputDataCache.secondaryPressed = false;
             }
         }
+
+        if (context.action.name == "Scoreboard") {
+            if(context.ReadValueAsButton()) {
+                InputState.Dispatch(InputState.SetShowScoreboard, true, () => {});
+            } else {
+                InputState.Dispatch(InputState.SetShowScoreboard, false, () => {});
+            }
+        }
+
         if (context.action.name == "Escape") {
-            StopGameInput();
-            uiManager.ShowMenu();
+            //StopGameInput();
+            //uiManager.ShowMenu();
         }
     }
 }

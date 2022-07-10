@@ -11,6 +11,7 @@
     <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/MiniMap/miniMap.uxml" name="MiniMapTemplate"/>
     <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/ScoreAndTime/scoreAndTime.uxml" name="ScoreAndTimeTemplate"/>
     <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/BallReleaseCountDown/ballReleaseCountDown.uxml" name="BallReleaseCountDownTemplate"/>
+    <engine:Template src="project://database/Assets/UI/Features/Game/Widgets/Scoreboard/scoreboard.uxml" name="ScoreboardTemplate"/>
 
 
     <engine:VisualElement class="game" name="Game" >
@@ -28,5 +29,8 @@
         <engine:VisualElement class="game__rtt" name="game__rtt">
             <engine:Label name="game_rtt__label" text="" />
         </engine:VisualElement>  
+
+        <engine:Instance template="ScoreboardTemplate"></engine:Instance>
+
     </engine:VisualElement>
 </engine:UXML>

@@ -89,10 +89,15 @@ public class ViewManager {
                     widgets.AddRange(InitializeWidgetsOfType<BallReleaseCountDownController>());
                     break;
                 }
+                case ScoreboardController.ELEMENT_NAME: {
+                    widgets.AddRange(InitializeWidgetsOfType<ScoreboardController>());
+                    break;
+                }
             }
         }
         return widgets;
     }
+
 
     private List<T> InitializeWidgetsOfType<T>() where T: Widget {
         var elementName = typeof(T).GetField("ELEMENT_NAME").GetValue(null) as string;

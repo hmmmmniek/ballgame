@@ -12,8 +12,6 @@ public class LobbyController : Module {
         SessionListItemController.ELEMENT_NAME
     };
 
-    private float scrollVelocity;
-    private bool scrollerUpdateStarted;
     private List<SessionInfo> sessions;
     private SessionInfo selectedSession;
     private Button joinButton;
@@ -57,7 +55,7 @@ public class LobbyController : Module {
         var listView = element.Q<ListView>();
 
         SetupSessionList(listView);
-        FixListViewScrollingBug(listView);
+        UIUtils.FixListViewScrollingBug(listView);
 
     }
 
@@ -118,30 +116,8 @@ public class LobbyController : Module {
         }
     }
 
-    private void FixListViewScrollingBug(ListView listView) {
-        var scroller = listView.Q<Scroller>();
 
-        listView.RegisterCallback<WheelEvent>(async @event => {
-            scrollVelocity += @event.delta.y * 1000;
-            if (!scrollerUpdateStarted) {
-                scrollerUpdateStarted = true;
-                await ScrollerUpdate(scroller);
-                scrollerUpdateStarted = false;
-            }
-            @event.StopPropagation();
-        });
 
-    }
-
-    private async Task ScrollerUpdate(Scroller scroller) {
-        await Task.Delay(10);
-        scroller.value += scrollVelocity;
-        scrollVelocity -= scrollVelocity * 0.1f;
-
-        if (scrollVelocity > 0.01 || scrollVelocity < -0.01) {
-            await ScrollerUpdate(scroller);
-        }
-    }
 }
 
 

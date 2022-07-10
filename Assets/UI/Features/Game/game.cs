@@ -10,12 +10,12 @@ public class GameController: Module {
         CursorController.ELEMENT_NAME,
         MiniMapController.ELEMENT_NAME,
         ScoreAndTimeController.ELEMENT_NAME,
-        BallReleaseCountDownController.ELEMENT_NAME
+        BallReleaseCountDownController.ELEMENT_NAME,
+        ScoreboardController.ELEMENT_NAME
     };
     VisualElement boostIndicator;
     VisualElement chargeIndicator;
-
-    
+    VisualElement scoreboardContainer;
     Label rttLabel;
 
     public GameController(VisualElement element) {
@@ -45,6 +45,9 @@ public class GameController: Module {
             rttLabel.text = $"{rtt}{(rtt%1==0 ? ".0" : "")} ms";
         }));
         
+
+
+
 
     }
 

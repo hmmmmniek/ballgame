@@ -40,7 +40,11 @@ public class UIManager : MonoBehaviour
 
     public void ShowMenu() {
         if(!localPlayer.HasValue) {
-            ViewManager.instance.Open<MainMenuController>();
+            if(PlayerPrefs.GetInt("playerNameSet", 0) == 1) {
+                ViewManager.instance.Open<MainMenuController>();
+            } else {
+                ViewManager.instance.Open<LoginController>();
+            }
         } else {
             ViewManager.instance.Open<InGameMenuController>();
         }

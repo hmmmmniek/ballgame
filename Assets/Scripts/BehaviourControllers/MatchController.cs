@@ -62,7 +62,7 @@ public class MatchController : NetworkBehaviour {
         ).ToArray();
 
         foreach (var playerRef in newJoinedPlayers) {
-            GameState.Dispatch(GameState.AddPlayer, new Player(null, playerRef, null, null, null, Runner.LocalPlayer.PlayerId == playerRef.PlayerId), () => {});
+            GameState.Dispatch(GameState.AddPlayer, new Player(null, null, playerRef, null, null, null, Runner.LocalPlayer.PlayerId == playerRef.PlayerId), () => {});
         }
         foreach (var player in disconnectedPlayers) {
             GameState.Dispatch(GameState.RemovePlayer, player.hwid, () => {});

@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/MainMenu/mainMenu.uss" />
+
+ 
+    <engine:VisualElement class="main">
+        <engine:VisualElement class="player-name-input">
+            <engine:Label class="player-name-input__label" text="Player name" />
+            <engine:TextField name="player-name-input__textfield" max-length="100" />
+            <engine:Button name="player-name-input__clear" text="Clear" />
+        </engine:VisualElement>
+        <engine:Button name="StartButton" text="Start" />
+    </engine:VisualElement>
+
+</engine:UXML>
+

@@ -20,5 +20,10 @@
             <engine:Button name="input-rebinding_jump-button-reset" text="Reset" />
 
         </engine:VisualElement>
+        <engine:VisualElement class="change-username">
+            <engine:Label class="change-username__label" text="Player name" />
+            <engine:Label name="change-username__current" class="change-username__current" text="" />
+            <engine:Button name="change-username__change-button" text="Change" />
+        </engine:VisualElement>
     </engine:VisualElement>
 </engine:UXML>

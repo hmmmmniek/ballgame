@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<engine:UXML
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:engine="UnityEngine.UIElements"
+    xmlns:editor="UnityEditor.UIElements"
+    xsi:noNamespaceSchemaLocation="../../../../UIElementsSchema/UIElements.xsd"
+>
+    <Style src="project://database/Assets/UI/Features/Game/Widgets/ScoreBoard/scoreboard.uss" />
+
+    <engine:VisualElement class="scoreboard" name="Scoreboard">
+        <engine:VisualElement class="scoreboard__container hidden" name="scoreboard__container">
+            <engine:VisualElement class="scoreboard__time" name="scoreboard__time">
+                <engine:Label name="scoreboard__time__minutes-label" text="00" />
+                <engine:Label text=":" />
+                <engine:Label name="scoreboard__time__seconds-label" text="00" />
+            </engine:VisualElement>
+
+            <engine:VisualElement class="scoreboard__teams" name="scoreboard__teams">
+                <engine:VisualElement class="scoreboard__teams__blue" name="scoreboard__teams__blue">
+                    <engine:VisualElement class="scoreboard__teams__blue__score">
+                        <engine:Label name="scoreboard__teams__blue__score__team-label" text="Blue:" />
+                        <engine:Label name="scoreboard__teams__blue__score__score-label" text="0" />
+                    </engine:VisualElement>
+                    <engine:Label text="Players:" />
+                    <engine:VisualElement class="list-wrapper">
+                        <engine:ListView name="scoreboard__teams__blue__players" />
+                    </engine:VisualElement>
+                </engine:VisualElement>
+                
+                <engine:VisualElement class="scoreboard__teams__red" name="scoreboard__teams__red">
+                    <engine:VisualElement class="scoreboard__teams__red__score">
+                        <engine:Label name="scoreboard__teams__red__score__team-label" text="Red:" />
+                        <engine:Label name="scoreboard__teams__red__score__score-label" text="0" />
+                    </engine:VisualElement>
+                    <engine:Label text="Players:" />
+                    <engine:VisualElement class="list-wrapper">
+                        <engine:ListView name="scoreboard__teams__red__players" />
+                    </engine:VisualElement>
+                </engine:VisualElement>
+            </engine:VisualElement>
+            <engine:VisualElement class="scoreboard__spectators" name="scoreboard__spectators">
+                <engine:Label text="Spectators:" />
+                <engine:VisualElement class="list-wrapper">
+                    <engine:ListView name="scoreboard__spectators__list" />
+                </engine:VisualElement>
+            </engine:VisualElement>
+        </engine:VisualElement>
+    </engine:VisualElement>
+</engine:UXML>

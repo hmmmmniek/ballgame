@@ -1,0 +1,19 @@
+:root {
+    width: 100%;
+    height: 100%;
+}
+.main {
+    flex-grow: 1;
+    align-items: center;
+    justify-content: center;
+    background-color: rgba(11, 137, 38, 0.4);
+}
+
+.main Button {
+    width: 200px;
+
+}
+
+.main Button.hidden {
+    display: none;
+}

@@ -1,0 +1,71 @@
+:root, .scoreboard {
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.scoreboard__container {
+    width: 600px;
+    height: auto;
+    background-color: rgba(0, 255, 0, 0.2);
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+}
+.scoreboard__time{
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.scoreboard__teams {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+    width: 100%;
+}
+
+.scoreboard__teams__blue, .scoreboard__teams__red {
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: flex-start;
+    width: 50%;
+}
+
+.scoreboard__teams__blue {
+    background-color: rgba(0, 0, 100, 0.2);
+}
+.scoreboard__teams__red {
+    background-color: rgba(100, 0, 0, 0.2);
+}
+.scoreboard__teams__blue__score, .scoreboard__teams__red__score {
+    flex-direction: row;
+    justify-content: center;
+    align-items: center;
+}
+
+.scoreboard__spectators {
+    flex-direction: row;
+    justify-content: flex-start;
+    align-items: center;
+    width: 100%;
+
+}
+
+.hidden {
+    display: none;
+}
+
+.unity-list-view__empty-label {
+    display: none;
+}
+.list-wrapper {
+    display: flex;
+    flex-direction: row;
+    justify-content: center;
+    align-items: cneter;
+}

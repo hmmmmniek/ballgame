@@ -13,9 +13,11 @@ public struct Player {
     public Team? team;
     public bool isLocal;
     public string hwid;
+    public string name;
 
     public Player(
         string hwid,
+        string name,
         PlayerRef? playerRef,
         BallGunController ballGunController,
         PlayerController playerController,
@@ -23,6 +25,7 @@ public struct Player {
         bool isLocal
     ) {
         this.hwid = hwid;
+        this.name = name;
         this.playerRef = playerRef;
         this.ballGunController = ballGunController;
         this.playerController = playerController;

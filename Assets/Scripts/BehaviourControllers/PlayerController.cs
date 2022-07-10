@@ -58,7 +58,7 @@ public class PlayerController : NetworkRigidbody {
 
 
         transform.name = $"#{inputAuthority.PlayerId} Player";
-        Player player = new Player(hwid, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
+        Player player = new Player(hwid, playerName, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
         GameState.Dispatch(GameState.UpdatePlayer, (player: player, usePlayerRef: true), () => {});
 
         if (Runner.LocalPlayer == inputAuthority) {
@@ -103,7 +103,15 @@ public class PlayerController : NetworkRigidbody {
         changed.Behaviour.OnHWIDChanged();
     }
     private void OnHWIDChanged() {
-        Player player = new Player(hwid, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
+        Player player = new Player(hwid, playerName, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
+        GameState.Dispatch(GameState.UpdatePlayer, (player: player, usePlayerRef: true), () => {});
+    }
+    [HideInInspector][Networked(OnChanged = nameof(OnNameChanged)), Capacity(64)] public string playerName {get; set;}
+    public static void OnNameChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnNameChanged();
+    }
+    private void OnNameChanged() {
+        Player player = new Player(hwid, playerName, inputAuthority, ballGunController, this, team, Runner.LocalPlayer == inputAuthority);
         GameState.Dispatch(GameState.UpdatePlayer, (player: player, usePlayerRef: true), () => {});
     }
     [HideInInspector][Networked] public NetworkBool temporarilyIgnored {get; set;}
@@ -194,7 +202,7 @@ public class PlayerController : NetworkRigidbody {
         cameraController.transform.name = "#? Camera";
 
         if(Object.HasInputAuthority) {
-            RPC_Joined(Runner.LocalPlayer, Utils.GetCurrentProcessId());
+            RPC_Joined(Runner.LocalPlayer, Utils.GetCurrentProcessId(), UserState.SelectOnce(UserState.GetPlayerName));
         }
         if(Object.InputAuthority == PlayerRef.None) {
             AutoRemove();
@@ -210,9 +218,10 @@ public class PlayerController : NetworkRigidbody {
     }
 
     [Rpc(sources: RpcSources.All, targets: RpcTargets.StateAuthority, InvokeLocal = true, HostMode = RpcHostMode.SourceIsHostPlayer)]
-    public void RPC_Joined(PlayerRef playerRef, string id, RpcInfo info = default){
+    public void RPC_Joined(PlayerRef playerRef, string id, string name, RpcInfo info = default){
         if(info.Source == playerRef) {
             this.hwid = id;
+            this.playerName = name;
         }
     }
 

@@ -9,6 +9,7 @@ using UnityEngine.UIElements;
 public class InputStateData: StateData {
     public string bindingsJson;
     public InputActionAsset actions;
+    public bool showScoreboard;
 }
 
 public class InputState: BaseState<InputStateData, InputState> {
@@ -39,9 +40,7 @@ public class InputState: BaseState<InputStateData, InputState> {
         };
     }
 
-    public static string GetBindingsJson(InputStateData state) {
-        return state.bindingsJson;
-    }
+
 
     public static void StartRebind(BaseState<InputStateData, InputState> s, string args, Action c) { (s as InputState).SRJ(c, args); }
     private void SRJ(Action complete, string bindingName) {
@@ -73,6 +72,13 @@ public class InputState: BaseState<InputStateData, InputState> {
         ApplyBindings();
     }
 
+    public static void SetShowScoreboard(BaseState<InputStateData, InputState> s, bool args, Action c) { (s as InputState).SSS(c, args); }
+    private void SSS(Action complete, bool args) {
+        StateChange((InputStateData state) => {
+            state.showScoreboard = args;
+        });
+    }
+
     private void ApplyBindings() {
         string bindings = dependencies.playerInput.actions.SaveBindingOverridesAsJson();
         PlayerPrefs.SetString("bindings", bindings);
@@ -89,6 +95,13 @@ public class InputState: BaseState<InputStateData, InputState> {
     }
 
 
+    public static string GetBindingsJson(InputStateData state) {
+        return state.bindingsJson;
+    }
+
+    public static bool GetShowScoreboard(InputStateData state) {
+        return state.showScoreboard;
+    }
 
 
 }

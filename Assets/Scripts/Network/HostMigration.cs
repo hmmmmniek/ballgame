@@ -93,7 +93,7 @@ public class HostMigration : Fusion.Behaviour, INetworkRunnerCallbacks {
                         }
                     ).GetComponent<PlayerController>();
 
-                    GameState.Dispatch(GameState.AddPlayer, new Player(playerController.hwid, null, playerController.ballGunController, playerController, playerController.team, false), () => {});
+                    GameState.Dispatch(GameState.AddPlayer, new Player(playerController.hwid, playerController.playerName, null, playerController.ballGunController, playerController, playerController.team, false), () => {});
 
                 }
             }

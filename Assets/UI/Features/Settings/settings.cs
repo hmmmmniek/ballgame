@@ -11,7 +11,7 @@ public class SettingsController : Module {
     private VisualElement element;
     private Player? localPlayer;
     public Action backAction;
-
+    private Label currentUserNameLabel;
     public SettingsController(VisualElement element) {
 
         this.element = element;
@@ -24,6 +24,15 @@ public class SettingsController : Module {
 
         Button jumpButtonReset = element.Q<Button>("input-rebinding_jump-button-reset");
         jumpButtonReset.clicked += ResetJumpButton;
+
+        Button changeName = element.Q<Button>("change-username__change-button");
+        changeName.clicked += ChangeName;
+
+        currentUserNameLabel = element.Q<Label>("change-username__current");
+
+        Watch(UserState.Select(UserState.GetPlayerName, (playerName) => {
+            currentUserNameLabel.text = playerName;
+        }));
 
         Watch(InputState.Select<Func<string, string>>(InputState.GetBindingLabelFn, (GetBindingLabel) => {
             jumpButton.text = GetBindingLabel("Jump");
@@ -59,5 +68,7 @@ public class SettingsController : Module {
     private void ResetJumpButton() {
         InputState.Dispatch(InputState.ResetRebind, "Jump", () => { });
     }
-
+    private void ChangeName() {
+        ViewManager.instance.Open<LoginController>();
+    }
 }
