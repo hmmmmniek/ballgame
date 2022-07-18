@@ -48,9 +48,10 @@ MonoBehaviour:
   _interpolationDataSource: 3
   generateMeshes: 0
   material: {fileID: 2100000, guid: 6ab7fa257e60ecd41bde5dcc4532e8f8, type: 2}
-  smallMesh: {fileID: -2432090755550338912, guid: 7bef87b7d9e67ea9baaee857dfde4de7, type: 3}
-  mediumMesh: {fileID: 4300000, guid: ced63dbf2ea8711a199009ab8e774fde, type: 2}
-  largeMesh: {fileID: 4300000, guid: 4b3cfeb2456d5b9a5a811a3ab6f9bd27, type: 2}
+  goalPostProcessingVolume: {fileID: 472843769576590402, guid: aacafeabbeff50a7abaa12d249c49643, type: 3}
+  smallMesh: {fileID: 4300000, guid: a1c93b83a5f874e52a316ecad42e2b0c, type: 2}
+  mediumMesh: {fileID: 0}
+  largeMesh: {fileID: 0}
   testSmallGeneration: 0
   _size: 0
 --- !u!114 &6252119335805703767

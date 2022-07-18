@@ -14,9 +14,6 @@ public struct MapInfo {
     public float mapGoalDepth;
     public float mapGoalPostRadius;
     public int mapGoalPostSegments;
-    public float lightMaxDistanceBetween;
-    public float lightSpotAngle;
-    public float lightInnerSpotAngle;
     public float lightIntensity;
     public float lightRotation;
     public float lightRange;
@@ -31,9 +28,6 @@ public struct MapInfo {
         float mapGoalDepth,
         float mapGoalPostRadius,
         int mapGoalPostSegments,
-        float lightMaxDistanceBetween,
-        float lightSpotAngle,
-        float lightInnerSpotAngle,
         float lightIntensity,
         float lightRotation,
         float lightRange,
@@ -48,9 +42,6 @@ public struct MapInfo {
         this.mapGoalDepth = mapGoalDepth;
         this.mapGoalPostRadius = mapGoalPostRadius;
         this.mapGoalPostSegments = mapGoalPostSegments;
-        this.lightMaxDistanceBetween = lightMaxDistanceBetween;
-        this.lightSpotAngle = lightSpotAngle;
-        this.lightInnerSpotAngle = lightInnerSpotAngle;
         this.lightIntensity = lightIntensity;
         this.lightRotation = lightRotation;
         this.lightRange = lightRange;
@@ -70,12 +61,9 @@ public class MapGenerator {
         mapGoalDepth: 6f,
         mapGoalPostRadius: 0.4f,
         mapGoalPostSegments: 12,
-        lightMaxDistanceBetween: 60f,
-        lightSpotAngle: 100f,
-        lightInnerSpotAngle: 90f,
-        lightIntensity: 250f,
+        lightIntensity: 500f,
         lightRotation: 50f,
-        lightRange: 90f,
+        lightRange: 100f,
         middleCircleRadius: 8.3f,
         null
     );
@@ -89,9 +77,6 @@ public class MapGenerator {
         mapGoalDepth: 6f,
         mapGoalPostRadius: 0.4f,
         mapGoalPostSegments: 12,
-        lightMaxDistanceBetween: 50f,
-        lightSpotAngle: 110f,
-        lightInnerSpotAngle: 100f,
         lightIntensity: 300f,
         lightRotation: 70f,
         lightRange: 90f,
@@ -108,9 +93,6 @@ public class MapGenerator {
         mapGoalDepth: 6f,
         mapGoalPostRadius: 0.4f,
         mapGoalPostSegments: 12,
-        lightMaxDistanceBetween: 40f,
-        lightSpotAngle: 110f,
-        lightInnerSpotAngle: 100f,
         lightIntensity: 200f,
         lightRotation: 70f,
         lightRange: 100f,
@@ -145,7 +127,6 @@ public class MapGenerator {
 
     public void GenerateMesh(MapSize size) {
 
-#if UNITY_EDITOR
         float mapWidth = 0;
         float mapLength = 0;
         float mapHeight = 0;
@@ -487,6 +468,171 @@ public class MapGenerator {
 
 
         mesh.vertices = vertices.ToArray();
+
+        Color32 floorColor = new Color32(1, 0, 0, 1);
+        Color32 ceilingColor = new Color32(2, 0, 0, 1);
+        Color32 sideWallColor = new Color32(3, 0, 0, 1);
+        Color32 backWallColor = new Color32(4, 0, 0, 1);
+        Color32 goalNetColor = new Color32(5, 0, 0, 1);
+        Color32 goalLineColor = new Color32(6, 0, 0, 1);
+        Color32 goalPostColor = new Color32(7, 0, 0, 1);
+
+        List<Color32> colors = new List<Color32>() {
+            //Floor
+            floorColor,
+            floorColor,
+            floorColor,
+            floorColor,
+
+            //Ceiling
+            ceilingColor,
+            ceilingColor,
+            ceilingColor,
+            ceilingColor,
+
+            //South wall top
+            backWallColor,
+            backWallColor,
+            
+            //North wall top
+            backWallColor,
+            backWallColor,
+
+            //South wall goal
+            backWallColor,
+            backWallColor,
+            backWallColor,
+            backWallColor,
+
+            //North wall goal
+            backWallColor,
+            backWallColor,
+            backWallColor,
+            backWallColor,
+
+            //South wall goal back
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+
+            //North wall goal back
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+
+            //West side wall 
+            sideWallColor,
+            sideWallColor,
+            sideWallColor,
+            sideWallColor,
+
+            //East side wall
+            sideWallColor,
+            sideWallColor,
+            sideWallColor,
+            sideWallColor,
+
+            //South wall top additional
+            backWallColor,
+            backWallColor,
+
+            //North wall top additional
+            backWallColor,
+            backWallColor,
+
+            //South wall goal west additional 
+            backWallColor,
+            backWallColor,
+
+            //South wall goal east additional
+            backWallColor,
+            backWallColor,
+
+            //North wall goal west additional
+            backWallColor,
+            backWallColor,
+
+            //North wall goal east additional
+            backWallColor,
+            backWallColor,
+
+            //South wall goal net west additional
+            goalNetColor,
+            goalNetColor,
+
+            //South wall goal net east additional
+            goalNetColor,
+            goalNetColor,
+
+            //South wall goal net top additional
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+
+            //South wall goal net bottom additional
+            floorColor,
+            floorColor,
+            floorColor,
+
+            //South wall goal net back additional
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+
+
+            //North wall goal net west additional
+            goalNetColor,
+            goalNetColor,
+
+            //North wall goal net east additional
+            goalNetColor,
+            goalNetColor,
+
+            //North wall goal net top additional
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+
+            //North wall goal net bottom additional
+            floorColor,
+            floorColor,
+            floorColor,
+
+            //North wall goal net back additional
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            goalNetColor,
+            
+            //South wall goal net bottom additional 2
+            floorColor,
+
+            //North wall goal net bottom additional 2
+            floorColor,
+
+            //South wall goal line
+            goalLineColor,
+            goalLineColor,
+            goalLineColor,
+            goalLineColor,
+
+            //North wall goal line
+            goalLineColor,
+            goalLineColor,
+            goalLineColor,
+            goalLineColor,
+        };
+
+        while(colors.Count < vertices.Count) {
+            colors.Add(goalPostColor);
+        }
+        mesh.colors32 = colors.ToArray();
+
         List<int> tris = new List<int>
         {
             //Floor
@@ -578,6 +724,7 @@ public class MapGenerator {
             86, 85, 87
         };
 
+
         tris.AddRange(GetGoalPostTris(mapGoalPostSegments, southWallGoalPostWestBottomFirstVertexIndex, southWallGoalPostWestTopFirstVertexIndex));
         tris.AddRange(GetGoalPostTris(mapGoalPostSegments, southWallGoalPostEastBottomFirstVertexIndex, southWallGoalPostEastTopFirstVertexIndex));
         tris.AddRange(GetGoalPostTris(mapGoalPostSegments, northWallGoalPostWestBottomFirstVertexIndex, northWallGoalPostWestTopFirstVertexIndex));
@@ -589,6 +736,8 @@ public class MapGenerator {
         mesh.triangles = tris.ToArray();
 
         mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+        mesh.RecalculateTangents();
 
         Unwrapping.GenerateSecondaryUVSet(mesh);
 
@@ -600,7 +749,6 @@ public class MapGenerator {
         }
         AssetDatabase.CreateAsset(mesh, meshPath);
         AssetDatabase.SaveAssets();
-#endif        
 
     }
 

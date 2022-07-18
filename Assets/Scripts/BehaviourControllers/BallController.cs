@@ -24,6 +24,15 @@ public class BallController : NetworkRigidbody {
     public float rollingResistance = 0.01f;
     public Transform ballModel;
     public Rigidbody rigidBody;
+    public Transform ballSpinsContainer;
+    public MeshRenderer ballSpinRenderer1;
+    public MeshRenderer ballSpinRenderer2;
+    public MeshRenderer ballSpinRenderer3;
+    public MeshRenderer ballSpinRenderer4;
+    public MeshRenderer ballSpinRenderer5;
+    public MeshRenderer ballSpinRenderer6;
+    public MeshRenderer ballSpinRenderer7;
+    public MeshRenderer ballSpinRenderer8;
 
     [HideInInspector][Networked] public NetworkBool isAttached {get; set;}
     [HideInInspector][Networked] public NetworkTransform anchor {get; set;}
@@ -136,6 +145,7 @@ public class BallController : NetworkRigidbody {
             if(spinCapacityLeft < 0) {
                 spinCapacityLeft = 0;
             }
+
             rigidBody.angularVelocity = angularVelocity;
             if(collidingSpeed > 0) {
                 float x = Math.Clamp(collidingSpeed / spinGroundFullGripVelocity, spinGroundMinGrip, 1);
@@ -194,6 +204,26 @@ public class BallController : NetworkRigidbody {
         }
         if(!isAttached && !ballModel.gameObject.activeSelf){
             ballModel.gameObject.SetActive(true);
+        }
+
+        if(spinCapacityLeft > 0) {
+            if(!ballSpinsContainer.gameObject.activeSelf) {
+                ballSpinsContainer.gameObject.SetActive(true);
+            }
+            
+            float left = 1f - (float)Math.Pow(100f, 1f - (spinCapacityLeft / spinForceCapacity) - 1f);
+            ballSpinRenderer1.material.SetFloat("_increase_strength", left * 0.8f);
+            ballSpinRenderer2.material.SetFloat("_increase_strength", left * 0.9f);
+            ballSpinRenderer3.material.SetFloat("_increase_strength", left * 0.95f);
+            ballSpinRenderer4.material.SetFloat("_increase_strength", left * 1f);
+            ballSpinRenderer5.material.SetFloat("_increase_strength", left * 1f);
+            ballSpinRenderer6.material.SetFloat("_increase_strength", left * 0.95f);
+            ballSpinRenderer7.material.SetFloat("_increase_strength", left * 0.9f);
+            ballSpinRenderer8.material.SetFloat("_increase_strength", left * 0.8f);
+            ballSpinsContainer.rotation = Quaternion.LookRotation(Rigidbody.angularVelocity.normalized, Vector3.up);
+        }
+        if(spinCapacityLeft == 0 && ballSpinsContainer.gameObject.activeSelf) {
+            ballSpinsContainer.gameObject.SetActive(false);
         }
 
     }

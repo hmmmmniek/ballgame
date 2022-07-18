@@ -1,6 +1,7 @@
 using System.Collections;
 using Fusion;
 using UnityEngine;
+using UnityEngine.Rendering;
 using static CreateSessionController;
 
 public class MapController : NetworkBehaviour {
@@ -8,6 +9,7 @@ public class MapController : NetworkBehaviour {
     public bool generateMeshes = false;
 
     public Material material;
+    public Volume goalPostProcessingVolume;
     public Mesh smallMesh;
     public Mesh mediumMesh;
     public Mesh largeMesh;
@@ -162,6 +164,26 @@ public class MapController : NetworkBehaviour {
         northTopGoalPost.radius = mapInfo.mapGoalPostRadius;
         northTopGoalPost.height = mapInfo.mapGoalWidth + mapInfo.mapGoalPostRadius * 2;
         northTopGoalPost.center = new Vector3(mapInfo.mapWidth / 2, mapInfo.mapGoalHeight, mapInfo.mapLength);
+
+        GameObject light = new GameObject("Light");
+        light.transform.parent = transform;
+        light.transform.position = new Vector3(0, mapInfo.mapHeight - 0.1f, 0);
+        Light lightComponent = light.AddComponent<Light>();
+        lightComponent.type = LightType.Point;
+        lightComponent.range = mapInfo.lightRange;
+        lightComponent.intensity = mapInfo.lightIntensity;
+        lightComponent.shadows = LightShadows.Soft;
+        lightComponent.shadowResolution = UnityEngine.Rendering.LightShadowResolution.VeryHigh;
+
+        Volume southGoalPostProcessingVolume = Instantiate(goalPostProcessingVolume);
+        southGoalPostProcessingVolume.transform.parent = transform;
+        southGoalPostProcessingVolume.transform.position = new Vector3(0, mapInfo.mapGoalHeight / 2, (mapInfo.mapLength + mapInfo.mapGoalDepth) / 2 + 0.5f);
+        southGoalPostProcessingVolume.GetComponent<BoxCollider>().size = new Vector3(mapInfo.mapGoalWidth, mapInfo.mapGoalHeight, mapInfo.mapGoalDepth - 1f);
+
+        Volume northGoalPostProcessingVolume = Instantiate(goalPostProcessingVolume);
+        northGoalPostProcessingVolume.transform.parent = transform;
+        northGoalPostProcessingVolume.transform.position = new Vector3(0, mapInfo.mapGoalHeight / 2, -(mapInfo.mapLength + mapInfo.mapGoalDepth) / 2 - 0.5f);
+        northGoalPostProcessingVolume.GetComponent<BoxCollider>().size = new Vector3(mapInfo.mapGoalWidth, mapInfo.mapGoalHeight, mapInfo.mapGoalDepth - 1f);
 
 
       /*  Vector3 southWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
