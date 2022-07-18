@@ -13,7 +13,7 @@ public class MapController : NetworkBehaviour {
     public Mesh smallMesh;
     public Mesh mediumMesh;
     public Mesh largeMesh;
-
+    public GameObject smallMapPrefab;
     public bool testSmallGeneration;
 
     [HideInInspector][Networked] public MapSize size {get; set;}
@@ -37,11 +37,11 @@ public class MapController : NetworkBehaviour {
         base.Spawned();
 
         if(size != MapSize._) {
-            CreateMap(size);
+            SpawnMap(size);
         } else {
             SessionProperty mapSize;
             if (Runner.SessionInfo.Properties.TryGetValue("mapSize", out mapSize)) {
-                CreateMap((MapSize)(int)mapSize);
+                SpawnMap((MapSize)(int)mapSize);
                 if(Object.HasStateAuthority) {
                     size = (MapSize)(int)mapSize;
                 }
@@ -51,8 +51,15 @@ public class MapController : NetworkBehaviour {
                 return;
             }
         }
+    }
 
-       
+    public void SpawnMap(MapSize size) {
+        switch(size) {
+            case MapSize.Small: {
+                Instantiate(smallMapPrefab);
+                break;
+            }
+        }
     }
 
     private IEnumerator DestroyObject (GameObject go) {
@@ -186,58 +193,6 @@ public class MapController : NetworkBehaviour {
         northGoalPostProcessingVolume.GetComponent<BoxCollider>().size = new Vector3(mapInfo.mapGoalWidth, mapInfo.mapGoalHeight, mapInfo.mapGoalDepth - 1f);
 
 
-      /*  Vector3 southWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
-        Light southWestLight = CreateLight(
-            southWestLightPos,
-            Quaternion.Euler(lightRotation, 45, 0),
-            lightRange,
-            transform,
-            lightIntensity,
-            lightSpotAngle,
-            lightInnerSpotAngle
-        );
-
-        Vector3 northWestLightPos = new Vector3(-mapWidth / 2 + 0.5f, mapHeight - 0.5f, +mapLength / 2 - 0.5f);
-        Light northWestLight = CreateLight(
-            northWestLightPos,
-            Quaternion.Euler(lightRotation, 135, 0),
-            lightRange,
-            transform,
-            lightIntensity,
-            lightSpotAngle,
-            lightInnerSpotAngle
-        );
-
-        Vector3 southEastLightPos = new Vector3(mapWidth / 2 - 0.5f, mapHeight - 0.5f, -mapLength / 2 + 0.5f);
-        Light southEastLight = CreateLight(
-            southEastLightPos,
-            Quaternion.Euler(lightRotation, -45, 0),
-            lightRange,
-            transform,
-            lightIntensity,
-            lightSpotAngle,
-            lightInnerSpotAngle
-        );
-
-        Vector3 northEastLightPos = new Vector3(mapWidth / 2 - 0.5f, mapHeight - 0.5f, +mapLength / 2 - 0.5f);
-        Light northEastLight = CreateLight(
-            northEastLightPos,
-            Quaternion.Euler(lightRotation, -135, 0),
-            lightRange,
-            transform,
-            lightIntensity,
-            lightSpotAngle,
-            lightInnerSpotAngle
-        );
-
-
-        CheckLights(southWestLightPos, northWestLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, 90, 0), lightIntensity, lightSpotAngle, lightInnerSpotAngle);
-        CheckLights(southEastLightPos, northEastLightPos, lightMaxDistanceBetween, lightRange, Quaternion.Euler(lightRotation, -90, 0), lightIntensity, lightSpotAngle, lightInnerSpotAngle);
-
-*/
-
-
-
         Vector3 cameraPos = new Vector3(0, mapInfo.mapHeight, 0);
         GameObject camera = new GameObject("Main Camera");
         Camera cameraComponent = camera.AddComponent<Camera>();
@@ -246,42 +201,6 @@ public class MapController : NetworkBehaviour {
         camera.transform.parent = transform;
         cameraComponent.fieldOfView = 90;
         cameraComponent.farClipPlane = mapInfo.mapHeight + 1;
-    }
-
-    private Light CreateLight(Vector3 position, Quaternion rotation, float range, Transform parent, float intensity, float spotAngle, float innerSpotAngle) {
-
-        GameObject light = new GameObject("Light");
-        light.transform.parent = transform;
-        light.transform.position = position;
-        light.transform.rotation = rotation;
-        Light lightComponent = light.AddComponent<Light>();
-        lightComponent.type = LightType.Spot;
-        lightComponent.range = range;
-        lightComponent.intensity = intensity;
-        lightComponent.spotAngle = spotAngle;
-        lightComponent.innerSpotAngle = innerSpotAngle;
-        lightComponent.shadows = LightShadows.Soft;
-
-        return lightComponent;
-    }
-
-
-    private void CheckLights(Vector3 pos1, Vector3 pos2, float lightMaxDistanceBetween, float range, Quaternion rotation, float intensity, float spotAngle, float innerSpotAngle) {
-
-        if ((pos1 - pos2).magnitude > lightMaxDistanceBetween) {
-            Vector3 newLightPos = pos2 + (pos1 - pos2).normalized * ((pos1 - pos2).magnitude / 2);
-            Light newLight = CreateLight(
-                newLightPos,
-                rotation,
-                range,
-                transform,
-                intensity,
-                spotAngle,
-                innerSpotAngle
-            );
-            CheckLights(pos1, newLightPos, lightMaxDistanceBetween, range, rotation, intensity, spotAngle, innerSpotAngle);
-            CheckLights(newLightPos, pos2, lightMaxDistanceBetween, range, rotation, intensity, spotAngle, innerSpotAngle);
-        }
     }
 
 }

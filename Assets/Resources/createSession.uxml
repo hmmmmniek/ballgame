@@ -24,8 +24,8 @@
             <engine:VisualElement class="map-size-selector">
             
                 <engine:Button name="map-size-selector__small" text="small" />
-                <engine:Button name="map-size-selector__medium" text="medium" />
-                <engine:Button name="map-size-selector__large" text="large" />
+                <engine:Button name="map-size-selector__medium" class="hidden" text="medium" />
+                <engine:Button name="map-size-selector__large" class="hidden" text="large" />
             </engine:VisualElement>
 
             <engine:VisualElement class="session-name-input">

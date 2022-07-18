@@ -52,6 +52,7 @@ MonoBehaviour:
   smallMesh: {fileID: 4300000, guid: a1c93b83a5f874e52a316ecad42e2b0c, type: 2}
   mediumMesh: {fileID: 0}
   largeMesh: {fileID: 0}
+  smallMapPrefab: {fileID: 512230420502589213, guid: c269815005192397a832987c570b5965, type: 3}
   testSmallGeneration: 0
   _size: 0
 --- !u!114 &6252119335805703767

@@ -105,7 +105,7 @@ Material:
     - _DstBlendAlpha: 0
     - _East_Line_Length: 16
     - _EnvironmentReflections: 1
-    - _Float: 0.015
+    - _Float: 0.01
     - _Float_1: 0.179
     - _Float_2: 1
     - _Float_3: 0.17
@@ -162,10 +162,12 @@ Material:
     - _blob_sizes: 0.2
     - _blob_speed: 0.3
     - _blob_width: 42.7
-    - _floor_sweat_1: 0.5
-    - _floor_sweat_2: 0.7
-    - _fuzziness: 0.15
-    - _fuzziness_1: 0.25
+    - _floor_sweat_1: 0.35
+    - _floor_sweat_2: 1
+    - _floor_sweat_normal_strength: 0.015
+    - _fuzziness: 0.25
+    - _fuzziness_1: 0.3
+    - _sweat_distance: 0.05
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Blob_Center: {r: 0, g: 11.7, b: 29.26, a: 0}
@@ -185,7 +187,7 @@ Material:
     - _Goal_Line_Blob_Emission_Color: {r: 5.992157, g: 0.1254902, b: 0.1254902, a: 0}
     - _Goal_Net_Color: {r: 0, g: 0, b: 0, a: 0}
     - _Goal_Post_Color: {r: 0, g: 0, b: 0, a: 0}
-    - _Goal_Post_Emission: {r: 7.5523434, g: 0.9786413, b: 0.63265693, a: 0}
+    - _Goal_Post_Emission: {r: 5.992157, g: 0.78431374, b: 0.5019608, a: 0}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
     - _UV_Tiling: {r: 123.6, g: 123.6, b: 0, a: 0}
     - _Vector2: {r: -1113.5, g: -66.75, b: 0, a: 0}
