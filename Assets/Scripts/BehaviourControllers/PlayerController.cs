@@ -11,7 +11,6 @@ public class PlayerController : NetworkRigidbody {
 
     public float knockoutTime = 5f;
     public Transform playerModel;
-    public Transform glassesModel;
     public Transform ballModel;
     public CapsuleCollider capsuleCollider;
     public Rigidbody rigidBody;
@@ -23,6 +22,7 @@ public class PlayerController : NetworkRigidbody {
     public LocalCharacterMovementController localCharacterMovementController;
     public BodyTrackingController bodyTrackingController;
     public CharacterCameraController cameraController;
+    public MeshRenderer bodyMeshRenderer;
     public bool despawned = false;
     public bool initialized = false;
     private Queue<float> RttMeasurements = new Queue<float>();
@@ -31,14 +31,13 @@ public class PlayerController : NetworkRigidbody {
         changed.Behaviour.OnTeamChanged();
     }
     private void OnTeamChanged() {
-        MeshRenderer renderer = playerModel.GetComponentInChildren<MeshRenderer>();
         switch(team) {
             case Team.Blue: {
-                renderer.sharedMaterial = teamBlueMaterial;
+                bodyMeshRenderer.sharedMaterial = teamBlueMaterial;
                 break;
             }
             case Team.Red: {
-                renderer.sharedMaterial = teamRedMaterial;
+                bodyMeshRenderer.sharedMaterial = teamRedMaterial;
                 break;
             }
         }
@@ -65,7 +64,6 @@ public class PlayerController : NetworkRigidbody {
             Local = this;
 
             Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("LocalPlayerModel"));
-            Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("LocalPlayerModel"));
             Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("LocalPlayerModel"));
 
             GameObject.Find("Main Camera").GetComponent<Camera>().enabled = false;
@@ -83,7 +81,6 @@ public class PlayerController : NetworkRigidbody {
         }
         if(Runner.LocalPlayer != inputAuthority) {
             Utils.SetRenderLayerDeep(playerModel, LayerMask.NameToLayer("Default"));
-            Utils.SetRenderLayerDeep(glassesModel, LayerMask.NameToLayer("Default"));
             Utils.SetRenderLayerDeep(ballModel, LayerMask.NameToLayer("Default"));
 
             cameraController.cam.enabled = false;
@@ -175,6 +172,7 @@ public class PlayerController : NetworkRigidbody {
     void Start() {
 
     }
+
 
     protected override void CopyFromBufferToEngine() {
         bool oldValue = rigidBody.isKinematic;

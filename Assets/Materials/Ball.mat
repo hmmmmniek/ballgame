@@ -94,12 +94,18 @@ Material:
     - _DstBlend: 0
     - _DstBlendAlpha: 0
     - _EnvironmentReflections: 1
+    - _Float: 0.26
+    - _Float_1: 0.6
+    - _Float_2: 2.35
+    - _Fresnel_Power: 2
     - _GlossMapScale: 1
     - _Glossiness: 0.5
     - _GlossyReflections: 1
     - _Metallic: 0
     - _Mode: 0
+    - _Multy: -0.08
     - _OcclusionStrength: 1
+    - _Offset: 0.9
     - _Parallax: 0.02
     - _QueueControl: 0
     - _QueueOffset: 0
@@ -113,11 +119,17 @@ Material:
     - _UVSec: 0
     - _WorkflowMode: 1
     - _ZWrite: 1
+    - _lip_edge: 0.04
+    - _mouth_edge: 1.03
+    - _offset: 0
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Color: {r: 1, g: 1, b: 1, a: 1}
+    - _Emission: {r: 1.135301, g: 0, b: 0.1664316, a: 0}
     - _EmissionColor: {r: 0, g: 0, b: 0, a: 1}
     - _SpecColor: {r: 0.2, g: 0.2, b: 0.2, a: 1}
+    - _Vector3: {r: 0, g: 0, b: 0.5, a: 0}
+    - _mouth_color: {r: 0.7462674, g: 0.865, b: 0.58301, a: 1}
   m_BuildTextureStacks: []
 --- !u!114 &8150692900089769163
 MonoBehaviour:

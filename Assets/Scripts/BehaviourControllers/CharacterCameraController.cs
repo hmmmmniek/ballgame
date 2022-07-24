@@ -9,6 +9,9 @@ public class CharacterCameraController : NetworkTransform {
     public PlayerController playerController;
     public Camera cam;
     public AudioListener audioListener;
+    public Transform ballAnchorWrapper;
+    public float ballAnchorPositiveRotationMultiplier;
+    public float ballAnchorNegativeRotationMultiplier;
 
     private bool isLocal = false;
 
@@ -46,10 +49,11 @@ public class CharacterCameraController : NetworkTransform {
     void Rotate(Vector2 viewInput) {
         if(!playerController.knockedOut) {
             transform.rotation = Quaternion.Euler(viewInput.y, viewInput.x, 0);
+            playerController.bodyMeshRenderer.material.SetFloat("_Rotation", viewInput.y / 90f);
+            ballAnchorWrapper.localRotation = Quaternion.Euler(viewInput.y * (viewInput.y > 0 ? ballAnchorPositiveRotationMultiplier : ballAnchorNegativeRotationMultiplier), 0, 0);
         }
        
 
     }
 
 }
-

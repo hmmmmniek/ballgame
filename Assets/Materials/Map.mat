@@ -67,6 +67,22 @@ Material:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
         m_Offset: {x: 0, y: 0}
+    - _concrete_base:
+        m_Texture: {fileID: 2800000, guid: 941010d6f925e42c399d5b8a4be9e46b, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _concrete_normal:
+        m_Texture: {fileID: 2800000, guid: d7ac023dc20aa43679091356b391847a, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _concrete_specular:
+        m_Texture: {fileID: 2800000, guid: d8c5ee27c39d39441984bcda2dd1daa4, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
+    - _floor_normal:
+        m_Texture: {fileID: 2800000, guid: ca14f6cdd97877d2bba57d4d8bd67ceb, type: 3}
+        m_Scale: {x: 1, y: 1}
+        m_Offset: {x: 0, y: 0}
     - unity_Lightmaps:
         m_Texture: {fileID: 0}
         m_Scale: {x: 1, y: 1}
@@ -162,7 +178,11 @@ Material:
     - _blob_sizes: 0.2
     - _blob_speed: 0.3
     - _blob_width: 42.7
-    - _floor_sweat_1: 0.35
+    - _concrete_normal_strength: 1
+    - _concrete_normal_strength_ceiling: 1
+    - _concrete_specular_strength: 10
+    - _floor_normal_strength: 1
+    - _floor_sweat_1: 0.38
     - _floor_sweat_2: 1
     - _floor_sweat_normal_strength: 0.015
     - _fuzziness: 0.25
@@ -171,9 +191,9 @@ Material:
     m_Colors:
     - _BaseColor: {r: 1, g: 1, b: 1, a: 1}
     - _Blob_Center: {r: 0, g: 11.7, b: 29.26, a: 0}
-    - _Ceiling_Emission_Color: {r: 0.20754719, g: 0.2065682, b: 0.2065682, a: 0}
+    - _Ceiling_Emission_Color: {r: 0.15, g: 0.13683176, b: 0.113850005, a: 0}
     - _Center_Dot_Center: {r: -30, g: -47.97, b: 0, a: 0}
-    - _Color: {r: 0.8301887, g: 0.72341913, b: 0.54432184, a: 1}
+    - _Color: {r: 0, g: 0, b: 0, a: 1}
     - _Color_1: {r: 0.852, g: 0.7394717, b: 0.55862266, a: 0}
     - _East_Line_Center: {r: -30, g: -63.5, b: 0, a: 0}
     - _East_Wall_Window_Center: {r: -30, g: -10, b: 0, a: 0}
@@ -196,6 +216,8 @@ Material:
     - _Wall_Window_Tiling: {r: 125, g: 125, b: 0, a: 0}
     - _West_Line_Center: {r: -30, g: -32, b: 0, a: 0}
     - _West_Wall_Window_Center: {r: -90.5, g: -10, b: 0, a: 0}
+    - _concrete_tiling: {r: 10, g: 10, b: 0, a: 0}
+    - _floor_normal_tiling: {r: 50, g: 50, b: 0, a: 0}
   m_BuildTextureStacks: []
 --- !u!114 &7945151069004326100
 MonoBehaviour:
