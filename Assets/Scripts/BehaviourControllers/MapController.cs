@@ -13,11 +13,12 @@ public class MapController : NetworkBehaviour {
     public Mesh smallMesh;
     public Mesh mediumMesh;
     public Mesh largeMesh;
-    public GameObject smallMapPrefab;
+    private GameObject smallMap;
     public bool testSmallGeneration;
 
     [HideInInspector][Networked] public MapSize size {get; set;}
 
+#if UNITY_EDITOR
 
     public void OnValidate() {
         if (generateMeshes) {
@@ -32,10 +33,10 @@ public class MapController : NetworkBehaviour {
             CreateMap(MapSize.Small);
         }
     }
-
+#endif
     public override void Spawned() {
         base.Spawned();
-
+        this.smallMap = FindInActiveObjectByName("SmallMap");
         if(size != MapSize._) {
             SpawnMap(size);
         } else {
@@ -53,10 +54,25 @@ public class MapController : NetworkBehaviour {
         }
     }
 
+    GameObject FindInActiveObjectByName(string name) {
+        Transform[] objs = Resources.FindObjectsOfTypeAll<Transform>() as Transform[];
+        for (int i = 0; i < objs.Length; i++)
+        {
+            if (objs[i].hideFlags == HideFlags.None)
+            {
+                if (objs[i].name == name)
+                {
+                    return objs[i].gameObject;
+                }
+            }
+        }
+        return null;
+    }
+
     public void SpawnMap(MapSize size) {
         switch(size) {
             case MapSize.Small: {
-                Instantiate(smallMapPrefab);
+                smallMap.SetActive(true);
                 break;
             }
         }

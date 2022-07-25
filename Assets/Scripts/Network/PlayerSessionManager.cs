@@ -57,7 +57,7 @@ public class PlayerSessionManager : Fusion.Behaviour, INetworkRunnerCallbacks {
 
     public void OnInput(NetworkRunner runner, NetworkInput input) {
         if(PlayerController.Local != null) {
-            InputHandler.instance.networkInputDataCache.localTime = Time.time;
+            InputHandler.instance.networkInputDataCache.localFps =(float)Math.Round(1f/Time.deltaTime, 1);
             InputHandler.instance.networkInputDataCache.runnerTime = runner.SimulationTime;
             InputHandler.instance.networkInputDataCache.clientPosition = PlayerController.Local.localCharacterMovementController.transform.position;
             InputHandler.instance.networkInputDataCache.clientVelocity = PlayerController.Local.localCharacterMovementController.Velocity;

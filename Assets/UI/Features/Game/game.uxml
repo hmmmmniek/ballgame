@@ -29,6 +29,9 @@
         <engine:VisualElement class="game__rtt" name="game__rtt">
             <engine:Label name="game_rtt__label" text="" />
         </engine:VisualElement>  
+        <engine:VisualElement class="game__fps" name="game__fps">
+            <engine:Label name="game_fps__label" text="" />
+        </engine:VisualElement>  
 
         <engine:Instance template="ScoreboardTemplate"></engine:Instance>
 

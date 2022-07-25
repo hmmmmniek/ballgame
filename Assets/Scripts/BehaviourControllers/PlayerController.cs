@@ -25,7 +25,7 @@ public class PlayerController : NetworkRigidbody {
     public MeshRenderer bodyMeshRenderer;
     public bool despawned = false;
     public bool initialized = false;
-    private Queue<float> RttMeasurements = new Queue<float>();
+    private Queue<float> fpsMeasurements = new Queue<float>();
     [HideInInspector][Networked(OnChanged = nameof(OnTeamChanged))] public Team team {get; set;}
     public static void OnTeamChanged(Changed<PlayerController> changed) {
         changed.Behaviour.OnTeamChanged();
@@ -112,21 +112,21 @@ public class PlayerController : NetworkRigidbody {
         GameState.Dispatch(GameState.UpdatePlayer, (player: player, usePlayerRef: true), () => {});
     }
     [HideInInspector][Networked] public NetworkBool temporarilyIgnored {get; set;}
-    [HideInInspector][Networked(OnChanged = nameof(OnLastReceivedInputTimeChanged))] public float lastReceivedLocalTime {get; set;}
-    public static void OnLastReceivedInputTimeChanged(Changed<PlayerController> changed) {
-        changed.Behaviour.OnLastReceivedInputTimeChanged();
+    [HideInInspector][Networked(OnChanged = nameof(OnFpsChanged))] public float fps {get; set;}
+    public static void OnFpsChanged(Changed<PlayerController> changed) {
+        changed.Behaviour.OnFpsChanged();
     }
     private float lastMeasured = 0;
-    private void OnLastReceivedInputTimeChanged() {
+    private void OnFpsChanged() {
         float time = Time.time;
 
         if(Object.HasInputAuthority & time - lastMeasured > 0.1) {
             lastMeasured = time;
-            RttMeasurements.Enqueue((float)(time - lastReceivedLocalTime) * 1000);
-            if(RttMeasurements.Count > 10) {
-                RttMeasurements.Dequeue();
+            fpsMeasurements.Enqueue(fps);
+            if(fpsMeasurements.Count > 10) {
+                fpsMeasurements.Dequeue();
             }
-            NetworkStatsState.Dispatch(NetworkStatsState.SetRtt, (float)Math.Round(RttMeasurements.Average(), 1), () => {});
+            GameStatsState.Dispatch(GameStatsState.SetFps, (float)Math.Round(fpsMeasurements.Average(), 1), () => {});
         }
     }
 
@@ -259,15 +259,19 @@ public class PlayerController : NetworkRigidbody {
 
 
 
-
+    private float lastRttCheck = 0;
     public override void FixedUpdateNetwork() {
         if (GetInput(out NetworkInputData networkInputData)) {
             if(Object.HasStateAuthority) {
-                lastReceivedLocalTime = networkInputData.localTime;
+                fps = networkInputData.localFps;
                 lastRotationInput = networkInputData.rotationInput;
             }
-
         }
+        
+        if(Runner.SimulationTime - lastRttCheck > 1000) {
+            NetworkStatsState.Dispatch(NetworkStatsState.SetRtt, (float)Runner.GetPlayerRtt(Object.InputAuthority), () => {});
+        }
+
 
         if(!despawned && temporarilyIgnored && Object.HasStateAuthority) {
             Collider[] area = Physics.OverlapSphere(transform.position, ball.pickupDistance + 0.5f);

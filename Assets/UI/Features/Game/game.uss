@@ -9,7 +9,7 @@
 /*
 * Start rtt
 */
-.game__rtt {
+.game__rtt, .game__fps {
     position: absolute;
     top: 10px;
     right: 10px;
@@ -22,12 +22,16 @@
     align-items: center;
     justify-content: center;
 }
-.game__rtt Label {
+.game__rtt Label, .game__fps Label {
     color: white;
 }
 /*
 * End rtt
 */
+
+.game__fps {
+    top: 40px;
+}
 
 /*
 * Start boost/charge

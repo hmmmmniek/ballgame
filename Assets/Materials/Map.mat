@@ -178,8 +178,8 @@ Material:
     - _blob_sizes: 0.2
     - _blob_speed: 0.3
     - _blob_width: 42.7
-    - _concrete_normal_strength: 1
-    - _concrete_normal_strength_ceiling: 1
+    - _concrete_normal_strength: 2
+    - _concrete_normal_strength_ceiling: 2
     - _concrete_specular_strength: 10
     - _floor_normal_strength: 1
     - _floor_sweat_1: 0.38

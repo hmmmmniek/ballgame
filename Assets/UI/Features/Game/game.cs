@@ -17,6 +17,7 @@ public class GameController: Module {
     VisualElement chargeIndicator;
     VisualElement scoreboardContainer;
     Label rttLabel;
+    Label fpsLabel;
 
     public GameController(VisualElement element) {
         InputHandler.instance.StartGameInput();
@@ -24,6 +25,7 @@ public class GameController: Module {
         chargeIndicator = element.Q<VisualElement>("game__charge__indicator");
 
         rttLabel = element.Q<Label>("game_rtt__label");
+        fpsLabel = element.Q<Label>("game_fps__label");
 
 
         Watch(GameState.Select<float>(GameState.GetRemainingBoostPercentage, (boost) => {
@@ -42,10 +44,15 @@ public class GameController: Module {
 
           
         Watch(NetworkStatsState.Select<float>(NetworkStatsState.GetRtt, (rtt) => {
-            rttLabel.text = $"{rtt}{(rtt%1==0 ? ".0" : "")} ms";
+            float ms = (float)Math.Round(rtt/1000f, 1);
+            rttLabel.text = $"{ms}{(ms%1==0 ? ".0" : "")} ms";
         }));
         
-
+          
+        Watch(GameStatsState.Select<float>(GameStatsState.GetFps, (fps) => {
+            fpsLabel.text = $"{fps}{(fps%1==0 ? ".0" : "")} fps";
+        }));
+        
 
 
 

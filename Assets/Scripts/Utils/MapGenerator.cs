@@ -124,6 +124,7 @@ public class MapGenerator {
         return new MapInfo();
 
     }
+    #if UNITY_EDITOR
 
     public void GenerateMesh(MapSize size) {
 
@@ -794,5 +795,6 @@ public class MapGenerator {
         }
         return tris.ToArray();
     }
+    #endif
 }
 

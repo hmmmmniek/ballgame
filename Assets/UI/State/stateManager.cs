@@ -27,6 +27,7 @@ public class StateManager {
         AddState<NotificationState>(dependencies);
         AddState<GameState>(dependencies);
         AddState<NetworkStatsState>(dependencies);
+        AddState<GameStatsState>(dependencies);
         AddState<UserState>(dependencies);
     }
 
