@@ -1,8 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using Fusion;
 using UnityEngine;
 using UnityEngine.InputSystem;
+using UnityEngine.VFX;
 
 public class BallGunController : NetworkBehaviour {
     [Header("Ball gun Settings")]
@@ -46,11 +48,15 @@ public class BallGunController : NetworkBehaviour {
     public PlayerController playerController;
     public NetworkTransform ballAnchor;
     public Transform ballModel;
-    public bool shielding;
     [HideInInspector]
     public BallController ball;
+    public VisualEffect[] ballShootEffects;
+    public VisualEffect[] kickEffects;
+    public VisualEffect suckEffect;
+    public VisualEffect suckQuickEffect;
+    public VisualEffect shieldEffect;
 
-    
+
     [Networked] private TickTimer suckTimer { get; set; }
     [Networked] private TickTimer attractTimer { get; set; }
     [Networked] private TickTimer kickTimer { get; set; }
@@ -168,9 +174,24 @@ public class BallGunController : NetworkBehaviour {
         if(Object.HasInputAuthority) {
             GameState.Dispatch<bool>(GameState.SetAttracting, attracting, () => {});
         }
+        if(attracting) {
+            suckEffect.SendEvent("StartContinuous");
+        } else {
+            suckEffect.SendEvent("StopContinuous");
+        }
     }
 
-
+    [HideInInspector][Networked(OnChanged = nameof(OnShieldingChanged))] public bool shielding { get; set; }
+    public static void OnShieldingChanged(Changed<BallGunController> changed) {
+        changed.Behaviour.OnShieldingChanged();
+    }
+    private void OnShieldingChanged() {
+        if(shielding) {
+            shieldEffect.SendEvent("StartContinuous");
+        } else {
+            shieldEffect.SendEvent("StopContinuous");
+        }
+    }
 
     private float clientChargeTime;
     private bool clientShoot;
@@ -187,10 +208,13 @@ public class BallGunController : NetworkBehaviour {
     private bool spawned = false;
 
     protected void Awake() {
+
     }
 
  
     public override void Spawned() {
+        
+
         if (Object.HasInputAuthority) {
             GameState.Dispatch<float>(GameState.SetChargeTime, chargeTimeAmount, () => {});
         }
@@ -279,6 +303,7 @@ public class BallGunController : NetworkBehaviour {
                 !localKick
             ) {   
                 localKick = true;
+                kickEffects[9].SendEvent("Burst");
             }
 
             /*
@@ -302,6 +327,8 @@ public class BallGunController : NetworkBehaviour {
                 !localSuck
             ) {   
                 localPass = true;
+                ballShootEffects[3].SendEvent("Burst");
+                kickEffects[3].SendEvent("Burst");
             }
 
             /*
@@ -314,6 +341,7 @@ public class BallGunController : NetworkBehaviour {
                 !localSuck
             ) {   
                 localSuck = true;
+                suckQuickEffect.SendEvent("Burst");
             }
 
             /*
@@ -336,6 +364,7 @@ public class BallGunController : NetworkBehaviour {
                 !isCarrying
             ) {   
                 localShield = true;
+                shieldEffect.SendEvent("StartContinuous");
             }
 
             /*
@@ -349,6 +378,7 @@ public class BallGunController : NetworkBehaviour {
                 isCarrying
             ) {   
                 localShield = false;
+                shieldEffect.SendEvent("StopContinuous");
             }
 
             /*
@@ -372,6 +402,9 @@ public class BallGunController : NetworkBehaviour {
                 localChargeTime != -1
             ) {
                 localShoot = true;
+                float charge = Math.Clamp((Runner.SimulationTime - localChargeTime) / chargeTimeAmount, 0, 1);
+                ballShootEffects[(int)Math.Ceiling(charge * 10) - 1].SendEvent("Burst");
+                kickEffects[(int)Math.Ceiling(charge * 10) - 1].SendEvent("Burst");
             }
 
             previousPrimaryPressed = InputHandler.instance.localInputDataCache.primaryPressed;
@@ -384,23 +417,20 @@ public class BallGunController : NetworkBehaviour {
     private bool previousClientSuck = false;
     private bool previousClientKick = false;
     public override void FixedUpdateNetwork() {
+        if (GetInput(out NetworkInputData networkInputData)) {
+            clientChargeTime = networkInputData.clientChargeTime;
+            clientShoot = networkInputData.clientShoot;
+            clientKick = networkInputData.clientKick;
+            clientPass = networkInputData.clientPass;
+            clientSuck = networkInputData.clientSuck;
+            clientShield = networkInputData.clientShield;
+            clientBallRoll = networkInputData.clientBallRoll;
+            clientBallSpin = networkInputData.clientBallSpin;
+            clientBallSpinRotationStart = networkInputData.clientBallSpinRotationStart;
+            clientBallSpinRotationEnd = networkInputData.rotationInput;
+        }
 
         if(Object.HasStateAuthority) {
-
-            if (GetInput(out NetworkInputData networkInputData)) {
-                clientChargeTime = networkInputData.clientChargeTime;
-                clientShoot = networkInputData.clientShoot;
-                clientKick = networkInputData.clientKick;
-                clientPass = networkInputData.clientPass;
-                clientSuck = networkInputData.clientSuck;
-                clientShield = networkInputData.clientShield;
-                clientBallRoll = networkInputData.clientBallRoll;
-                clientBallSpin = networkInputData.clientBallSpin;
-                clientBallSpinRotationStart = networkInputData.clientBallSpinRotationStart;
-                clientBallSpinRotationEnd = networkInputData.rotationInput;
-            }
-
-
 
             /*
             * Execute pass
@@ -411,6 +441,7 @@ public class BallGunController : NetworkBehaviour {
             ) {
                 suckTimer = TickTimer.CreateFromSeconds(Runner, suckTimeout);
                 Pass();
+                RPC_ExecuteEffect(1, 0);
             }
 
             /*
@@ -424,6 +455,7 @@ public class BallGunController : NetworkBehaviour {
                 kickTimer = TickTimer.None;
                 Kick();
                 kickReceived = true;
+                RPC_ExecuteEffect(2, 0);
             }
 
             /*
@@ -466,6 +498,8 @@ public class BallGunController : NetworkBehaviour {
                 attractTimer = TickTimer.CreateFromSeconds(Runner, attractWaitTime);
                 Suck();
                 suckReceived = true;
+                RPC_ExecuteEffect(3, 0);
+
             }
 
             /*
@@ -512,17 +546,58 @@ public class BallGunController : NetworkBehaviour {
                 isCarrying
             ) {
                 kickTimer = TickTimer.CreateFromSeconds(Runner, kickTimeout);
-                ShootCharged(Math.Clamp((Runner.SimulationTime - clientChargeTime) / chargeTimeAmount * 100, 0, 100));
+                float charge = Math.Clamp((Runner.SimulationTime - clientChargeTime) / chargeTimeAmount, 0, 1);
+                ShootCharged(charge * 100);
+                RPC_ExecuteEffect(0, charge);
             }
-            previousClientSuck = clientSuck;
-            previousClientChargeTime = clientChargeTime;
-            previousClientKick = clientKick;
+
+        }
+
+
+
+                    
+
+        previousClientSuck = clientSuck;
+        previousClientChargeTime = clientChargeTime;
+        previousClientKick = clientKick;
+    }
+
+
+
+    [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.All, InvokeLocal = true, HostMode = RpcHostMode.SourceIsHostPlayer)]
+    public void RPC_ExecuteEffect(int effectType, float charge, RpcInfo info = default){
+        if(!Object.HasInputAuthority) {
+            switch(effectType) {
+                case 0: {
+                    ballShootEffects[(int)Math.Ceiling(charge * 10) - 1].SendEvent("Burst");
+                    kickEffects[(int)Math.Ceiling(charge * 10) - 1].SendEvent("Burst");
+                    break;
+                }
+                case 1: {
+                    ballShootEffects[3].SendEvent("Burst");
+                    kickEffects[3].SendEvent("Burst");
+                    break;
+                }
+                case 2: {
+                    kickEffects[9].SendEvent("Burst");
+                    break;
+                }
+                case 3: {
+                    suckQuickEffect.SendEvent("Burst");
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
         }
     }
+
 
     public void ShootCharged(float charge) {
         if(isCarrying) {
             Shoot(maxShootingSpeed * (charge/100f));
+
         }
     }
 
@@ -533,7 +608,7 @@ public class BallGunController : NetworkBehaviour {
     }
 
     public void Attract() {
-        if(!ball.isAttached) {
+        if(!ball.isAttached && MatchController.instance.state == State.Started) {
             Vector3 playerToBall = (ball.transform.position - transform.position);
             float distance = playerToBall.magnitude;
 
@@ -629,7 +704,7 @@ public class BallGunController : NetworkBehaviour {
 
         }
             
-        if(!ball.isAttached && !justDroppedBall) {
+        if(!ball.isAttached && !justDroppedBall && MatchController.instance.state == State.Started) {
             Vector3 playerToBall = (ball.transform.position - transform.position);
             float distance = playerToBall.magnitude;
 
@@ -661,11 +736,11 @@ public class BallGunController : NetworkBehaviour {
         Vector3 recoil = (-transform.forward.normalized) * maxShootRecoilForce * (forward.magnitude / ball.maxSpeed);
         playerController.localCharacterMovementController.networkMovementController.Push(recoil);
 
-        
+  
     }
 
     private void Reflect() {
-        if(!ball.isAttached) {
+        if(!ball.isAttached && MatchController.instance.state == State.Started) {
             Vector3 shieldCenter = (transform.position + -transform.up * shieldHeightPosition + transform.forward * shieldDistance);
 
             Vector3 shieldToBall = (ball.transform.position - shieldCenter);

@@ -5,6 +5,7 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using static CreateSessionController;
+using System.Collections;
 
 public enum Team {
     _, // Fusion doesnt seem to network first values of enums.. ?
@@ -82,11 +83,21 @@ public class MatchController : NetworkBehaviour {
     public int teamBlueScore { get; set; }
     public static void OnTeamBlueScoreChanged(Changed<MatchController> changed) {
         GameState.Dispatch(GameState.SetScore, (team: Team.Blue, score: changed.Behaviour.teamBlueScore), () => {});
+        int newScore = changed.Behaviour.teamBlueScore;
+        changed.LoadOld();
+        if(newScore > changed.Behaviour.teamBlueScore) {
+            changed.Behaviour.ball.Explode(Team.Blue);
+        }
     }
     [HideInInspector][Networked(OnChanged = nameof(OnTeamRedScoreChanged))]
     public int teamRedScore { get; set; }
     public static void OnTeamRedScoreChanged(Changed<MatchController> changed) {
         GameState.Dispatch(GameState.SetScore, (team: Team.Red, score: changed.Behaviour.teamRedScore), () => {});
+        int newScore = changed.Behaviour.teamRedScore;
+        changed.LoadOld();
+        if(newScore > changed.Behaviour.teamRedScore) {
+            changed.Behaviour.ball.Explode(Team.Red);
+        }
     }
 
     [HideInInspector][Networked(OnChanged = nameof(OnCountDownStartChanged))]
@@ -174,11 +185,21 @@ public class MatchController : NetworkBehaviour {
                 break;
             }
         }
-        ball.Reset();
+
+        StartCoroutine(ResetBall());
+
         state = State.ScoredReset;
         lastScored = team;
         lastScoredTime = Runner.SimulationTime;
     }
+
+    private IEnumerator ResetBall () {
+        yield return new WaitForSeconds(1);
+        ball.Reset();
+    }
+
+
+
 
     public override void Spawned() {
         base.Spawned();

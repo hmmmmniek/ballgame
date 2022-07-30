@@ -81,7 +81,7 @@ public class LobbyController : Module {
         listView.makeItem = makeItem;
         listView.bindItem = bindItem;
         listView.selectionType = SelectionType.Single;
-        listView.onSelectionChange += (e) => {
+        listView.selectionChanged += (e) => {
             foreach (SessionInfo session in e) {
                 selectedSession = session;
                 joinButton.RemoveFromClassList("hidden");

@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d0353a89b1f911e48b9e16bdc9f2e058, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  version: 6
+  version: 7
 --- !u!21 &2100000
 Material:
   serializedVersion: 8
@@ -186,7 +186,7 @@ Material:
     - _blob_sizes: 0
     - _blob_speed: 0
     - _body_normal_strength: 0.1
-    - _emission_amount: 0.06
+    - _emission_amount: 0
     - _face_index: 2
     - _face_rotation_multiplier: 0.5
     - _floor_sweat_1: 0

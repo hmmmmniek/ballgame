@@ -3,6 +3,7 @@ using Fusion;
 using System;
 using System.Linq;
 using System.Collections.Generic;
+using UnityEngine.VFX;
 
 public class BallController : NetworkRigidbody {
     public float pickupDistance = 2f;
@@ -46,9 +47,11 @@ public class BallController : NetworkRigidbody {
     private float collidingSpeed;
     private float circumference;
     public float radius;
+    public VisualEffect[] ballBounceEffects;
+    public Transform goalExplosionEffectsWrapper;
 
     private Queue<float> VelocityMeasurements = new Queue<float>();
-
+    private bool spawned;
     private float lastMeasured = 0;
     private void MeasureVelocity() {
         float time = Time.time;
@@ -68,7 +71,7 @@ public class BallController : NetworkRigidbody {
 
     public override void Spawned() {
         base.Spawned();
-
+        spawned = true;
         GameState.Dispatch(GameState.SetBall, this, () => {});
 
         rigidBody.maxAngularVelocity = spinMaxAngularVelocity * 10;
@@ -103,6 +106,19 @@ public class BallController : NetworkRigidbody {
         isColliding = true;
         Vector3 surfaceNormal = GetNearestSurfaceNormal();
         collidingSpeed = getVelocity() * (1f - (float)Math.Pow(10000, -(1f - Vector3.Cross(surfaceNormal, rigidBody.velocity.normalized).magnitude)));
+    
+        float x = Math.Clamp(collidingSpeed / spinGroundFullGripVelocity, 0, 1);
+        if(x > 0.2) {
+            VisualEffect effect = Instantiate(ballBounceEffects[(int)Math.Ceiling(x * 10) - 1]);
+            effect.gameObject.SetActive(true);
+            effect.enabled = true;
+            effect.transform.parent = null;
+            effect.transform.position = c.contacts[0].point;
+            effect.transform.rotation = Quaternion.FromToRotation(transform.up, c.contacts[0].normal) * transform.rotation;
+            effect.SendEvent("Burst");
+            Destroy(effect.gameObject, 10);
+        }
+
     }
 
     private bool previousIsColliding;
@@ -199,33 +215,34 @@ public class BallController : NetworkRigidbody {
     }
 
     public void Update() {
-        if(isAttached && ballModel.gameObject.activeSelf) {
-            ballModel.gameObject.SetActive(false);
-        }
-        if(!isAttached && !ballModel.gameObject.activeSelf){
-            ballModel.gameObject.SetActive(true);
-        }
-
-        if(spinCapacityLeft > 0) {
-            if(!ballSpinsContainer.gameObject.activeSelf) {
-                ballSpinsContainer.gameObject.SetActive(true);
+        if(spawned) {
+            if(isAttached && ballModel.gameObject.activeSelf) {
+                ballModel.gameObject.SetActive(false);
             }
-            
-            float left = 1f - (float)Math.Pow(100f, 1f - (spinCapacityLeft / spinForceCapacity) - 1f);
-            ballSpinRenderer1.material.SetFloat("_increase_strength", left * 0.8f);
-            ballSpinRenderer2.material.SetFloat("_increase_strength", left * 0.9f);
-            ballSpinRenderer3.material.SetFloat("_increase_strength", left * 0.95f);
-            ballSpinRenderer4.material.SetFloat("_increase_strength", left * 1f);
-            ballSpinRenderer5.material.SetFloat("_increase_strength", left * 1f);
-            ballSpinRenderer6.material.SetFloat("_increase_strength", left * 0.95f);
-            ballSpinRenderer7.material.SetFloat("_increase_strength", left * 0.9f);
-            ballSpinRenderer8.material.SetFloat("_increase_strength", left * 0.8f);
-            ballSpinsContainer.rotation = Quaternion.LookRotation(Rigidbody.angularVelocity.normalized, Vector3.up);
-        }
-        if(spinCapacityLeft == 0 && ballSpinsContainer.gameObject.activeSelf) {
-            ballSpinsContainer.gameObject.SetActive(false);
-        }
+            if(!isAttached && !ballModel.gameObject.activeSelf){
+                ballModel.gameObject.SetActive(true);
+            }
 
+            if(spinCapacityLeft > 0) {
+                if(!ballSpinsContainer.gameObject.activeSelf) {
+                    ballSpinsContainer.gameObject.SetActive(true);
+                }
+                
+                float left = 1f - (float)Math.Pow(100f, 1f - (spinCapacityLeft / spinForceCapacity) - 1f);
+                ballSpinRenderer1.material.SetFloat("_increase_strength", left * 0.8f);
+                ballSpinRenderer2.material.SetFloat("_increase_strength", left * 0.9f);
+                ballSpinRenderer3.material.SetFloat("_increase_strength", left * 0.95f);
+                ballSpinRenderer4.material.SetFloat("_increase_strength", left * 1f);
+                ballSpinRenderer5.material.SetFloat("_increase_strength", left * 1f);
+                ballSpinRenderer6.material.SetFloat("_increase_strength", left * 0.95f);
+                ballSpinRenderer7.material.SetFloat("_increase_strength", left * 0.9f);
+                ballSpinRenderer8.material.SetFloat("_increase_strength", left * 0.8f);
+                ballSpinsContainer.rotation = Quaternion.LookRotation(Rigidbody.angularVelocity.normalized, Vector3.up);
+            }
+            if(spinCapacityLeft == 0 && ballSpinsContainer.gameObject.activeSelf) {
+                ballSpinsContainer.gameObject.SetActive(false);
+            }
+        }
     }
 
          
@@ -262,6 +279,20 @@ public class BallController : NetworkRigidbody {
             }
             isAttached = false;
         }
+    }
+
+    public void Explode(Team scoredAt) {
+        Transform effectWrapper = Instantiate(goalExplosionEffectsWrapper);
+        effectWrapper.transform.parent = null;
+        effectWrapper.gameObject.SetActive(true);
+        effectWrapper.position = transform.position;
+        effectWrapper.rotation = Quaternion.Euler(0f, scoredAt == Team.Red ? 0f : 180f, 0f);
+        for (int i = 0; i < effectWrapper.childCount; i++) {
+            Transform child = effectWrapper.GetChild(i);
+            child.gameObject.SetActive(true);
+            child.GetComponent<VisualEffect>().SendEvent("Burst");
+        }
+        Destroy(effectWrapper.gameObject, 6);
     }
 
 
