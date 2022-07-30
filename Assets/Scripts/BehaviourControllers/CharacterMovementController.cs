@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Fusion;
 using UnityEngine;
+using UnityEngine.VFX;
 
 [OrderBefore(typeof(NetworkTransform))]
 [DisallowMultipleComponent]
@@ -37,6 +38,7 @@ public class CharacterMovementController : NetworkBehaviour {
     public CharacterCameraController cameraController;
     public LocalCharacterMovementController localCharacterMovementController;
     public BallGunController ballGunController;
+    public VisualEffect boostEffect;
 
 
     [HideInInspector][Networked]public Vector3 Velocity { get; set; }
@@ -149,7 +151,7 @@ public class CharacterMovementController : NetworkBehaviour {
     private bool previousClientHitGround = false;
     private float previousClientBoostRemaining = 0;
 
-
+    private bool startedBoostEffect = false;
     public override void FixedUpdateNetwork() {
 
         if(Object.HasStateAuthority) {
@@ -179,31 +181,7 @@ public class CharacterMovementController : NetworkBehaviour {
             float delta = Runner.DeltaTime;
 
 
-            /*
-            * Jump
-            */
-            if(
-                clientJump &&
-                Controller.isGrounded
-            ) {
-                Velocity = Utils.Jump(
-                    delta,
-                    Velocity,
-                    Controller,
-                    jumpImpulse
-                );
-                jumpReceived = true;
-            }
 
-            /*
-            * Reset jump
-            */
-            if(
-                previousClientJump == true &&
-                !clientJump
-            ) {
-                jumpReceived = false;
-            }
 
             
             /*
@@ -227,6 +205,7 @@ public class CharacterMovementController : NetworkBehaviour {
                     Velocity = v;
                 }
                 dashReceived = true;
+                RPC_ExecuteEffect(2);
             }
 
 
@@ -239,7 +218,34 @@ public class CharacterMovementController : NetworkBehaviour {
             ) {
                 dashReceived = false;
             }
+            
+            /*
+            * Jump
+            */
+            if(
+                clientJump
+            ) {
+                if(Controller.isGrounded) {
+                    Velocity = Utils.Jump(
+                        delta,
+                        Velocity,
+                        Controller,
+                        jumpImpulse
+                    );
+                    RPC_ExecuteEffect(3);
+                }
+                jumpReceived = true;
+            }
 
+            /*
+            * Reset jump
+            */
+            if(
+                previousClientJump == true &&
+                !clientJump
+            ) {
+                jumpReceived = false;
+            }
             /*
             * Boost
             */
@@ -247,6 +253,12 @@ public class CharacterMovementController : NetworkBehaviour {
                 clientJump &&
                 !Controller.isGrounded
             ) {
+
+                if(boostRemainingPercentage > 0 && !startedBoostEffect) {
+                    RPC_ExecuteEffect(0);
+                    startedBoostEffect = true;
+                    Debug.Log("start remote");
+                }
                 (float b, Vector3 v) = Utils.Boost(
                     delta,
                     Velocity,
@@ -259,21 +271,20 @@ public class CharacterMovementController : NetworkBehaviour {
                 Velocity = v;
             }
 
-            /*
-            * Recharge boost
-            */
-            if(
-                Controller.isGrounded &&
-                (!clientSprint || movement.magnitude == 0 || ballGunController.isCarrying)
-            ) {
-                boostRemainingPercentage = Utils.RechargeBoost(
-                    delta,
-                    Controller,
-                    boostRemainingPercentage,
-                    boostRechargeSpeed
-                );
+            if(startedBoostEffect && !clientJump) {
+                RPC_ExecuteEffect(1);
+                startedBoostEffect = false;
+                Debug.Log("stop remote1");
             }
-                        
+
+
+            if(boostRemainingPercentage <= 0 && startedBoostEffect) {
+                RPC_ExecuteEffect(1);
+                                Debug.Log("stop remote2");
+
+                startedBoostEffect = false;
+            }
+
 
 
             /*
@@ -318,6 +329,23 @@ public class CharacterMovementController : NetworkBehaviour {
                 );
 
             }
+
+            /*
+            * Recharge boost
+            */
+            if(
+                Controller.isGrounded &&
+                (!clientSprint || movement.magnitude == 0 || ballGunController.isCarrying)
+            ) {
+                boostRemainingPercentage = Utils.RechargeBoost(
+                    delta,
+                    Controller,
+                    boostRemainingPercentage,
+                    boostRechargeSpeed
+                );
+            }
+                        
+
 
             /*
             * Hit ground
@@ -400,6 +428,37 @@ public class CharacterMovementController : NetworkBehaviour {
             previousClientHitGround = clientHitGround;
         }
     }
+
+
+    [Rpc(sources: RpcSources.StateAuthority, targets: RpcTargets.All, InvokeLocal = true, HostMode = RpcHostMode.SourceIsHostPlayer)]
+    public void RPC_ExecuteEffect(int effectType, RpcInfo info = default){
+        if(!Object.HasInputAuthority) {
+            switch(effectType) {
+                case 0: {
+                    Debug.Log("start client");
+                    boostEffect.SendEvent("StartContinuousWorldSpace");
+                    break;
+                }
+                case 1: {
+                    Debug.Log("stop client");
+                    boostEffect.SendEvent("StopContinuousWorldSpace");
+                    break;
+                }
+                case 2: {
+                    //dash
+                    break;
+                }
+                case 3: {
+                   // jump
+                    break;
+                }
+                default: {
+                    break;
+                }
+            }
+        }
+    }
+
 
     public void Push(Vector3 force) {
         Velocity += force;

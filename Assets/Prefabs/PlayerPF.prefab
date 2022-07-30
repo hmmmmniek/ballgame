@@ -5097,7 +5097,6 @@ MonoBehaviour:
   playerController: {fileID: 5165869480873457305}
   ballAnchor: {fileID: 3469899950231842776}
   ballModel: {fileID: 4133029749192927420}
-  shielding: 0
   ball: {fileID: 0}
   ballShootEffects:
   - {fileID: 1497279711822233818}
@@ -5128,6 +5127,7 @@ MonoBehaviour:
   _kickReceived: 0
   _suckReceived: 0
   _attracting: 0
+  _shielding: 0
 --- !u!114 &4484996767883745320
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5806,6 +5806,7 @@ Transform:
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
+  - {fileID: 1241516576024181286}
   - {fileID: 8990425638556954117}
   m_Father: {fileID: 5546142575768271613}
   m_RootOrder: -1
@@ -8322,6 +8323,371 @@ VFXRenderer:
   m_PrefabInstance: {fileID: 0}
   m_PrefabAsset: {fileID: 0}
   m_GameObject: {fileID: 6021673039194335356}
+  m_Enabled: 1
+  m_CastShadows: 1
+  m_ReceiveShadows: 0
+  m_DynamicOccludee: 1
+  m_StaticShadowCaster: 0
+  m_MotionVectors: 0
+  m_LightProbeUsage: 0
+  m_ReflectionProbeUsage: 0
+  m_RayTracingMode: 0
+  m_RayTraceProcedural: 0
+  m_RenderingLayerMask: 1
+  m_RendererPriority: 0
+  m_StaticBatchInfo:
+    firstSubMesh: 0
+    subMeshCount: 0
+  m_StaticBatchRoot: {fileID: 0}
+  m_ProbeAnchor: {fileID: 0}
+  m_LightProbeVolumeOverride: {fileID: 0}
+  m_ScaleInLightmap: 1
+  m_ReceiveGI: 1
+  m_PreserveUVs: 0
+  m_IgnoreNormalsForChartDetection: 0
+  m_ImportantGI: 0
+  m_StitchLightmapSeams: 1
+  m_SelectedEditorRenderState: 3
+  m_MinimumChartSize: 4
+  m_AutoUVMaxDistance: 0.5
+  m_AutoUVMaxAngle: 89
+  m_LightmapParameters: {fileID: 0}
+  m_SortingLayerID: 0
+  m_SortingLayer: 0
+  m_SortingOrder: 0
+--- !u!1 &6261488503799153324
+GameObject:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  serializedVersion: 6
+  m_Component:
+  - component: {fileID: 1241516576024181286}
+  - component: {fileID: 8936070865309663573}
+  - component: {fileID: 682311846840396545}
+  m_Layer: 0
+  m_Name: BoostEffect
+  m_TagString: Untagged
+  m_Icon: {fileID: 0}
+  m_NavMeshLayer: 0
+  m_StaticEditorFlags: 0
+  m_IsActive: 1
+--- !u!4 &1241516576024181286
+Transform:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6261488503799153324}
+  m_LocalRotation: {x: 1, y: -0, z: -0, w: 0}
+  m_LocalPosition: {x: 0, y: -1.39, z: 0.08}
+  m_LocalScale: {x: 1, y: 1, z: 1}
+  m_ConstrainProportionsScale: 0
+  m_Children: []
+  m_Father: {fileID: 8624380541951960274}
+  m_RootOrder: -1
+  m_LocalEulerAnglesHint: {x: 180, y: 0, z: 0}
+--- !u!2083052967 &8936070865309663573
+VisualEffect:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6261488503799153324}
+  m_Enabled: 1
+  m_Asset: {fileID: 8926484042661614526, guid: ab35fd33a574ea356a8eb5a2e3aa07b5, type: 3}
+  m_InitialEventName: OnPlay
+  m_InitialEventNameOverriden: 0
+  m_StartSeed: 0
+  m_ResetSeedOnPlay: 1
+  m_AllowInstancing: 1
+  m_ResourceVersion: 1
+  m_PropertySheet:
+    m_Float:
+      m_Array:
+      - m_Value: 6
+        m_Name: Size
+        m_Overridden: 1
+      - m_Value: 7
+        m_Name: max velocity
+        m_Overridden: 1
+      - m_Value: 2
+        m_Name: lifetime
+        m_Overridden: 1
+      - m_Value: 2
+        m_Name: lifetime 2
+        m_Overridden: 1
+      - m_Value: 1
+        m_Name: _pressure
+        m_Overridden: 1
+      - m_Value: 70
+        m_Name: Ground up force
+        m_Overridden: 1
+      - m_Value: 0.0001
+        m_Name: drag
+        m_Overridden: 1
+      - m_Value: 0.0001
+        m_Name: drag 2
+        m_Overridden: 1
+      - m_Value: 12
+        m_Name: Continuous Spawn rate
+        m_Overridden: 1
+      - m_Value: 0.2
+        m_Name: Smoke movement speed
+        m_Overridden: 1
+    m_Vector2f:
+      m_Array: []
+    m_Vector3f:
+      m_Array: []
+    m_Vector4f:
+      m_Array: []
+    m_Uint:
+      m_Array: []
+    m_Int:
+      m_Array: []
+    m_Matrix4x4f:
+      m_Array: []
+    m_AnimationCurve:
+      m_Array:
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 1
+            value: 1
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: velocity curve depth
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0.3
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 0.3
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: velocity curve spread
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 100
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1
+            value: 100
+            inSlope: 0
+            outSlope: 0
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: turbulence curve
+        m_Overridden: 0
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0.0020184517
+            value: 0.2066336
+            inSlope: 0.39165232
+            outSlope: 0.39165232
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 0.31816325
+            value: 0.33045244
+            inSlope: 0.77348083
+            outSlope: 0.77348083
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.9916687
+            value: 0.9849243
+            inSlope: 0.9717396
+            outSlope: 0.9717396
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: size curve
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: 0
+            value: 0
+            inSlope: 2
+            outSlope: 2
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0
+          - serializedVersion: 3
+            time: 0.10383669
+            value: 0.48390663
+            inSlope: -0.025057795
+            outSlope: -0.025057795
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0.09806263
+          - serializedVersion: 3
+            time: 0.553697
+            value: 0.11788629
+            inSlope: -0.58920825
+            outSlope: -0.58920825
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.14898923
+            outWeight: 0.13961756
+          - serializedVersion: 3
+            time: 0.9947998
+            value: -0.0037454367
+            inSlope: -0.36509436
+            outSlope: -0.36509436
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.2717437
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: visibility curve
+        m_Overridden: 1
+      - m_Value:
+          serializedVersion: 2
+          m_Curve:
+          - serializedVersion: 3
+            time: -0.005407721
+            value: 0.19026734
+            inSlope: 0.021437082
+            outSlope: 0.021437082
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0
+            outWeight: 0.25343135
+          - serializedVersion: 3
+            time: 0.718478
+            value: 0.32686067
+            inSlope: 0.4632134
+            outSlope: 0.4632134
+            tangentMode: 0
+            weightedMode: 0
+            inWeight: 0.19098052
+            outWeight: 0.33333334
+          - serializedVersion: 3
+            time: 1.0002782
+            value: 0.69577575
+            inSlope: 1.309137
+            outSlope: 1.309137
+            tangentMode: 34
+            weightedMode: 0
+            inWeight: 0.33333334
+            outWeight: 0
+          m_PreInfinity: 2
+          m_PostInfinity: 2
+          m_RotationOrder: 4
+        m_Name: visibility curve 2
+        m_Overridden: 1
+    m_Gradient:
+      m_Array:
+      - m_Value:
+          serializedVersion: 2
+          key0: {r: 0, g: 20.617748, b: 61.165394, a: 1}
+          key1: {r: 68.631294, g: 6.193665, b: 0, a: 1}
+          key2: {r: 4.7622976, g: 0.42057917, b: 0, a: 0}
+          key3: {r: 1.7848756, g: 0.034254503, b: 0, a: 0}
+          key4: {r: 0.18867922, g: 0.0062299697, b: 0.002669984, a: 0}
+          key5: {r: 0, g: 0, b: 0, a: 0}
+          key6: {r: 0, g: 0, b: 0, a: 0}
+          key7: {r: 1, g: 1, b: 1, a: 0}
+          ctime0: 802
+          ctime1: 3344
+          ctime2: 6152
+          ctime3: 8560
+          ctime4: 13374
+          ctime5: 17654
+          ctime6: 22870
+          ctime7: 65535
+          atime0: 0
+          atime1: 65535
+          atime2: 65535
+          atime3: 65535
+          atime4: 0
+          atime5: 0
+          atime6: 0
+          atime7: 0
+          m_Mode: 0
+          m_ColorSpace: 1
+          m_NumColorKeys: 8
+          m_NumAlphaKeys: 2
+        m_Name: New Gradient
+        m_Overridden: 1
+    m_NamedObject:
+      m_Array: []
+    m_Bool:
+      m_Array: []
+--- !u!73398921 &682311846840396545
+VFXRenderer:
+  serializedVersion: 1
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 6261488503799153324}
   m_Enabled: 1
   m_CastShadows: 1
   m_ReceiveShadows: 0
@@ -10903,6 +11269,7 @@ MonoBehaviour:
   cameraController: {fileID: 4587144850840075096}
   localCharacterMovementController: {fileID: 8538526669289445868}
   ballGunController: {fileID: 5538467927710914934}
+  boostEffect: {fileID: 8936070865309663573}
   _Velocity: {x: 0, y: 0, z: 0}
   _boostRemainingPercentage: 0
   _pushed: 0

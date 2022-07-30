@@ -39,8 +39,9 @@ public class LocalCharacterMovementController : MonoBehaviour {
         Velocity = networkMovementController.Velocity;
 
     }
-
+    private bool startedBoostEffect = false;
     private bool lastIsGrounded = false;
+    private bool previousJumpPressed = false;
     public void Update() {
 
         /*
@@ -73,39 +74,13 @@ public class LocalCharacterMovementController : MonoBehaviour {
             Synchronize();
         }
 
-        /*
-        * Jump
-        */
-        if(
-            InputHandler.instance.localInputDataCache.jumpPressed &&
-            Controller.isGrounded
-        ) {
-            Velocity = Utils.Jump(
-                deltaTime,
-                Velocity,
-                Controller,
-                networkMovementController.jumpImpulse
-            );
-            localJump = true;
-            lastJumpTime = Time.time;
-        }
 
-        /*
-        * Stop jump
-        */
-        if (
-            !InputHandler.instance.localInputDataCache.jumpPressed &&
-            localJump &&
-            networkMovementController.jumpReceived
-        ) {   
-            localJump = false;
-        }
 
         /*
         * Dash
         */
         if(
-            localJump == false &&
+            previousJumpPressed == false &&
             InputHandler.instance.localInputDataCache.jumpPressed &&
             Time.time - lastJumpTime < networkMovementController.dashTimeout &&
             boostRemainingPercentage >= networkMovementController.dashBoostUsage &&
@@ -139,7 +114,36 @@ public class LocalCharacterMovementController : MonoBehaviour {
             localDash = false;
         }
 
+        /*
+        * Jump
+        */
+        if(
+            InputHandler.instance.localInputDataCache.jumpPressed
+        ) {
+            if(Controller.isGrounded) {
+                Velocity = Utils.Jump(
+                    deltaTime,
+                    Velocity,
+                    Controller,
+                    networkMovementController.jumpImpulse
+                );
+                lastJumpTime = Time.time;
+            }
+            localJump = true;
+            
+        }
 
+        /*
+        * Stop jump
+        */
+        if (
+            !InputHandler.instance.localInputDataCache.jumpPressed &&
+            localJump &&
+            networkMovementController.jumpReceived
+        ) {   
+            localJump = false;
+        }
+        
         /*
         * Boost
         */
@@ -147,6 +151,10 @@ public class LocalCharacterMovementController : MonoBehaviour {
             InputHandler.instance.localInputDataCache.jumpPressed &&
             !Controller.isGrounded
         ) {
+            if(networkMovementController.boostRemainingPercentage > 0 && !startedBoostEffect) {
+                networkMovementController.boostEffect.SendEvent("StartContinuousWorldSpace");
+                startedBoostEffect = true;
+            }
             (float b, Vector3 v) = Utils.Boost(
                 deltaTime,
                 Velocity,
@@ -159,20 +167,17 @@ public class LocalCharacterMovementController : MonoBehaviour {
             Velocity = v;
         }
 
-        /*
-        * Recharge boost
-        */
-        if(
-            Controller.isGrounded &&
-            (!InputHandler.instance.localInputDataCache.sprintPressed || InputHandler.instance.networkInputDataCache.movementInput.magnitude == 0 || networkMovementController.ballGunController.isCarrying)
-        ) {
-            boostRemainingPercentage = Utils.RechargeBoost(
-                deltaTime,
-                Controller,
-                boostRemainingPercentage,
-                networkMovementController.boostRechargeSpeed
-            );
+        if(startedBoostEffect && !InputHandler.instance.localInputDataCache.jumpPressed) {
+            networkMovementController.boostEffect.SendEvent("StopContinuousWorldSpace");
+            startedBoostEffect = false;
         }
+
+        if(networkMovementController.boostRemainingPercentage <= 0 && startedBoostEffect) {
+            networkMovementController.boostEffect.SendEvent("StopContinuousWorldSpace");
+            startedBoostEffect = false;
+        }
+
+
 
         /*
         * Move
@@ -198,6 +203,21 @@ public class LocalCharacterMovementController : MonoBehaviour {
         );
         Velocity = v2;
         boostRemainingPercentage = b2;
+
+        /*
+        * Recharge boost
+        */
+        if(
+            Controller.isGrounded &&
+            (!InputHandler.instance.localInputDataCache.sprintPressed || InputHandler.instance.networkInputDataCache.movementInput.magnitude == 0 || networkMovementController.ballGunController.isCarrying)
+        ) {
+            boostRemainingPercentage = Utils.RechargeBoost(
+                deltaTime,
+                Controller,
+                boostRemainingPercentage,
+                networkMovementController.boostRechargeSpeed
+            );
+        }
 
         if(
             (MatchController.instance.state == State.ScoredCountDown || MatchController.instance.state == State.ScoredReset) &&
@@ -247,6 +267,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
 
 
         lastIsGrounded = Controller.isGrounded;
+        previousJumpPressed = InputHandler.instance.localInputDataCache.jumpPressed;
     }
 
     public void Teleport(Vector3 position) {
