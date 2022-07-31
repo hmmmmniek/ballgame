@@ -39,6 +39,7 @@ public class CharacterMovementController : NetworkBehaviour {
     public LocalCharacterMovementController localCharacterMovementController;
     public BallGunController ballGunController;
     public VisualEffect boostEffect;
+    public VisualEffect jumpEffect;
 
 
     [HideInInspector][Networked]public Vector3 Velocity { get; set; }
@@ -218,7 +219,7 @@ public class CharacterMovementController : NetworkBehaviour {
             ) {
                 dashReceived = false;
             }
-            
+
             /*
             * Jump
             */
@@ -435,21 +436,19 @@ public class CharacterMovementController : NetworkBehaviour {
         if(!Object.HasInputAuthority) {
             switch(effectType) {
                 case 0: {
-                    Debug.Log("start client");
                     boostEffect.SendEvent("StartContinuousWorldSpace");
                     break;
                 }
                 case 1: {
-                    Debug.Log("stop client");
                     boostEffect.SendEvent("StopContinuousWorldSpace");
                     break;
                 }
                 case 2: {
-                    //dash
+                    boostEffect.SendEvent("Burst");
                     break;
                 }
                 case 3: {
-                   // jump
+                    jumpEffect.SendEvent("Burst");
                     break;
                 }
                 default: {

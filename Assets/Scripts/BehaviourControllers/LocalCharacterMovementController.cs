@@ -99,6 +99,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
             if(v.magnitude > 0) {
                 Velocity = v;
             }
+            networkMovementController.boostEffect.SendEvent("Burst");
 
             localDash = true;
         }
@@ -128,6 +129,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
                     networkMovementController.jumpImpulse
                 );
                 lastJumpTime = Time.time;
+                networkMovementController.jumpEffect.SendEvent("Burst");
             }
             localJump = true;
             
@@ -143,7 +145,7 @@ public class LocalCharacterMovementController : MonoBehaviour {
         ) {   
             localJump = false;
         }
-        
+
         /*
         * Boost
         */
